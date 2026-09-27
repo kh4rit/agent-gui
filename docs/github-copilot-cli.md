@@ -131,6 +131,7 @@ The agent should call `gui_connect`, `gui_step` and `gui_table`.
 | `copilot mcp list` shows the server but no tools | The server crashed at startup: run `node …\dist\index.js --check` manually; config errors go to stderr. |
 | `Could not connect` / timeout | Host or port wrong, or a firewall. Use the application server and instance from SAP Logon. Message-server logons (logon groups) and SAProuter strings are not supported yet. |
 | `logon suspended` | A logon was rejected: `--set-password` (or `--reset-logon`) after checking the password. |
+| `--set-password` or a `${credential}` logon fails with a PowerShell / Add-Type error | The machine runs PowerShell in Constrained Language Mode, which blocks the Credential Manager helper. Use `"password": "${env:SAP_DEV_PASSWORD}"` and set that variable for the Copilot CLI process (the `env` of the MCP registration, or your user environment). |
 | `already logged on` | Set `whenAlreadyLoggedOn` to `continue`, or log off the other session. |
 | A transaction is refused | It is on the deny list or not on the allow list of that system. |
 

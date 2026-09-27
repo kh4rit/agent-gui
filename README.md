@@ -19,8 +19,9 @@ application server's dispatcher port directly. It is the sibling of
 [agent-adt](https://github.com/kh4rit/agent-adt) (ABAP code over ADT) and runs the same way:
 Node.js, one `npm install`, stdio MCP.
 
-The DIAG engine is a TypeScript port of the portable modules of the Swooey project, an open-source
-clean-room DIAG client ([docs/porting.md](docs/porting.md)).
+The DIAG engine is a TypeScript port of the portable modules of Swooey, a clean-room DIAG client by
+the same author, written only from public protocol information (MIT; not published yet). See
+[docs/porting.md](docs/porting.md).
 
 ## Requirements
 

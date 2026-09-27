@@ -1,0 +1,5 @@
+# Keep LF everywhere: the byte vectors and scenarios must stay byte-exact on Windows checkouts
+# (Git for Windows converts to CRLF by default).
+* text=auto eol=lf
+*.vec text eol=lf
+*.scenario text eol=lf

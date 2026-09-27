@@ -104,7 +104,7 @@ $target = [Console]::In.ReadLine()
 $user = [Console]::In.ReadLine()
 if ($op -eq 'read') {
   $b = [AgentGuiCred]::Read($target)
-  if ($b -eq $null) { exit 3 }
+  if ($null -eq $b) { exit 3 }
   [Console]::Out.Write([Convert]::ToBase64String($b))
 } elseif ($op -eq 'write') {
   $b = [Convert]::FromBase64String([Console]::In.ReadLine())

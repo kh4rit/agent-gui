@@ -81,16 +81,16 @@ The scenario is EWM, but nothing in agent-gui or its skill is module-specific: t
 
 ## 3. What the scenario needs from the engine
 
-Status of Swooey's implementation (and so of the port) on 2026-09-27. "Live" means confirmed on a real system.
+Status of Swooey's implementation (and so of the port) on 2026-09-27. "Live" means confirmed on a real system. `SW-NNN` names an issue in Swooey's tracker (Swooey is not public yet).
 
 | Step | Screens and protocol features | Swooey status | Open points |
 |---|---|---|---|
-| Log on | logon step, multiple-logon popup, password-expired detection | ✅ live with the `reference` identity; multiple-logon popup built | #148, #149; password change not built |
-| Read the request | SE16 on E070/E071/E071K with standard-list output (preferred), or SE09/SE10 | lists decode; start-menu tree and grid double-click live | list paging `P+` (#111); ALV paging (#89); SE09's tree not seen (#88) |
-| Read warehouse A's entries | SM30/SM34 display, the "Determine Work Area" popup, table-control paging | fake server only | #110 table-control items, #112 popups, #109 tabstrips |
-| Find the IMG activity | SPRO tree: read, expand, find, execute | trees render from their data tables; node event 25 live | #88 IMG tree, #84 expand and item click, #170/#171 front-end data path |
-| Create warehouse B's entries | New Entries / Copy As, cell edits, row marks, Enter checks | fake server only | #55 `/NN` function keys (only `/08` live), #34, #107/#108/#115 |
-| Save into the request | Save, the customizing-request popup, request F4, status message | fake server only | #112, #114, #113 |
+| Log on | logon step, multiple-logon popup, password-expired detection | ✅ live with the `reference` identity; multiple-logon popup built | SW-148, SW-149; password change not built |
+| Read the request | SE16 on E070/E071/E071K with standard-list output (preferred), or SE09/SE10 | lists decode; start-menu tree and grid double-click live | list paging `P+` (SW-111); ALV paging (SW-89); SE09's tree not seen (SW-88) |
+| Read warehouse A's entries | SM30/SM34 display, the "Determine Work Area" popup, table-control paging | fake server only | SW-110 table-control items, SW-112 popups, SW-109 tabstrips |
+| Find the IMG activity | SPRO tree: read, expand, find, execute | trees render from their data tables; node event 25 live | SW-88 IMG tree, SW-84 expand and item click, SW-170/SW-171 front-end data path |
+| Create warehouse B's entries | New Entries / Copy As, cell edits, row marks, Enter checks | fake server only | SW-55 `/NN` function keys (only `/08` live), SW-34, SW-107/SW-108/SW-115 |
+| Save into the request | Save, the customizing-request popup, request F4, status message | fake server only | SW-112, SW-114, SW-113 |
 | Verify | re-read B's entries and the request keys | as above | as above |
 
 **Where the open points get settled.** The owner runs agent-gui itself on the target system. A structure-only trace (§5.4) turns what the server sent into fixes and fake-server scenarios.
@@ -271,8 +271,8 @@ The `trace` option records what the server sent, for fixes to the open points of
 
 | # | Risk | Severity | Mitigation |
 |---|---|---|---|
-| R1 | Control-framework gaps block the SPRO tree (#84, #88, #170, #171) | High | Read and write value first; SM30/SM34 fallback; the trace (§5.4) feeds fixes from the target system. |
-| R2 | Table-control readings are invented (#110) and `/NN` keys untried (#55) | High | First live runs on the target system in display mode; the trace; scenario and test per finding. |
+| R1 | Control-framework gaps block the SPRO tree (SW-84, SW-88, SW-170, SW-171) | High | Read and write value first; SM30/SM34 fallback; the trace (§5.4) feeds fixes from the target system. |
+| R2 | Table-control readings are invented (SW-110) and `/NN` keys untried (SW-55) | High | First live runs on the target system in display mode; the trace; scenario and test per finding. |
 | R3 | Porting mistakes (value semantics, integer widths) | High | File-by-file port with the Swift tests and the vectors; end-to-end runs against Swooey's fake server. |
 | R4 | The agent writes wrong customizing | High | Plan-then-confirm in the skill; `gui_save` always asks; sandbox client first; audit log; everything in a request that is reviewed before release. |
 | R5 | The target system expects another client identity | Medium | `identity` per system; `--check` reports the server's answer. |

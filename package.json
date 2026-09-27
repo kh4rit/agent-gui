@@ -39,6 +39,9 @@
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
+    "docs",
+    "examples",
     "skills",
     "!dist/test"
   ],

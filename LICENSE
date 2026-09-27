@@ -1,6 +1,11 @@
 MIT License
 
 Copyright (c) 2026 Vasilii Kharitonov
+Copyright (c) 2026 The Swooey authors
+
+The DIAG engine (src/diag), its tests (src/test/diag, src/test/support, src/test/vectors) and the
+byte vectors (test/vectors) are ported or copied from Swooey, a clean-room DIAG client published
+under this same licence by The Swooey authors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
