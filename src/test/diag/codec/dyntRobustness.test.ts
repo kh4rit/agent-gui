@@ -4,6 +4,9 @@
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
 import {
+  ClientItem,
+  ClientMessageEncoder,
+  Decompression,
   DiagMessage,
   DiagMessageDecodingError,
   DyntAtomDiagnostics,
@@ -27,13 +30,13 @@ import {
   type DyntPayload,
   type KnownDyntElementKind
 } from "../../../diag/codec/index.js"
-import { ByteWriter, NIFrameEncoder, NIKeepAlive, bytesEqual, classifyNIPayload } from "../../../diag/wire/index.js"
+import { ByteWriter, DPTerminalName, NIFrameEncoder, NIKeepAlive, bytesEqual, classifyNIPayload } from "../../../diag/wire/index.js"
 import { dyntAtomWalkErrorClass } from "../../vectors/dyntRunners.js"
 import { PENDING_KINDS } from "../../vectors/kinds.js"
 import { loadVector, vectorFiles } from "../../vectors/paths.js"
 import { runVector } from "../../vectors/registry.js"
 import { decodeStream } from "../../vectors/wireRunners.js"
-import { appl4, ascii, attempt, cat, walkItems } from "../../support/codecTestSupport.js"
+import { appl4, ascii, attempt, cat, walkItems, zzTestIdentity } from "../../support/codecTestSupport.js"
 import { ZZScreen, field1Content, field2Content, rawAtom, tabstripContent, walkAtoms } from "../../support/dyntTestSupport.js"
 import { SeededGenerator } from "../../support/seededGenerator.js"
 
@@ -350,7 +353,23 @@ describe("DYNT robustness", () => {
     for (let round = 0; round < 500; round++) assert.deepEqual(atomsInStream(stream, generator.cuts(stream.length)), reference)
   })
 
-  // atomsThroughACompressedMessage: needs ClientMessages.swift (next wave)
+  /** DYNT atoms inside an LZH-compressed message: decompressed, walked, the same atoms. */
+  test("atomsThroughACompressedMessage", () => {
+    const encoder = new ClientMessageEncoder(zzTestIdentity(), DPTerminalName.empty, "lzh")
+    const payload = encoder.dialogMessage([ClientItem.dyntAtom(ZZScreen.atoms)])
+    const message = DiagMessage.parse(payload)
+    if (message.body.kind !== "compressed" || message.body.isErrorBody) assert.fail("expected a compressed body")
+    const items = Decompression.decompress(message.body.data.of(payload), message.body.header)
+    const carrier = walkItems(items).items.find(item => item.appl !== undefined && applItemCarriesDyntAtoms(item.appl))
+    assert.ok(carrier)
+    assert.equal(carrier.type, "appl4", "DYNT_ATOM goes as APPL4 (R-IT-10)")
+    const walked = DyntAtoms.walk(carrier.valueRange.of(items))
+    assert.equal(walked.error, undefined)
+    assert.deepEqual(
+      walked.atoms.map(atom => atom.etype),
+      walkAtoms(ZZScreen.atoms).atoms.map(atom => atom.etype)
+    )
+  })
 })
 
 describe("DYNT vectors", () => {

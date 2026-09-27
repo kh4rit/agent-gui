@@ -6,6 +6,9 @@
 
 import {
   ApplItem,
+  ClientIdentity,
+  ClientMessageEncoder,
+  ClientMessageError,
   ComFlag,
   CompressField,
   CompressionHeader,
@@ -36,7 +39,7 @@ import {
   type DiagItemWalkErrorInfo,
   type ItemPayloadErrorInfo
 } from "../../diag/codec/index.js"
-import { ByteWriter, bytesEqual, hexByte, hexText } from "../../diag/wire/index.js"
+import { ByteWriter, DPHeader, DPTerminalName, bytesEqual, hexByte, hexText } from "../../diag/wire/index.js"
 import type { Expectations } from "./expectations.js"
 import { registerKind } from "./registry.js"
 import type { VectorFile } from "./vectorFile.js"
@@ -250,26 +253,43 @@ function runDiagHeader(input: Uint8Array, expect: Expectations, failures: string
   if (role !== undefined) checkClientHeader(role, header.compress.kind === "compressed", input, failures)
 }
 
-/** The client header of `role`, from the header patterns. */
+/** The client header of `role`, from the header patterns and from the message encoder. */
 function checkClientHeader(role: string, compressed: boolean, input: Uint8Array, failures: string[]): void {
+  // Invented identity values: the header bytes do not depend on them.
+  const identity = new ClientIdentity({ codePage: 0, wsType: 0, supportData: new SupportBits() })
+  const encoder = new ClientMessageEncoder(identity, DPTerminalName.empty, compressed ? "lzh" : "off")
   let pattern: DiagHeader
+  let message: Uint8Array | undefined
   switch (role) {
     case "first":
       pattern = DiagHeader.clientFirstMessage
+      message = attemptMessage(() => encoder.firstMessage().subarray(DPHeader.size))
       break
     case "later":
       pattern = DiagHeader.clientLaterMessage(compressed)
+      message = attemptMessage(() => encoder.dialogMessage([]))
       break
     case "close":
       pattern = DiagHeader.clientClose
+      message = ClientMessageEncoder.closeMessage
       break
     default:
       failures.push(`client_message: unknown role '${role}'`)
       return
   }
   if (!bytesEqual(pattern.bytes, input)) failures.push(`client_message ${role}: the header pattern is ${hexText(pattern.bytes)}`)
-  // Swift also checks the header `ClientMessageEncoder` writes (firstMessage, dialogMessage([]),
-  // closeMessage): needs ClientMessages.swift (next wave).
+  if (message === undefined || !bytesEqual(message.subarray(0, DiagHeader.size), input))
+    failures.push(`client_message ${role}: the message encoder writes a different header`)
+}
+
+/** Swift `try? encoder.…`: the message, or undefined when the encoder refuses it. */
+function attemptMessage(build: () => Uint8Array): Uint8Array | undefined {
+  try {
+    return build()
+  } catch (error) {
+    if (error instanceof ClientMessageError) return undefined
+    throw error
+  }
 }
 
 // MARK: diag-error-body
