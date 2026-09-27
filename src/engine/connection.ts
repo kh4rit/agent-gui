@@ -271,6 +271,7 @@ export class GuiConnection {
     if (!state) return
     state.notices = []
     if (control) {
+      this.trace(`   control traffic: ${control.summary}`)
       // A complete flush call builds or feeds controls; the handles of the session's answer name the
       // call's shells in later calls (issue #167).
       if (control.callBytes) {
@@ -306,6 +307,13 @@ export class GuiConnection {
     if (previous) screen.keepContent(previous)
     // What the message's window level keeps (Readings R-EL-13a, R-EL-22).
     state.carry.carry(screen, message.number)
+    this.trace(
+      `   screen ${screen.identity.program ?? "?"} ${screen.identity.screenNumber ?? "?"} tcode ${screen.identity.transaction ?? "-"}` +
+        `${screen.presentation.kind === "popup" ? " popup" : ""}: ${screen.elements.length} elements, ${screen.tables.length} tables` +
+        `${screen.list ? `, list ${screen.list.lines.length} lines` : ""}, ${state.scene.shells.size} shells` +
+        `${screen.statusMessage ? `, message type ${screen.statusMessage.type.kind}` : ""}${previous ? ", kept content" : ""}` +
+        `${screen.diagnostics.itemWalkStop ? ", item walk stopped" : ""}`
+    )
     state.screen = screen
     state.message = message
     state.revision++
