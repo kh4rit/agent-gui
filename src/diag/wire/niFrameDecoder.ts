@@ -6,8 +6,8 @@ import { NIFrameError, NIFraming, type NIFrame, type NIFrameErrorInfo } from "./
 /**
  * Incremental NI frame decoder (docs/protocol/ni-framing.md, "Reading a byte stream").
  *
- * Feed it TCP reads of any size with `append`, take complete frames with `nextFrame()`, and call
- * `finish()` when the peer closes the connection. The frames produced and the error reported do
+ * Feed it TCP reads of any size with `append`, take complete frames with `nextFrame()` (owned
+ * copy) or `withNextFrame(body)` (view), and call `finish()` when the peer closes the connection. The frames produced and the error reported do
  * not depend on how the bytes were split into reads (IMPL-NI-3).
  *
  * Nothing is allocated for a frame before its declared length has passed the cap check
@@ -83,6 +83,20 @@ export class NIFrameDecoder {
     const frame: NIFrame = { streamOffset: this.consumedByteCount, payload: this.storage.slice(start, start + length) }
     this.consume(NIFraming.lengthFieldSize + length)
     return frame
+  }
+
+  /**
+   * Removes the next complete frame and passes a view of its payload to `body`, without copying.
+   * Returns `body`'s result, or `undefined` when more bytes are needed (or the stream ended
+   * cleanly). The view is valid only inside `body`.
+   */
+  withNextFrame<Result>(body: (streamOffset: number, payload: Uint8Array) => Result): Result | undefined {
+    const length = this.nextFrameLength()
+    if (length === undefined) return undefined
+    const start = this.readIndex + NIFraming.lengthFieldSize
+    const result = body(this.consumedByteCount, this.storage.subarray(start, start + length))
+    this.consume(NIFraming.lengthFieldSize + length)
+    return result
   }
 
   // MARK: Internals
