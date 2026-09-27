@@ -1,0 +1,24 @@
+{
+  "defaultSystem": "DEV",
+  "systems": {
+    "DEV": {
+      "host": "sap-dev.example.com",
+      "instance": "00",
+      "client": "100",
+      "user": "YOURUSER",
+      "language": "EN",
+      "password": "${credential}",
+      "transactions": { "allow": ["SPRO", "SM30", "SM34", "SE16", "SE09", "SE10", "SE11"] },
+      "commitFunctions": ["BU"],
+      "whenAlreadyLoggedOn": "fail"
+    },
+    "QAS": {
+      "host": "sap-qas.example.com",
+      "instance": "00",
+      "client": "100",
+      "user": "YOURUSER",
+      "password": "${env:SAP_QAS_PASSWORD}",
+      "readOnly": true
+    }
+  }
+}

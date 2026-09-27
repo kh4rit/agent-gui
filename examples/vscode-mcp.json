@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "agent-gui": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["C:\\tools\\agent-gui\\dist\\index.js"],
+      "env": {
+        "AGENT_GUI_CONFIG": "C:\\Users\\youruser\\.agent-gui\\systems.json"
+      }
+    }
+  }
+}
