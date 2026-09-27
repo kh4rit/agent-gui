@@ -5,15 +5,19 @@
 // agent-gui's own ones).
 
 import { spawn, type ChildProcess } from "node:child_process"
-import { join } from "node:path"
+import { isAbsolute, join } from "node:path"
 
 export const fakeServerBinary: string | undefined = process.env.AGENT_GUI_FAKE_SERVER || undefined
 
 /** `skip` option for node:test: a reason when the fake server is not available. */
 export const skipWithoutFakeServer: string | false = fakeServerBinary ? false : "AGENT_GUI_FAKE_SERVER is not set (path of Swooey's fake-diag-server)"
 
-/** A scenario by name, or by file name in AGENT_GUI_SCENARIOS when it ends with `.scenario`. */
+/**
+ * A scenario by name, by file name in AGENT_GUI_SCENARIOS when it ends with `.scenario`, or by an
+ * absolute path to a `.scenario` file (a scenario a test wrote, src/test/support/screenSession.ts).
+ */
 export function scenarioArgument(scenario: string): string {
+  if (isAbsolute(scenario)) return scenario
   if (scenario.endsWith(".scenario") && process.env.AGENT_GUI_SCENARIOS) return join(process.env.AGENT_GUI_SCENARIOS, scenario)
   return scenario
 }
