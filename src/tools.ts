@@ -167,7 +167,7 @@ export function registerTools(server: McpServer, gui: GuiService) {
       title: "Fill in and submit the screen",
       description: [
         "One dialog step, as SAP GUI sends it: set any number of fields, then submit with exactly one trigger (Enter when none is given).",
-        "Fields are addressed by reference (f12), technical name (RSYST-BNAME) or label. Table-control cells go in `cells` (absolute row from 1, column by title, technical name or index); row marks in `marks`.",
+        "Fields are addressed by reference (f12), technical name (RSYST-BNAME), label, or as a table cell t1:ROW:COLUMN. Table-control cells go in `cells` (absolute row from 1 on the visible page, column by title, technical name or index); row marks in `marks`.",
         "Triggers: key (F1-F12 with Shift/Ctrl, PageDown, PageUp), function (k-reference, function code, or the visible text of a button or menu item), okcode (raw command-field text), choose (F2 on a field reference or a list line/column), valueHelp (F4 on a field).",
         "Saving is refused here: use gui_save. Returns what changed and the next screen."
       ].join(" "),
@@ -203,7 +203,7 @@ export function registerTools(server: McpServer, gui: GuiService) {
         key: z.string().optional().describe("Function key, e.g. F8, Shift+F2, Ctrl+F11, PageDown."),
         function: z.string().optional().describe("Function to fire: k-reference, function code, or its visible text."),
         okcode: z.string().optional().describe("Raw command-field text, e.g. =ZZASK or /n."),
-        choose: z.string().optional().describe("F2 (double-click) on this field reference."),
+        choose: z.string().optional().describe("F2 (double-click) on this field reference or table cell t1:ROW:COLUMN."),
         chooseLine: z.number().int().min(1).optional().describe("F2 on this list line (with chooseColumn)."),
         chooseColumn: z.number().int().min(0).optional(),
         valueHelp: z.string().optional().describe("F4 value help on this field reference."),

@@ -40,6 +40,9 @@ the [GitHub Copilot CLI guide](../../docs/github-copilot-cli.md).
 - **tables** `t…`: classic table controls (SM30 and similar). The table shows the visible page,
   and `gui_table` reads further rows. Cells are edited with `cells: [{ table: "t1", row: 14,
   column: "LGNUM", value: "B01" }]`, and rows are marked with `marks`.
+  - Wherever a field is expected (`edits`, `choose`, `valueHelp`, `cursor`), a cell can be named as
+    `t1:ROW:COLUMN`, for example `choose: "t1:3:Spot"`.
+  - Rows must be on the visible page: page with `key: "PageDown"`, or use the screen's position function.
 - **list:** classic list output (reports, SE16 standard list), read further with
   `gui_table table: "list"`. A line is chosen with `choose` (F2).
 - **controls** `c…`: trees (SPRO, Easy Access, transport organizer) and ALV grids. Use
@@ -123,3 +126,4 @@ For each view or view cluster from the request:
 | `logon suspended` | A logon was rejected before; the user must check the password (`agent-gui --set-password`). |
 | `not readable yet` control | That control type is not supported yet. Look for the same information in another transaction or a table (SE16). |
 | Message class and number | Show them to the user with the text. |
+| Something on the screen looks wrong or is missing | Tell the user. The configuration's `trace` option writes a structure-only protocol trace (no field values) that the maintainers can use. |

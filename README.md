@@ -127,7 +127,7 @@ complete. Everything the agent reads on a screen goes to the model provider.
 
 ## Status
 
-Early development (0.0.x). The DIAG engine is a file-by-file port of Swooey's Swift modules,
+0.1.0, the first release. The DIAG engine is a file-by-file port of Swooey's Swift modules,
 checked by their ported unit tests, Swooey's language-independent byte vectors and end-to-end runs
 against Swooey's loopback fake server. What is confirmed on live systems follows Swooey's own
 validation. Table controls, function keys other than Execute, and the IMG tree are still to be

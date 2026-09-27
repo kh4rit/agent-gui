@@ -64,6 +64,8 @@ New-Item -ItemType Directory -Force "$env:USERPROFILE\.agent-gui" | Out-Null
 | `whenAlreadyLoggedOn` | `fail` (default), `continue` (keep other logons) or `endOthers`. |
 | `identity` | What the client declares when it connects; `reference` (default) is the one known to work. |
 | `idleLogoffMinutes`, `maxSessions`, `stepTimeoutSeconds` | Session housekeeping (defaults 15, 2, 60). |
+| `audit` | `{ "enabled": true, "values": true }`: the step log in `~/.agent-gui/audit`; `values: false` leaves field values out. |
+| `trace` | A file for a structure-only protocol trace (screens, element counts, control traffic; no field values, no passwords), for reporting problems. |
 
 ## 4. Store the password and check the logon
 

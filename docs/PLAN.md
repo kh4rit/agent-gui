@@ -1,6 +1,6 @@
 # agent-gui — Project Plan
 
-**Status:** in implementation since 2026-09-27. **Licence:** MIT.
+**Status:** 0.1.0 implemented on 2026-09-27; live validation on the target system is next. **Licence:** MIT.
 **Target:** GitHub Copilot CLI on Windows (the same setup as agent-adt); any other MCP client works too.
 
 agent-gui is an MCP server that lets AI agents work in SAP GUI transactions. It speaks the DIAG protocol directly: no SAP GUI installation, no GUI Scripting and no screen scraping. It is the sibling of [agent-adt](https://github.com/kh4rit/agent-adt), which covers code over ADT/HTTP, and it follows agent-adt's route: a Node/TypeScript package installed with `git clone` + `npm install`.
@@ -222,16 +222,25 @@ The port runs in waves, following the dependency order of Swooey's modules. Each
 | Wave | Scope | Exit |
 |---|---|---|
 | **W0** | Scaffold, porting rules, DiagWire, the vector harness, the compression API | ✅ 31 wire vectors pass |
-| **W1** | DiagCompression (LZH/LZC decoders, LZH encoder); DiagCodec foundation: headers, items, APPL registry, session items, code pages, error text, DYNT atoms, walker, encoder | `decompress`, `compression-header`, `diag-header`, `diag-error-body`, `items`, `simple-item-fields`, `dynt-atoms` vectors pass |
-| **W2** | DiagCodec screen side (DYNT elements, identity, menus, GUI status, lists, table items, messages, UI events) and control side (RFC_TR, control calls, automation records, flush answers, DataManager, data provider) | screen and `rfc-items` vectors pass |
-| **W3** | DiagCodec client side (client messages, identity presets, client input, input envelope); DiagSession | `connect`, `support-bits`, `dialog-step` vectors pass; the session reaches the fake server's first screen |
-| **W4** | ScreenModel | Duck Pond navigation tests pass |
-| **W5** | `src/engine`: Node transport, session loop, logon, modes, table paging, control events | End to end against `fake-diag-server`: log on, start ZZPOND_CFG, page and edit its table, save, log off |
-| **W6** | Host: config, credentials, policy, audit, trace, snapshot, MCP tools, CLI | `--call` runs every tool against the fake server; unit tests on Windows and Linux CI |
-| **W7** | Skill, Copilot CLI guide, README, examples, CI | The acceptance recipe written down; CI green |
+| **W1** | DiagCompression (LZH/LZC decoders, LZH encoder); DiagCodec foundation: headers, items, APPL registry, session items, code pages, error text, DYNT atoms, walker, encoder | ✅ all their vectors pass |
+| **W2** | DiagCodec screen side (DYNT elements, identity, menus, GUI status, lists, table items, messages, UI events) and control side (RFC_TR, control calls, automation records, flush answers, DataManager, data provider) | ✅ screen and `rfc-items` vectors pass |
+| **W3** | DiagCodec client side (client messages, identity presets, client input, input envelope); DiagSession | ✅ logon, keep-alive and Control Framework answers end to end against the fake server |
+| **W4** | ScreenModel (controls and core) | ✅ the ScreenModel tests pass, the Duck Pond ones against the fake server |
+| **W5** | `src/engine`: Node transport, session loop, logon, modes, table paging, control events, agent view | ✅ log on, ZZPOND_CFG paged, edited and saved, trees and grids, lists, popups end to end |
+| **W6** | Host: config, credentials, policy, audit, trace, snapshot, MCP tools, CLI | ✅ 11 end-to-end tool tests through an MCP client; `--check`, `--call` and stdio checked |
+| **W7** | Skill, Copilot CLI guide, README, examples, CI | ✅ written; CI runs on Windows, Linux and macOS |
 | **Live** (owner) | agent-gui on the target system: read-only first, then writes in a sandbox client, then the scenario | The §0 scenario end to end in Copilot CLI, with the owner approving each `gui_save` |
 
 ---
+
+**Test totals on 2026-09-27:** 1,669 tests, all passing with Swooey's fake server; 41 skipped (the 40 Control Framework vectors Swooey does not run yet, and the opt-in credential-store test).
+
+**Next, on the target system (owner):**
+1. `--check`, then read-only work: SE16 on E070/E071/E071K, SM30 in display mode, the SPRO tree.
+2. Writes in a sandbox client with a test request.
+3. The acceptance scenario.
+
+The `trace` option records what the server sent, for fixes to the open points of §3.
 
 ## 7. Testing
 
