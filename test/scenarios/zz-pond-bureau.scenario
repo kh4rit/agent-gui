@@ -1,0 +1,120 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2026 The agent-gui authors
+# source: fake
+#
+# agent-gui's own scenario for Swooey's fake-diag-server (format: Swooey Tests/Scenarios/README.md).
+# Everything is invented (Duck Pond rules): the Pond Bureau of Customizing, where the pond rules are
+# saved into a request, as SAP asks for a transport request on saving customizing. The prompt's
+# request field is named ZZKO008-TRKORR, so that gui_save recognises it by its TRKORR suffix.
+
+scenario zz-pond-bureau
+summary "agent-gui: pond rules saved into a request through a request prompt (invented)"
+
+# The gate: the logon structure the logon step looks for (client 3, user 12, one invisible
+# password field, language 2), with the Bureau's own texts.
+screen zz-gate
+  supportdata zero
+  text DBNAME "ZZB"
+  text CLIENT "001"
+  text TCODE "ZZBUREAU" pad 20
+  ses screen-flag 0x21 rows 12 cols 60
+  areasize 12 60 12 60
+  text CUANAME "SAPMSYST" pad 20
+  text DYNPRONAME "SAPMSYST" pad 20
+  text CUASTATUS "ZZGATE" pad 20
+  text DYNPRONUMBER "0042"
+  menu MENU_KYB
+    entry "Leave by boat" position 1 0 0 0 flags SEL vkey 15 return 1
+  text SESSION_TITLE "The Pond Bureau of Customizing"
+  container reset id 0 row 0 col 0 width 0 height 0
+  atoms
+    label row 1 col 2 mlen 14 "Bureau desk"
+    input row 1 col 18 mlen 3 max 3 "001" fname "ZZGATE-DESK"
+    label row 3 col 2 mlen 14 "Clerk"
+    input row 3 col 18 mlen 12 max 12 "" pad 12 fname "ZZGATE-CLERK"
+    label row 5 col 2 mlen 14 "Stamp phrase"
+    input row 5 col 18 mlen 12 max 40 invisible fname "ZZGATE-STAMP"
+    label row 7 col 2 mlen 14 "Accent"
+    input row 7 col 18 mlen 2 max 2 "" pad 2 fname "ZZGATE-ACCENT"
+end
+
+screen zz-bureau
+  text DBNAME "ZZB"
+  text CLIENT "001"
+  text TCODE "ZZBUREAU" pad 20
+  ses rows 12 cols 60
+  areasize 12 60 12 60
+  text CUANAME "ZZ_BUREAU" pad 20
+  text DYNPRONAME "ZZ_BUREAU" pad 20
+  text CUASTATUS "ZZDESK" pad 20
+  text DYNPRONUMBER "0100"
+  menu MENU_KYB
+    entry "Leave by boat" position 1 0 0 0 flags SEL vkey 15 return 1
+  text SESSION_TITLE "The Pond Bureau"
+  container reset id 0 row 0 col 0 width 0 height 0
+  atoms
+    label row 1 col 2 mlen 50 "Type ZZPOND_RULES to change the pond rules."
+end
+
+# The pond rules: two fields, and a GUI status with Save (Ctrl+S, virtual key 11).
+screen zz-rules
+  text DBNAME "ZZB"
+  text CLIENT "001"
+  text TCODE "ZZPOND_RULES" pad 20
+  ses rows 12 cols 60
+  areasize 12 60 12 60
+  text CUANAME "ZZ_POND_RULES" pad 20
+  text DYNPRONAME "ZZ_POND_RULES" pad 20
+  text CUASTATUS "ZZRULES" pad 20
+  text DYNPRONUMBER "0100"
+  menu MENU_KYB
+    entry "Save the rules" position 1 0 0 0 flags SEL vkey 11
+    entry "Back" position 2 0 0 0 flags SEL vkey 3
+    entry "Cancel" position 3 0 0 0 flags SEL vkey 12
+  text SESSION_TITLE "Pond Rules: Change"
+  container reset id 0 row 0 col 0 width 0 height 0
+  atoms
+    label row 1 col 2 mlen 14 "Pond" fname "ZZRULES-POND"
+    input row 1 col 18 mlen 3 max 3 "{ZZRULES-POND|001}" fname "ZZRULES-POND"
+    label row 3 col 2 mlen 14 "Duck limit" fname "ZZRULES-LIMIT"
+    input row 3 col 18 mlen 3 max 3 "{ZZRULES-LIMIT|12}" fname "ZZRULES-LIMIT"
+end
+
+# The request prompt, a popup over the rules.
+screen zz-request-prompt
+  text CUASTATUS "ZZPROMPT" pad 20
+  window popup row 4 col 8 rows 6 cols 50 "Which request holds the pond rules?"
+  menu MENU_KYB
+    entry "Cancel" position 1 0 0 0 flags SEL vkey 12
+  atoms
+    label row 1 col 2 mlen 16 "Request" fname "ZZKO008-TRKORR"
+    input row 1 col 20 mlen 10 max 20 "" pad 20 fname "ZZKO008-TRKORR"
+    output row 3 col 2 mlen 46 "The rules travel in this request to the other ponds."
+  cursor "ZZKO008-TRKORR"
+end
+
+screen zz-rules-saved
+  items-of zz-rules
+  message S "Pond rules saved in request {ZZKO008-TRKORR}"
+end
+
+screen zz-rules-kept
+  items-of zz-rules
+  message W "Nothing saved: the request prompt was cancelled"
+end
+
+on first send zz-gate
+on vkey 15 at zz-gate logoff
+on message * at zz-gate send zz-bureau
+on okcode "ZZPOND_RULES" send zz-rules
+on okcode "/n" send zz-bureau
+on vkey 11 at zz-rules send zz-request-prompt
+on vkey 11 at zz-rules-kept send zz-request-prompt
+on vkey 11 at zz-rules-saved send zz-request-prompt
+on vkey 3 at zz-rules send zz-bureau
+on message * at zz-rules stay
+on message * at zz-rules-kept stay
+on message * at zz-rules-saved stay
+on vkey 12 at zz-request-prompt send zz-rules-kept
+on message * at zz-request-prompt send zz-rules-saved
+on message * stay

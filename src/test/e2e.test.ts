@@ -12,6 +12,10 @@ import { MemoryCredentialStore } from "../credentials.js"
 import { callTool } from "../server.js"
 import { Sessions } from "../sessions.js"
 import { skipWithoutFakeServer, startFakeServer, type FakeServer } from "./support/fakeServer.js"
+import { repositoryRoot } from "./vectors/paths.js"
+
+/** agent-gui's own invented scenarios (test/scenarios). */
+const ownScenario = (name: string) => join(repositoryRoot(), "test", "scenarios", name)
 
 interface Pond {
   server: FakeServer
@@ -227,5 +231,22 @@ test("keep-alive pings and control calls are answered without the agent", { skip
     } finally {
       await done(p)
     }
+  }
+})
+
+test("gui_save answers the request prompt with the user's request, and cancels it without one", { skip: skipWithoutFakeServer }, async () => {
+  const p = await pond(ownScenario("zz-pond-bureau.scenario"))
+  try {
+    await p.call("gui_connect", { transaction: "ZZPOND_RULES" })
+    await p.call("gui_step", { session: "S1", edits: [{ field: "Duck limit", value: "42" }] })
+    const asked = await p.call("gui_save", { session: "S1" })
+    assert.match(asked, /^saved: no — SAP asks for a transport request \(Which request holds the pond rules\?/)
+    assert.match(asked, /Nothing saved: the request prompt was cancelled/)
+    const saved = await p.call("gui_save", { session: "S1", transport: "zzbk900042" })
+    assert.match(saved, /^saved: yes/)
+    assert.match(saved, /message: S Pond rules saved in request ZZBK900042/)
+    assert.match(saved, /"Duck limit" \(ZZRULES-LIMIT\) = "42"/)
+  } finally {
+    await done(p)
   }
 })

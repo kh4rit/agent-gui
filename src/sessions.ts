@@ -541,11 +541,17 @@ export class Sessions implements GuiService {
     const byRef = view.index.functions.get(t.toLowerCase())
     if (byRef) return byRef
     const functions = [...view.index.functions.values()]
+    // Prefer what can fire: enabled, with a function number or a code.
+    const best = (list: ScreenFunction[]) => list.find(f => f.isEnabled && f.canFire) ?? list.find(f => f.canFire) ?? list[0]
     const byCode = functions.filter(f => f.code && lower(f.code.replace(/^=/, "")) === lower(t.replace(/^=/, "")))
-    if (byCode.length) return byCode.find(f => f.isEnabled) ?? byCode[0]
-    const plain = (s: string | undefined) => lower((s ?? "").replace(/@[0-9A-Z]{2}(\\Q[^@]*)?@/g, ""))
-    const byText = functions.filter(f => plain(f.text) === lower(t) || plain(f.tooltip) === lower(t))
-    if (byText.length) return byText.find(f => f.isEnabled) ?? byText[0]
+    if (byCode.length) return best(byCode)
+    const plain = (s: string | undefined) => lower((s ?? "").replace(/@[0-9A-Z]{2}(\\Q[^@]*)?@/g, "").trim())
+    // A push button's caption is on the screen element; its function may carry no text of its own.
+    const byCaption = view.screen.fields
+      .filter(f => (f.kind === "button" || f.kind === "tab") && f.functionRef && plain(f.text) === lower(t))
+      .map(f => view.index.functions.get(f.functionRef!)!)
+    const byText = [...byCaption, ...functions.filter(f => plain(f.text) === lower(t) || plain(f.tooltip) === lower(t))]
+    if (byText.length) return best(byText)
     throw new EngineError(`no function "${t}" on this screen (use a k-reference from gui_screen)`)
   }
 
