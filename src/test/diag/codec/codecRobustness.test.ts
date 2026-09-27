@@ -7,6 +7,8 @@ import {
   ApplID,
   ApplItem,
   ApplSID,
+  ClientItem,
+  ClientMessageEncoder,
   CodepageDiagGUI,
   CompressionHeader,
   CompressionHeaderDecodingError,
@@ -22,6 +24,7 @@ import {
   Decompressor,
   ItemPayloadError,
   KernelVersion,
+  SESValue,
   SimpleItemValue,
   SupportBits,
   SystemInfoNumber,
@@ -31,10 +34,10 @@ import {
   type DiagBodyClass
 } from "../../../diag/codec/index.js"
 import { CompressedDataError, LZHEncoder, LZHEncodingError } from "../../../diag/compression/index.js"
-import { NIFrameEncoder, bytesEqual, classifyNIPayload, receiveAction } from "../../../diag/wire/index.js"
+import { DPTerminalName, NIFrameEncoder, bytesEqual, classifyNIPayload, receiveAction } from "../../../diag/wire/index.js"
 import { compressionHeaderDecodingErrorClass, itemWalkErrorClass } from "../../vectors/codecRunners.js"
 import { decodeStream } from "../../vectors/wireRunners.js"
-import { appl, appl4, ascii, attempt, bytes, cat, walkItems, xmlblob } from "../../support/codecTestSupport.js"
+import { appl, appl4, ascii, attempt, bytes, cat, walkItems, xmlblob, zzTestIdentity } from "../../support/codecTestSupport.js"
 import { SeededGenerator } from "../../support/seededGenerator.js"
 
 /**
@@ -559,7 +562,69 @@ describe("Codec robustness", () => {
     }
   })
 
-  // clientEncoderRoundTrips: needs ClientMessages.swift (next wave)
+  test("clientEncoderRoundTrips", () => {
+    const generator = new SeededGenerator(0x5eed0b06)
+    const encoders = [
+      new ClientMessageEncoder(zzTestIdentity(), DPTerminalName.fromHostName("zz-kettle")),
+      new ClientMessageEncoder(zzTestIdentity(), DPTerminalName.empty, "lzh")
+    ]
+    const decompressor = new Decompressor()
+    for (let iteration = 0; iteration < 5_000; iteration++) {
+      const items: ClientItem[] = []
+      for (let count = generator.int(0, 3); count > 0; count--) {
+        switch (generator.intBelow(0, 3)) {
+          case 0:
+            items.push(ClientItem.ses(new SESValue({ eventArray: generator.uint8(), dimCol: 3 })))
+            break
+          case 1:
+            items.push(ClientItem.dynnCHL(generator.bytes(generator.int(0, 30))))
+            break
+          default:
+            items.push(ClientItem.dyntAtom(generator.bytes(generator.int(0, 300))))
+        }
+      }
+      const which = iteration % 2
+      const payload = encoders[which].dialogMessage(items)
+      const message = DiagMessage.parse(payload)
+      let body: Uint8Array
+      switch (message.body.kind) {
+        case "items":
+          body = message.body.range.of(payload).slice()
+          break
+        case "compressed":
+          body = decompressor.decompress(message.body.data.of(payload), message.body.header)
+          break
+        default:
+          assert.fail(`unexpected body ${DiagMessageBody.bodyClass(message.body)}`)
+      }
+      const walked = walkItems(body)
+      assert.equal(walked.error, undefined)
+      assert.equal(walked.items.length, items.length + 2)
+      assert.equal(DialogStepNumber.decode(walked.items[0].valueRange.of(body)).step, encoders[which].lastStepNumber)
+      assert.equal(walked.items.at(-1)?.type, "eom")
+      items.forEach((item, index) => {
+        const walkedItem = walked.items[index + 1]
+        const value = walkedItem.valueRange.of(body)
+        switch (item.kind) {
+          case "ses":
+            assert.deepEqual(SESValue.decode(value), item.value)
+            break
+          case "dynnCHL":
+            assert.deepEqual(walkedItem.appl, ApplItem.dynn("chl"))
+            assert.ok(walkedItem.type === "appl" && bytesEqual(value, item.value))
+            break
+          case "dyntAtom":
+            assert.deepEqual(walkedItem.appl, ApplItem.dynt("atom"))
+            assert.ok(walkedItem.type === "appl4" && bytesEqual(value, item.value))
+            break
+          case "varInfoOKCode":
+            assert.deepEqual(walkedItem.appl, ApplItem.varInfo("okcode"))
+            assert.ok(walkedItem.type === "appl" && bytesEqual(value, item.text))
+            break
+        }
+      })
+    }
+  })
 
   /** Whole streams: framer, classifier, message layout and walker on every frame. */
   test("endToEndStreams", () => {

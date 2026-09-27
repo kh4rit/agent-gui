@@ -6,7 +6,7 @@
 // few invented texts follow docs/testing.md §8 (ZZ… transactions, deliberately silly).
 
 import assert from "node:assert/strict"
-import { DiagItemWalkError, DiagItemWalker, type DiagItem } from "../../diag/codec/index.js"
+import { ClientIdentity, DiagItemWalkError, DiagItemWalker, SupportBit, SupportBits, type DiagItem } from "../../diag/codec/index.js"
 import { ByteWriter, concatBytes } from "../../diag/wire/index.js"
 
 /** Concatenates byte arrays (Swift `+` on `[UInt8]`). */
@@ -56,7 +56,13 @@ export function walkItems(sequence: Uint8Array, start = 0): { items: DiagItem[];
   }
 }
 
-// Swift's `zzTestIdentity` (a `ClientIdentity`) is left out: needs ClientMessages.swift (next wave).
+/**
+ * An identity with invented values for tests. It is not a mask or ws_type anyone should send: those
+ * are #16, #17 and #18. (A fresh copy on every call: Swift's `let` is a value.)
+ */
+export function zzTestIdentity(): ClientIdentity {
+  return new ClientIdentity({ codePage: 0x0000_1234, wsType: 0x0000_4242, supportData: new SupportBits([SupportBit.dialogStepNumber]) })
+}
 
 /** The bytes an encoder writes into a fresh `ByteWriter`. */
 export function written(write: (output: ByteWriter) => void): Uint8Array {
