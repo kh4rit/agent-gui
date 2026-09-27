@@ -6,43 +6,12 @@
 // (IMPL-NI-4). Errors name classes and lengths, never payload bytes or the host (IMPL-NI-7).
 
 import { Socket, connect as netConnect } from "node:net"
+import { DiagTransportError, type DiagTransport, type DiagTransportEvent } from "../diag/session/index.js"
 import { NIFrameDecoder, NIFrameEncoder, NIFrameError, NIFraming, NIKeepAlive, classifyNIPayload } from "../diag/wire/index.js"
 
-/** What the transport hands to the session, in arrival order (Swooey DiagTransportEvent). */
-export type DiagTransportEvent =
-  /** One complete NI frame payload, as received. */
-  | { kind: "payload"; payload: Uint8Array }
-  /** A framed NI_PING arrived and the transport already wrote the framed NI_PONG. */
-  | { kind: "pingAnswered" }
-
-/** Why a transport could not connect, read or write (Swooey DiagTransportError). */
-export type DiagTransportErrorInfo =
-  | { kind: "connectFailed"; reason: string }
-  | { kind: "frame"; error: NIFrameError }
-  | { kind: "connectionFailed"; reason: string }
-
-export class DiagTransportError extends Error {
-  constructor(readonly info: DiagTransportErrorInfo) {
-    super(
-      info.kind === "connectFailed"
-        ? `connect failed: ${info.reason}`
-        : info.kind === "frame"
-          ? info.error.message
-          : `connection failed: ${info.reason}`
-    )
-    this.name = "DiagTransportError"
-  }
-}
-
-/** An NI-framed connection as the session uses it (Swooey DiagTransport). */
-export interface DiagTransport {
-  /** Writes one frame carrying `payload`; resolves once the bytes were handed to the socket. */
-  send(payload: Uint8Array): Promise<void>
-  /** The next inbound event, or undefined once the peer closed the connection at a frame boundary. */
-  receive(): Promise<DiagTransportEvent | undefined>
-  /** Closes the connection. Calling it again does nothing. */
-  close(): Promise<void>
-}
+// The transport's types live with the session (src/diag/session/diagTransport.ts); re-exported for
+// the transport's callers.
+export { DiagTransportError, type DiagTransport, type DiagTransportErrorInfo, type DiagTransportEvent } from "../diag/session/index.js"
 
 export interface NodeTransportOptions {
   /** Seconds to wait for the TCP connection (only the connect gives up; steps never time out). */

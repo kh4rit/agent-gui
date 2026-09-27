@@ -51,3 +51,5 @@ export * from "./dataManagerReport.js"
 export * from "./clientMessages.js"
 export * from "./clientIdentityPresets.js"
 export * from "./inputEnvelope.js"
+// W3: client input
+export * from "./clientInput.js"

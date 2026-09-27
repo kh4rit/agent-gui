@@ -14,6 +14,7 @@ import {
   DyntElementType,
   FieldMarkerReading,
   FieldMarkers,
+  InputFocus,
   TabstripReading,
   ValueHelpReading,
   ZZValueList
@@ -242,10 +243,8 @@ describe("Screen elements: dropdowns, tabs, markers", () => {
     assert.equal(ValueHelpReading.functionNumber, 4)
     assert.equal(ValueHelpReading.allCases[0], "functionKey4")
     assert.deepEqual(CursorContainerReading.containerIDs("area", 4), [4])
-    // needs InputEnvelope.swift (other wave): `containerIDs(area: 0) == InputFocus.containerIDs` and
-    // `alwaysZero.containerIDs(area: 4) == InputFocus.containerIDs`; InputFocus.containerIDs is [0].
-    assert.deepEqual(CursorContainerReading.containerIDs("area", 0), [0])
-    assert.deepEqual(CursorContainerReading.containerIDs("alwaysZero", 4), [0])
+    assert.deepEqual(CursorContainerReading.containerIDs("area", 0), Array.from(InputFocus.containerIDs))
+    assert.deepEqual(CursorContainerReading.containerIDs("alwaysZero", 4), Array.from(InputFocus.containerIDs))
     assert.equal(CursorContainerReading.allCases[0], "area")
   })
 

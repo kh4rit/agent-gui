@@ -9,8 +9,8 @@
 
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
-import { AreaSize, ScreenIdentity, ScreenSpecGapError } from "../../../diag/codec/index.js"
-import { appl, ascii, cat, throwsInfo } from "../../support/codecTestSupport.js"
+import { AreaSize, ScreenIdentity, ScreenSpecGapError, ServerEcho } from "../../../diag/codec/index.js"
+import { appl, ascii, bytes, cat, repeated, throwsInfo } from "../../support/codecTestSupport.js"
 import { identityText, rawAreaSize } from "../../support/screenTestSupport.js"
 
 describe("Screen identity: window sections", () => {
@@ -73,5 +73,26 @@ describe("Screen identity: window sections", () => {
     assert.ok(whole.windowSections === 0 && whole.diagnostics.repeatedIdentityItems === 1)
   })
 
-  // echoOfTheLastSection: needs InputEnvelope.swift (other wave): it checks `ServerEcho`.
+  /** The echo of a message of two sections: the last section's window state, never the other's (bug #142). */
+  test("echoOfTheLastSection", () => {
+    const mainCHL = repeated(0x11, 22)
+    const popupCHL = repeated(0x22, 22)
+    const items = cat(ses(), appl(0x05, 0x01, mainCHL), appl(0x0c, 0x06, [0x33, 0x33]), appl(0x0a, 0x01, [0x44]), ses(1), appl(0x05, 0x01, popupCHL))
+    const echo = new ServerEcho(items)
+    assert.deepEqual(echo.dynnCHL, popupCHL)
+    assert.ok(echo.scrollInfos2 === undefined && echo.containerReset === undefined, "the popup's section has none: not the main window's")
+    const one = cat(ses(), appl(0x05, 0x01, mainCHL), appl(0x0a, 0x01, [0x44]), appl(0x0a, 0x01, [0x55]))
+    const whole = new ServerEcho(one)
+    assert.deepEqual([whole.dynnCHL, whole.containerReset], [mainCHL, bytes(0x44)], "one section: the first CONTAINER RESET, as before")
+    assert.ok(echo.replacesWindowState && !whole.replacesWindowState)
+    const merged = whole.clone()
+    merged.merge(echo, undefined)
+    assert.deepEqual(
+      [merged.dynnCHL, merged.scrollInfos2, merged.containerReset],
+      [popupCHL, undefined, undefined],
+      "the popup's window state replaces the older one whole"
+    )
+    merged.merge(new ServerEcho(appl(0x0a, 0x01, [0x66])), undefined)
+    assert.deepEqual([merged.dynnCHL, merged.containerReset], [popupCHL, bytes(0x66)], "one section: the newer value where it has one")
+  })
 })

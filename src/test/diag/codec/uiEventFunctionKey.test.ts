@@ -4,17 +4,27 @@
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
 import {
+  ApplItem,
+  ClientIdentity,
+  ClientInput,
+  ClientInputStep,
+  ClientMessageEncoder,
+  DiagHeader,
   ItemPayloadError,
+  ReturnedField,
   ScreenValueEncodingError,
+  SupportBits,
   UIControlType,
   UIEventDataWidth,
   UIEventFunctionKey,
   UIEventSource,
   UIEventValidFlags,
-  byteRange
+  byteRange,
+  type ClientInputErrorInfo,
+  type FunctionRefusal
 } from "../../../diag/codec/index.js"
-import { ByteWriter } from "../../../diag/wire/index.js"
-import { bytes, cat, throwsInfo, written } from "../../support/codecTestSupport.js"
+import { ByteWriter, DPTerminalName } from "../../../diag/wire/index.js"
+import { ascii, bytes, cat, throwsInfo, walkItems, written } from "../../support/codecTestSupport.js"
 
 /**
  * The function-key event of UI_EVENT_SOURCE (client-input.md §7.5): ODG's observed bytes (PV-0771),
@@ -100,7 +110,56 @@ describe("UI_EVENT_SOURCE function keys", () => {
 
   // MARK: The input step
 
-  // inputStepWithFunctionKey, rawEventAndCommand: need ClientInput.swift (next wave) and
-  // ClientMessages.swift (other wave): they send the event through `ClientInputStep` and
-  // `ClientMessageEncoder`.
+  /** The suite's static helper (Swift `Self.encoder()`). */
+  const Self = {
+    encoder(): ClientMessageEncoder {
+      return new ClientMessageEncoder(
+        new ClientIdentity({ codePage: 0, wsType: 0, supportData: new SupportBits() }),
+        DPTerminalName.fromHostName("puddle")
+      )
+    }
+  }
+
+  /** a step with a function key sends UI_EVENT_SOURCE as APPL after the fields, before EOM (R-CI-10) */
+  test("inputStepWithFunctionKey", () => {
+    const step = new ClientInputStep()
+    step.appendField(new ReturnedField({ block: 1, row: 4, col: 18, mlen: 12, maxNrChars: 12 }), ascii("QUACK"))
+    step.setFunctionKey(8, { row: 5, col: 12 })
+    assert.deepEqual(step.uiEvent, sample)
+    assert.equal(step.items.length, 1, "the event is no ClientItem")
+    assert.equal(step.description, "ClientInputStep(fields: 1, SES: no, DYNN CHL: no, UI_EVENT_SOURCE: yes)")
+    const encoder = Self.encoder()
+    const body = ClientInput.inputMessage(encoder, step).slice(DiagHeader.size)
+    const walk = walkItems(body)
+    assert.equal(walk.error, undefined)
+    assert.deepEqual(
+      walk.items.map(item => item.appl),
+      [ApplItem.stUser("dialogStepNumber"), ApplItem.dynt("atom"), ApplItem.uiEvent("uiEventSource"), undefined]
+    )
+    assert.equal(walk.items[2].type, "appl")
+    assert.deepEqual(walk.items[2].valueRange.of(body), sample)
+    assert.equal(walk.items[walk.items.length - 1]?.type, "eom")
+  })
+
+  /** a raw event value, and one next to a command: the command first, as the items order them */
+  test("rawEventAndCommand", () => {
+    const step = new ClientInputStep()
+    step.setUIEventSource(bytes(1, 2, 3))
+    step.setFunctionCode(ascii("=ZZASK"), "varInfoOKCode")
+    assert.equal(step.description, "ClientInputStep(fields: 0, SES: no, DYNN CHL: no, OKCODE: yes, UI_EVENT_SOURCE: yes)")
+    const encoder = Self.encoder()
+    const body = ClientInput.inputMessage(encoder, step).slice(DiagHeader.size)
+    const walk = walkItems(body)
+    assert.deepEqual(
+      walk.items.map(item => item.appl),
+      [ApplItem.stUser("dialogStepNumber"), ApplItem.varInfo("okcode"), ApplItem.uiEvent("uiEventSource"), undefined]
+    )
+    assert.deepEqual(walk.items[2].valueRange.of(body), bytes(1, 2, 3))
+    assert.equal(ClientInput.inputMessage(encoder, step, 1)[0], 1, "a later mode's step carries its mode byte (R-MO-2)")
+    const outOfRange: ClientInputErrorInfo = { kind: "function", value: { kind: "virtualKeyOutOfRange", value: 300 } }
+    const disabled: ClientInputErrorInfo = { kind: "function", value: { kind: "disabled" } }
+    assert.notDeepEqual(outOfRange, disabled)
+    const notOffered: FunctionRefusal = { kind: "notOffered" }
+    assert.notDeepEqual(notOffered, { kind: "disabled" } satisfies FunctionRefusal)
+  })
 })

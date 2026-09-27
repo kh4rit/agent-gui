@@ -8,12 +8,24 @@
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
 import {
+  ApplItem,
   ClientDataManager,
+  ClientIdentityPreset,
+  ClientInput,
+  ClientInputStep,
+  ClientMessageEncoder,
   DataManagerControl,
   DataManagerFirstVisible,
   DataManagerReport,
-  MarkupDocument
+  DiagHeader,
+  DiagItemType,
+  DiagItemWalker,
+  InputEnvelope,
+  InputFocus,
+  MarkupDocument,
+  ServerEcho
 } from "../../../diag/codec/index.js"
+import { DPTerminalName } from "../../../diag/wire/index.js"
 import { ascii } from "../../support/codecTestSupport.js"
 
 /** A double click in a grid (Swift `static let doubleClick`; a fresh value on every call). */
@@ -78,5 +90,40 @@ describe("A client's DATAMANAGER document: events, control state and the control
     assert.equal(DataManagerReport.read(MarkupDocument.read(ascii("<POND/>"))), undefined)
   })
 
-  // step: needs ClientInput.swift (next wave)
+  /** an input step carries the control focus in place of the field focus and of DYNT_NOFOCUS, and its document before EOM */
+  test("step", () => {
+    const step = new ClientInputStep({
+      envelope: InputEnvelope.stateStage | InputEnvelope.dataManager | InputEnvelope.focus | InputEnvelope.guiCarriers
+    })
+    step.setFunctionCode(ascii("%_GC 106 3"), "varInfoOKCode")
+    step.focus = new InputFocus(1, 1)
+    step.controlFocus = ascii("106")
+    step.dataManager = doubleClick().document
+    const encoder = new ClientMessageEncoder(ClientIdentityPreset.identity("reference"), DPTerminalName.fromHostName("pond-test"))
+    const payload = ClientInput.inputMessage(encoder, step, 0, new ServerEcho())
+    const items = payload.subarray(DiagHeader.size, payload.length)
+    const walker = new DiagItemWalker()
+    const names: string[] = []
+    let focus: Uint8Array | undefined
+    let document: Uint8Array | undefined
+    for (let item = walker.next(items); item !== undefined; item = walker.next(items)) {
+      const value = item.valueRange.of(items).slice()
+      if (item.type === "xmlblob") {
+        names.push("XMLBLOB")
+        document = value
+      } else if (item.appl !== undefined) {
+        names.push(ApplItem.displayName(item.appl))
+        if (ApplItem.equals(item.appl, ApplItem.dynt("controlFocus"))) focus = value
+      } else {
+        names.push(DiagItemType.name(item.type))
+      }
+    }
+    assert.ok(
+      names.includes("VARINFO OKCODE") && !names.includes("DYNT DYNT_FOCUS_1") && !names.includes("DYNT DYNT_NOFOCUS"),
+      JSON.stringify(names)
+    )
+    assert.deepEqual(names.slice(-3), ["DYNT DYNT_CONTROL_FOCUS", "XMLBLOB", "EOM"], JSON.stringify(names))
+    assert.deepEqual(focus, ascii("106"))
+    assert.deepEqual(document, doubleClick().document)
+  })
 })
