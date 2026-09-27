@@ -73,6 +73,22 @@ export class InventedDataObject {
     this.rows = rows
   }
 
+  /** A copy, where a Swift test copies the struct (`var object = …`) and changes the copy. */
+  clone(): InventedDataObject {
+    const copy = new InventedDataObject(
+      this.url,
+      this.fields.slice(),
+      this.rows.map(row => row.slice()),
+      this.structureName
+    )
+    copy.type = this.type
+    copy.subtype = this.subtype
+    copy.id = this.id
+    copy.sequence = this.sequence
+    copy.raw = this.raw
+    return copy
+  }
+
   /**
    * The fields' offsets: an integer is aligned to 4 bytes, a short to 2; and the row width, padded to
    * a multiple of 4 (PV-1003).
