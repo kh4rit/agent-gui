@@ -4,9 +4,10 @@
 import assert from "node:assert/strict"
 import { inspect } from "node:util"
 import { describe, test } from "node:test"
-import { CodePage, Secret, TextEncoding, secretTranscoded } from "../../../diag/codec/index.js"
+import { CodePage, DyntText, DyntTextError, Secret, TextEncoding, secretTranscoded } from "../../../diag/codec/index.js"
 import { ByteWriter } from "../../../diag/wire/index.js"
-import { ascii, bytes } from "../../support/codecTestSupport.js"
+import { ascii, bytes, cat, throwsInfo } from "../../support/codecTestSupport.js"
+import { field2Content, rawAtom, walkAtoms } from "../../support/dyntTestSupport.js"
 
 /** The code pages Swooey knows (session.md §6.4, PV-0130–PV-0134) and text in them. Texts are invented (D15). */
 describe("Code pages: numbers, decoding and encoding", () => {
@@ -26,7 +27,7 @@ describe("Code pages: numbers, decoding and encoding", () => {
     assert.equal(CodePage.utf16BigEndian, 4102)
     assert.equal(CodePage.utf16LittleEndian, 4103)
     assert.equal(CodePage.latin1, 1100)
-    // needs DyntText.swift (next wave): DyntText.utf8CodePage == CodePage.utf8
+    assert.equal(DyntText.utf8CodePage, CodePage.utf8)
     assert.deepEqual(TextEncoding.allCases.map(TextEncoding.codePage), [4110, 4102, 4103, 1100])
     for (const encoding of TextEncoding.allCases) assert.equal(TextEncoding.fromCodePage(TextEncoding.codePage(encoding)), encoding)
     for (const unknown of [0, 1160, 4101, 4109, 4111, 8000, 0xffffffff]) assert.equal(TextEncoding.fromCodePage(unknown), undefined)
@@ -116,6 +117,34 @@ describe("Code pages: numbers, decoding and encoding", () => {
     assert.equal(JSON.stringify({ little }), '{"little":"Secret(redacted)"}')
   })
 
-  // dyntTextInEveryKnownCodePage: needs DyntText.swift (next wave)
-  // dyntTextWithAnEncodingChecksLikeTheCodePageVariant: needs DyntText.swift (next wave)
+  test("dyntTextInEveryKnownCodePage", () => {
+    for (const encoding of TextEncoding.allCases) {
+      const text = TextEncoding.encode(encoding, "Entenstraße")
+      assert.ok(text)
+      const value = rawAtom(132, { content: field2Content(text) })
+      const atom = walkAtoms(value).atoms[0]
+      assert.ok(atom)
+      assert.equal(DyntText.decode(atom, value, TextEncoding.codePage(encoding)), "Entenstraße")
+      assert.equal(DyntText.decode(atom, value, encoding), "Entenstraße")
+    }
+  })
+
+  test("dyntTextWithAnEncodingChecksLikeTheCodePageVariant", () => {
+    const hidden = rawAtom(130, { content: field2Content(ascii("duckduckgoose")), attr: 0x02 })
+    const password = walkAtoms(hidden).atoms[0]
+    assert.ok(password)
+    throwsInfo(() => DyntText.decode(password, hidden, "latin1"), DyntTextError, { kind: "passwordField" })
+
+    const field = rawAtom(130, { content: field2Content(ascii("QUAK")) })
+    const atom = walkAtoms(field).atoms[0]
+    assert.ok(atom)
+    throwsInfo(() => DyntText.decode(atom, field, "utf8", "functionCode"), DyntTextError, { kind: "noText" })
+    throwsInfo(() => DyntText.decode(atom, field.slice(0, 10), "utf8"), DyntTextError, { kind: "outOfRange" })
+
+    const odd = rawAtom(130, { content: field2Content(cat([0x41, 0x00, 0x42])) })
+    const oddAtom = walkAtoms(odd).atoms[0]
+    assert.ok(oddAtom)
+    throwsInfo(() => DyntText.decode(oddAtom, odd, "utf16LittleEndian"), DyntTextError, { kind: "invalidText" })
+    throwsInfo(() => DyntText.decode(oddAtom, odd, CodePage.utf16LittleEndian), DyntTextError, { kind: "invalidText" })
+  })
 })

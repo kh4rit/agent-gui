@@ -23,11 +23,15 @@ import {
   ScreenValueLayout,
   ScrollInfos,
   ScrollInfos2,
+  ApplSID,
+  ScreenIdentity,
+  ScreenText,
+  SystemInfoText,
   appendKernelVersion,
   byteRange
 } from "../../../diag/codec/index.js"
 import { ByteWriter } from "../../../diag/wire/index.js"
-import { ascii, bytes, cat, throwsInfo, u32BE, written } from "../../support/codecTestSupport.js"
+import { appl, ascii, bytes, cat, throwsInfo, u32BE, walkItems, written } from "../../support/codecTestSupport.js"
 import { u16BE } from "../../support/dyntTestSupport.js"
 import { rawAreaSize } from "../../support/screenTestSupport.js"
 
@@ -261,9 +265,84 @@ describe("Screen values", () => {
 
   // MARK: Text items
 
-  // textItemsAreThoseOfTheSpecsTables: needs ScreenText.swift (next wave)
-  // trimmingRemovesTrailingSpacesAndZeros: needs ScreenText.swift and ScreenIdentity.swift (next wave)
-  // textItemEncoder: needs ScreenText.swift and ScreenIdentity.swift (next wave)
+  test("textItemsAreThoseOfTheSpecsTables", () => {
+    const texts = [
+      ApplItem.stSystemInfo("dbName"),
+      ApplItem.stSystemInfo("cpuName"),
+      ApplItem.stSystemInfo("tcode"),
+      ApplItem.stSystemInfo("message"),
+      ApplItem.stSystemInfo("client"),
+      ApplItem.stSystemInfo("codepageAppServer"),
+      ApplItem.stSystemInfo("dynproName"),
+      ApplItem.stSystemInfo("dynproNumber"),
+      ApplItem.stSystemInfo("cuaName"),
+      ApplItem.stSystemInfo("cuaStatus"),
+      ApplItem.stSystemInfo("contextID"),
+      ApplItem.stSystemInfo("guiTheme"),
+      ApplItem.varInfo("okcode"),
+      ApplItem.varInfo("sessionTitle"),
+      ApplItem.varInfo("sessionIcon"),
+      ApplItem.varInfo("listCellText"),
+      ApplItem.dynt("controlFocus")
+    ]
+    const key = (item: ApplItem) => ApplItem.displayName(item)
+    const found = new Set<string>()
+    for (let id = 0; id <= 0xff; id++)
+      for (let sid = 0; sid <= 0xff; sid++) if (ScreenText.isText(ApplItem.of(id, sid))) found.add(key(ApplItem.of(id, sid)))
+    assert.deepEqual([...found].sort(), texts.map(key).sort())
+    // Every session.md text item is a screen text too (PV-0534).
+    for (const sid of ApplSID.StSystemInfo.allCases)
+      if (SystemInfoText.isText(sid)) assert.ok(ScreenText.isText(ApplItem.stSystemInfo(sid)), sid)
+  })
+
+  /** R-SS-4: trailing spaces and zero bytes go, in any mix; leading spaces stay. */
+  test("trimmingRemovesTrailingSpacesAndZeros", () => {
+    const cases: [Uint8Array, [number, number]][] = [
+      [ascii("SAPMSYST    "), [0, 8]],
+      [cat(ascii("ZZPLAID"), [0]), [0, 7]],
+      [cat(ascii("042"), [0, 0x20, 0, 0x20]), [0, 3]],
+      [ascii("  lead"), [0, 6]],
+      [ascii(" in side "), [0, 8]],
+      [bytes(0x20, 0x00, 0x20), [0, 0]],
+      [bytes(), [0, 0]],
+      [ascii("tab\t"), [0, 4]]
+    ]
+    for (const [input, [lower, upper]] of cases) assert.deepEqual(ScreenText.trimmedRange(input), byteRange(lower, upper), `${input}`)
+    const isLogonName = (input: Uint8Array) => ScreenText.trimmedEquals(input, ScreenIdentity.logonProgramName)
+    assert.ok(isLogonName(ascii("SAPMSYST  ")))
+    assert.ok(isLogonName(cat(ascii("SAPMSYST"), [0])))
+    assert.ok(!isLogonName(ascii(" SAPMSYST")))
+    assert.ok(!isLogonName(ascii("SAPMSYSX")))
+    assert.ok(!isLogonName(ascii("SAPMSYS")))
+    assert.deepEqual(ScreenIdentity.logonProgramName, ascii("SAPMSYST"))
+  })
+
+  /** Text items are written as APPL with the text verbatim; other pairs are refused. */
+  test("textItemEncoder", () => {
+    const output = new ByteWriter()
+    ScreenText.appendItem(ApplItem.stSystemInfo("dynproName"), cat(ascii("SAPMSYST"), [0x20, 0x20]), output)
+    assert.deepEqual(output.toBytes(), appl(0x06, 0x0d, cat(ascii("SAPMSYST"), [0x20, 0x20])))
+    const title = ascii("Consult the Rubber Duck")
+    ScreenText.appendItem(ApplItem.varInfo("sessionTitle"), title, output)
+    const items = output.toBytes()
+    const walked = walkItems(items)
+    assert.equal(walked.error, undefined)
+    assert.deepEqual(
+      walked.items.map(item => item.appl),
+      [ApplItem.stSystemInfo("dynproName"), ApplItem.varInfo("sessionTitle")]
+    )
+    assert.deepEqual(ScreenIdentity.decode(items).text("sessionTitle")?.of(items), title)
+    throwsInfo(() => ScreenText.appendItem(ApplItem.varInfo("areaSize"), title, output), ScreenValueEncodingError, {
+      kind: "notAText",
+      value: ApplItem.varInfo("areaSize")
+    })
+    throwsInfo(() => ScreenText.appendItem(ApplItem.varInfo("okcode"), new Uint8Array(65_536).fill(0x5a), output), ScreenValueEncodingError, {
+      kind: "tooLong",
+      length: 65_536,
+      limit: 65_535
+    })
+    assert.deepEqual(output.toBytes(), items, "nothing is appended on failure")
+  })
 
   // MARK: Spec-gap numbers
 

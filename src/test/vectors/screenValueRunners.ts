@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Ported from Swooey Tests/VectorSupport/ScreenVectorRunners.swift (MIT): the server-screen kinds
-// of protocol spec v2 whose code is in DiagCodec's foundation, appl-fields, imode-uuids,
-// dynt-focus and stringz-fields (docs/protocol/server-screen.md). The menu-entries and
-// screen-identity runners need MenuEntries.swift and ScreenIdentity.swift (next wave).
+// of protocol spec v2, appl-fields, imode-uuids, dynt-focus, stringz-fields, menu-entries and
+// screen-identity (docs/protocol/server-screen.md).
 
 import {
   ApplItem,
@@ -11,19 +10,75 @@ import {
   InternalModeUUIDs,
   ItemPayloadError,
   KernelVersion,
+  MenuEntries,
+  MenuEntryFlags,
+  ScreenIdentity,
+  ScreenIdentityError,
+  ScreenSpecGapError,
   ScreenValue,
   ScreenValueEncodingError,
   ScreenValueLayout,
   appendKernelVersion,
+  type AreaSize,
   type ByteRange,
   type InternalModeEntry,
+  type MenuEntry,
+  type MenuEntryWalkErrorInfo,
+  type ScreenIdentityErrorInfo,
+  type ScreenIdentityText,
   type ScrollInfos
 } from "../../diag/codec/index.js"
 import { ByteWriter, bytesEqual, concatBytes, hexByte, hexText } from "../../diag/wire/index.js"
-import { checkError, compare, itemPayloadErrorClass } from "./codecRunners.js"
+import { checkError, compare, itemPayloadErrorClass, itemWalkErrorClass } from "./codecRunners.js"
+import { dyntAtomWalkErrorClass } from "./dyntRunners.js"
 import type { Expectations } from "./expectations.js"
 import { registerKind } from "./registry.js"
 import { NO_ERROR } from "./wireRunners.js"
+
+/** Error classes of the menu-entries kind. */
+export function menuEntryWalkErrorClass(info: MenuEntryWalkErrorInfo): string {
+  switch (info.kind) {
+    case "truncated":
+      return "truncated"
+    case "lengthMismatch":
+      return "entry-length-mismatch"
+  }
+}
+
+/** Error classes of the screen-identity kind: a failing walk reports the walker's own class (README, "screen-identity"). */
+export function screenIdentityErrorClass(info: ScreenIdentityErrorInfo): string {
+  switch (info.kind) {
+    case "items":
+      return itemWalkErrorClass(info.value.info)
+    case "atoms":
+      return dyntAtomWalkErrorClass(info.value.info)
+  }
+}
+
+/**
+ * A `text` value (README, "Value types") for bytes the decoder found: the bytes as printable ASCII,
+ * or, when they are not, a marker that no vector text equals.
+ */
+export function vectorText(bytes: Uint8Array): string {
+  if (bytes.length === 0) return "(empty text)"
+  if (!bytes.every(byte => byte >= 0x20 && byte <= 0x7e)) return `(not printable ASCII: ${hexText(bytes)})`
+  return String.fromCharCode(...bytes)
+}
+
+/** The screen-identity text keys and the identity texts they name, in the README's order. */
+export const identityTextKeys: readonly { readonly key: string; readonly text: ScreenIdentityText }[] = [
+  { key: "dbname", text: "dbName" },
+  { key: "client", text: "client" },
+  { key: "cpuname", text: "cpuName" },
+  { key: "tcode", text: "tcode" },
+  { key: "dynproname", text: "dynproName" },
+  { key: "dynpronumber", text: "dynproNumber" },
+  { key: "cuaname", text: "cuaName" },
+  { key: "cuastatus", text: "cuaStatus" },
+  { key: "gui_theme", text: "guiTheme" },
+  { key: "session_title", text: "sessionTitle" },
+  { key: "session_icon", text: "sessionIcon" }
+]
 
 /**
  * The `expect.field.<name>` keys of an appl-fields value and their values, in value order (README,
@@ -243,9 +298,167 @@ function runStringzFields(input: Uint8Array, expect: Expectations, failures: str
   if (!bytesEqual(encoded, input)) failures.push(`round trip: encoding the strings gives ${hexText(encoded)}`)
 }
 
-// menu-entries and screen-identity: needs MenuEntries.swift and ScreenIdentity.swift (next wave).
+// MARK: menu-entries
+
+/** The menu-entry walker (README, "menu-entries"). Entries produced before an error count. */
+function runMenuEntries(input: Uint8Array, expect: Expectations, failures: string[]): void {
+  const walk = MenuEntries.walk(input)
+  compare("error", expect.string("expect.error"), walk.error ? menuEntryWalkErrorClass(walk.error.info) : NO_ERROR, failures)
+  if (walk.error) compare("error.entry", expect.int("expect.error.entry"), walk.error.entryIndex, failures)
+  checkEntryLayout(walk.entries, input, failures)
+  const count = expect.int("expect.entries")
+  if (count === undefined) return
+  compare("entries", count, walk.entries.length, failures)
+  for (let number = 1; number <= count; number++)
+    checkMenuEntry(number, number <= walk.entries.length ? walk.entries[number - 1] : undefined, expect, failures)
+}
+
+const MENU_ENTRY_INT_KEYS = [
+  "offset",
+  "length",
+  "position_1",
+  "position_2",
+  "position_3",
+  "position_4",
+  "virtual_key",
+  "text_offset",
+  "text_length",
+  "accelerator_offset",
+  "accelerator_length",
+  "info_offset",
+  "info_length"
+] as const
+
+function checkMenuEntry(number: number, entry: MenuEntry | undefined, expect: Expectations, failures: string[]): void {
+  const prefix = `expect.entry.${number}.`
+  const ints = MENU_ENTRY_INT_KEYS.map(key => [key, expect.int(prefix + key)] as const)
+  const flags = expect.byte(prefix + "flags")
+  const flagNames = expect.names(prefix + "flags.names")
+  const returnCodes = expect.hex(prefix + "return_codes")
+  const functionCodes = expect.hex(prefix + "function_codes")
+  if (!entry) return
+  const fields = entry.fields
+  const actual: Record<(typeof MENU_ENTRY_INT_KEYS)[number], number> = {
+    offset: entry.offset,
+    length: entry.length,
+    position_1: fields.position1,
+    position_2: fields.position2,
+    position_3: fields.position3,
+    position_4: fields.position4,
+    virtual_key: fields.virtualKey,
+    text_offset: entry.text.lowerBound,
+    text_length: entry.text.count,
+    accelerator_offset: entry.accelerator.lowerBound,
+    accelerator_length: entry.accelerator.count,
+    info_offset: entry.info.lowerBound,
+    info_length: entry.info.count
+  }
+  for (const [key, expected] of ints) compare(`entry ${number} ${key}`, expected, actual[key], failures)
+  if (flags !== undefined && flags !== fields.flags) failures.push(`entry ${number} flags: expected ${hexByte(flags)}, got ${hexByte(fields.flags)}`)
+  compare(`entry ${number} flags.names`, flagNames, MenuEntryFlags.names(fields.flags), failures)
+  compare(`entry ${number} return_codes`, returnCodes === undefined ? undefined : hexText(returnCodes), hexText(fields.returnCodes.bytes), failures)
+  compare(
+    `entry ${number} function_codes`,
+    functionCodes === undefined ? undefined : hexText(functionCodes),
+    hexText(fields.functionCodes.bytes),
+    failures
+  )
+}
+
+/**
+ * Implementation checks every vector gets: the entries tile the input from offset 0, and re-encoding
+ * each entry from its fields and strings gives back its bytes.
+ */
+function checkEntryLayout(entries: readonly MenuEntry[], input: Uint8Array, failures: string[]): void {
+  let offset = 0
+  for (const entry of entries) {
+    if (entry.offset !== offset || entry.endOffset > input.length) {
+      failures.push(`entry ${entry.index} does not start where entry ${entry.index - 1} ended`)
+      return
+    }
+    offset = entry.endOffset
+    const output = new ByteWriter()
+    try {
+      MenuEntries.appendEntry(entry.fields, entry.text.of(input).slice(), entry.accelerator.of(input).slice(), entry.info.of(input).slice(), output)
+    } catch (error) {
+      if (!(error instanceof ScreenValueEncodingError)) throw error
+      failures.push(`entry ${entry.index}: the encoder refused it (${error.message})`)
+    }
+    const encoded = output.toBytes()
+    if (!bytesEqual(encoded, input.subarray(entry.offset, entry.endOffset))) failures.push(`entry ${entry.index}: re-encoding gives ${hexText(encoded)}`)
+  }
+}
+
+// MARK: screen-identity
+
+/**
+ * Screen-identity extraction (README, "screen-identity"): the item walker, then the text, AREASIZE,
+ * atom and menu decoders, with R-SS-4 trimming. No round trip.
+ */
+function runScreenIdentity(input: Uint8Array, expect: Expectations, failures: string[]): void {
+  let identity: ScreenIdentity | undefined
+  let actualError = NO_ERROR
+  try {
+    identity = ScreenIdentity.decode(input)
+  } catch (error) {
+    if (!(error instanceof ScreenIdentityError)) throw error
+    actualError = screenIdentityErrorClass(error.info)
+  }
+  if (!checkError(actualError, expect, failures) || !identity) return
+  for (const { key, text } of identityTextKeys) {
+    const expected = expect.string(`expect.${key}`)
+    let actual: string
+    try {
+      const range = identity.text(text)
+      actual = range === undefined ? "none" : vectorText(range.of(input))
+    } catch (error) {
+      if (!(error instanceof ScreenSpecGapError)) throw error
+      actual = `(spec gap: ${error.message})`
+    }
+    compare(key, expected, actual, failures)
+  }
+  checkArea(identity, expect, failures)
+  compare("atoms", expect.int("expect.atoms"), identity.atomCount, failures)
+  compare("efields", expect.int("expect.efields"), identity.inputFieldCount, failures)
+  compare("efields.invisible", expect.int("expect.efields.invisible"), identity.passwordFieldCount, failures)
+  compare("menus", expect.int("expect.menus"), identity.menuCount, failures)
+  compare("menu_entries", expect.int("expect.menu_entries"), identity.menuEntryCount, failures)
+}
+
+function checkArea(identity: ScreenIdentity, expect: Expectations, failures: string[]): void {
+  const area = expect.string("expect.area")
+  if (area === undefined) return
+  let size: AreaSize | undefined
+  try {
+    size = identity.areaSize()
+  } catch (error) {
+    if (!(error instanceof ScreenSpecGapError)) throw error
+    failures.push(`area: ${error.message}`)
+    return
+  }
+  switch (area) {
+    case "present": {
+      const names = ["window_height", "window_width", "area_height", "area_width"] as const
+      const expected = names.map(name => [name, expect.int(`expect.area.${name}`)] as const)
+      if (!size) {
+        failures.push(`area: expected present, got ${identity.areaSizeOccurrences === 0 ? "none" : "an undecodable AREASIZE"}`)
+        return
+      }
+      const actual = [size.windowHeight, size.windowWidth, size.areaHeight, size.areaWidth]
+      expected.forEach(([name, value], index) => compare(`area.${name}`, value, actual[index], failures))
+      break
+    }
+    case "none":
+      if (identity.areaSizeOccurrences !== 0) failures.push("area: expected none, got an AREASIZE item")
+      break
+    default:
+      failures.push(`area: '${area}' is neither present nor none`)
+  }
+}
 
 registerKind("appl-fields", runApplFields)
 registerKind("imode-uuids", runIModeUUIDs)
 registerKind("dynt-focus", runDyntFocus)
 registerKind("stringz-fields", runStringzFields)
+registerKind("menu-entries", runMenuEntries)
+registerKind("screen-identity", runScreenIdentity)

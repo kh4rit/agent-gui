@@ -36,8 +36,8 @@
  * not state throws an error that names its issue (`specGap`) instead of guessing
  * (docs/protocol/README.md, "How implementers use this spec").
  *
- * Swift adds members to this enum with `extension CodecSpecGap` in ScreenValues.swift and
- * DyntAtom.swift (and, in the next wave, DyntElements.swift); a TypeScript const object cannot be
+ * Swift adds members to this enum with `extension CodecSpecGap` in ScreenValues.swift,
+ * DyntAtom.swift and DyntElements.swift; a TypeScript const object cannot be
  * extended from another module without a load-order cycle, so those members live here, under a
  * comment naming their Swift file.
  */
@@ -115,7 +115,29 @@ export const CodecSpecGap = {
    * Payloads that do not fit their element type's fixed layout (too short, a tabstrip string
    * without its zero byte, bytes after the third tabstrip string): no rule in the spec.
    */
-  dyntMalformedPayload: 38 // not-protocol: issue number, issues/0038
+  dyntMalformedPayload: 38, // not-protocol: issue number, issues/0038
+
+  // W2a: screen side
+  // DyntElements.swift (extension CodecSpecGap)
+
+  /** Checkbox and radio bodies and their returns (elements.md §3; R-EL-1, R-EL-2, R-EL-4). */
+  toggleElements: 107, // not-protocol: issue number, issues/0107
+  /** Dropdown option lists and the returned key (elements.md §4; R-EL-3). */
+  dropdownValues: 108, // not-protocol: issue number, issues/0108
+  /** Tabstrip header, page association, inactive pages, local paging (elements.md §5). */
+  tabstripPages: 109, // not-protocol: issue number, issues/0109
+  /** Table-control items: headers, rows, selector, scroll state and request (elements.md §6). */
+  tableControlItems: 110, // not-protocol: issue number, issues/0110
+  /** List SFE flags, DYNN CHL, list paging and line selection (elements.md §7). */
+  listOutput: 111, // not-protocol: issue number, issues/0111
+  /** Popups: SES modal fields, POPU, closing (elements.md §8). */
+  popups: 112, // not-protocol: issue number, issues/0112
+  /** MESTYPE2 layout conflict and how I and A messages travel (elements.md §9). */
+  statusMessageTypes: 113, // not-protocol: issue number, issues/0113
+  /** Value help (F4): request, answer and pick (elements.md §10). */
+  valueHelp: 114, // not-protocol: issue number, issues/0114
+  /** Required and date markers on input fields (elements.md §11). */
+  fieldMarkers: 115 // not-protocol: issue number, issues/0115
 } as const
 
 /**

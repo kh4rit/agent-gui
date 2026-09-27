@@ -14,8 +14,6 @@ import "./decompressRunners.js"
 export const PENDING_KINDS: ReadonlyMap<string, string> = new Map(
   Object.entries({
     // DiagCompression and DiagCodec
-    "menu-entries": "DiagCodec MenuEntries.swift not ported yet",
-    "screen-identity": "DiagCodec ScreenIdentity.swift not ported yet",
     "rfc-items": "DiagCodec not ported yet",
     // The Control Framework kinds Swooey itself does not run yet (VectorRunner.pendingKinds).
     "control-properties": "no implementation in Swooey until M5",

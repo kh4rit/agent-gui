@@ -18,6 +18,9 @@ import {
   DyntField,
   DyntFrame,
   DyntTabstripButton,
+  DyntText,
+  DyntTextError,
+  DyntTextPart,
   applItemCarriesDyntAtoms,
   byteRange,
   type DyntAtom,
@@ -195,8 +198,8 @@ function check(sequence: Uint8Array): void {
     const raw = new ByteWriter()
     attempt(() => DyntAtomEncoder.appendAtom(atom.header, atom.contentRange.of(sequence), raw), DyntAtomEncodingError)
     assert.ok(bytesEqual(raw.toBytes(), sequence.subarray(atom.offset, atom.endOffset)))
-    // Swift also decodes every text part on demand (`DyntText.decode`) to show that it never traps:
-    // needs DyntText.swift (next wave).
+    // Decoding text on demand never traps, whatever the bytes.
+    for (const part of DyntTextPart.allCases) attempt(() => DyntText.decode(atom, sequence, DyntText.utf8CodePage, part), DyntTextError)
     offset = atom.endOffset
   }
   assert.equal(walker.diagnostics.orphanChildren, diagnostics.orphanChildren)

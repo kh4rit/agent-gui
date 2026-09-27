@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Ported from Swooey Tests/DiagCodecTests/DyntTextAndEncoderTests.swift (MIT): the encoder suite.
-// The "DYNT text on demand" suite (decodesUTF8TextOnlyWhenAsked, multibyteText,
-// passwordFieldsAreNeverDecoded, otherCodePagesAreSpecGap18, invalidBytesAreNotRepaired,
-// partsAndMissingText, anAtomFromAnotherValueIsOutOfRange) needs DyntText.swift (next wave).
+// Ported from Swooey Tests/DiagCodecTests/DyntTextAndEncoderTests.swift (MIT).
 
 import assert from "node:assert/strict"
 import { describe, test } from "node:test"
@@ -14,14 +11,104 @@ import {
   DyntDialogFlags,
   DyntElementType,
   DyntField,
+  DyntText,
+  DyntTextError,
   INT_MAX,
   byteRange,
+  type DyntAtom,
   type DyntTabstripString,
   type KnownDyntElementKind
 } from "../../../diag/codec/index.js"
 import { ByteWriter } from "../../../diag/wire/index.js"
 import { ascii, bytes, cat, repeated, throwsInfo, written } from "../../support/codecTestSupport.js"
 import { ZZScreen, field1Content, field2Content, rawAtom, tabstripContent, u16BE, walkAtoms } from "../../support/dyntTestSupport.js"
+
+describe("DYNT text on demand", () => {
+  const utf8 = 4110
+
+  function first(value: Uint8Array): DyntAtom {
+    const atom = walkAtoms(value).atoms[0]
+    assert.ok(atom)
+    return atom
+  }
+
+  test("decodesUTF8TextOnlyWhenAsked", () => {
+    const screen = ZZScreen.atoms
+    const atoms = walkAtoms(screen).atoms
+    assert.equal(DyntText.decode(atoms[0], screen, utf8), "Ducks in a row")
+    assert.equal(DyntText.decode(atoms[1], screen, utf8), "QUACK")
+    assert.equal(DyntText.decode(atoms[2], screen, utf8), "ZZDUCK-POND")
+    assert.equal(DyntText.decode(atoms[3], screen, utf8), "<Propertybag/>")
+    assert.equal(DyntText.decode(atoms[5], screen, utf8), "Sock drawer")
+    assert.equal(DyntText.utf8CodePage, 4110)
+  })
+
+  test("multibyteText", () => {
+    const label = ascii("Kaffeepegel ☕ 100 %")
+    const value = rawAtom(132, { content: field2Content(label) })
+    const atom = first(value)
+    assert.equal(DyntText.decode(atom, value, utf8), "Kaffeepegel ☕ 100 %")
+    if (atom.payload.kind === "field") assert.equal(atom.payload.value.dlen, label.length, "dlen counts bytes, not characters (R-DA-6)")
+  })
+
+  test("passwordFieldsAreNeverDecoded", () => {
+    const hidden = ascii("duckduckgoose")
+    for (const etype of [130, 121, 114, 127]) {
+      const content =
+        etype === 130 ? field2Content(hidden) : etype === 121 ? field1Content(hidden) : etype === 127 ? cat(u16BE(1), u16BE(1), hidden) : hidden
+      const value = rawAtom(etype, { content, attr: 0x42 })
+      const atom = first(value)
+      assert.ok(atom.isPasswordField)
+      throwsInfo(() => DyntText.decode(atom, value, utf8), DyntTextError, { kind: "passwordField" })
+      throwsInfo(() => DyntText.decode(atom, value, 1100), DyntTextError, { kind: "passwordField" })
+    }
+  })
+
+  test("otherCodePagesAreSpecGap18", () => {
+    const value = rawAtom(114, { content: ascii("ZZTEAPOT") })
+    const atom = first(value)
+    // 1100, 4102 and 4103 decode: CodePageTextTests.
+    for (const codePage of [0, 1160, 4109, 4111, 0xffffffff])
+      throwsInfo(() => DyntText.decode(atom, value, codePage), DyntTextError, { kind: "specGap", issue: 18 })
+  })
+
+  test("invalidBytesAreNotRepaired", () => {
+    for (const invalid of [[0xff], [0xc3], [0xe2, 0x98], [0xed, 0xa0, 0x80], [0x41, 0x80, 0x42]]) {
+      const value = rawAtom(114, { content: invalid })
+      const atom = first(value)
+      throwsInfo(() => DyntText.decode(atom, value, utf8), DyntTextError, { kind: "invalidText" })
+    }
+  })
+
+  test("partsAndMissingText", () => {
+    const tab = rawAtom(116, { content: tabstripContent({ text: ascii("Biscuits"), functionCode: ascii("ZZBISCUIT"), id: ascii("TAB7") }) })
+    const button = first(tab)
+    assert.equal(DyntText.decode(button, tab, utf8, "text"), "Biscuits")
+    assert.equal(DyntText.decode(button, tab, utf8, "functionCode"), "ZZBISCUIT")
+    assert.equal(DyntText.decode(button, tab, utf8, "id"), "TAB7")
+
+    const field = rawAtom(130, { content: field2Content(ascii("Nope")) })
+    const fieldAtom = first(field)
+    assert.ok(DyntText.range(fieldAtom, "functionCode") === undefined && DyntText.range(fieldAtom, "id") === undefined)
+    throwsInfo(() => DyntText.decode(fieldAtom, field, utf8, "functionCode"), DyntTextError, { kind: "noText" })
+
+    for (const value of [
+      rawAtom(101, { content: ascii("opaque") }),
+      rawAtom(115, { content: cat([0, 0, 0, 0, 0, 0], ascii("Nap")) }),
+      rawAtom(130, { content: field2Content(ascii("Oops"), { dlen: 2 }) })
+    ]) {
+      const atom = first(value)
+      throwsInfo(() => DyntText.decode(atom, value, utf8), DyntTextError, { kind: "noText" })
+    }
+  })
+
+  test("anAtomFromAnotherValueIsOutOfRange", () => {
+    const long = cat(rawAtom(101), rawAtom(114, { content: ascii("ZZFAR-AWAY") }))
+    const atom = walkAtoms(long).atoms.at(-1)
+    assert.ok(atom)
+    throwsInfo(() => DyntText.decode(atom, long.slice(0, 20), utf8), DyntTextError, { kind: "outOfRange" })
+  })
+})
 
 describe("DYNT atom encoder", () => {
   function header(kind: KnownDyntElementKind, attributes: DyntAttributes = DyntAttributes.yes3D): DyntAtomHeader {

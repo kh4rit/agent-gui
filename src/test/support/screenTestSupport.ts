@@ -5,8 +5,17 @@
 // docs/protocol/server-screen.md and independent of the codecs' encoders. Invented texts follow
 // docs/testing.md §8 (D15): deliberately silly, ZZ… transaction codes, no real screen's texts.
 
+import type { ScreenIdentity, ScreenIdentityText } from "../../diag/codec/index.js"
 import { appl, appl4, ascii, cat, repeated, u32BE } from "./codecTestSupport.js"
 import { field2Content, rawAtom, u16BE } from "./dyntTestSupport.js"
+
+/**
+ * The bytes of `field`'s text in `items`, or undefined (Swift `ScreenIdentityTests.text(_:_:_:)`,
+ * which Bug0142Tests shares). Throws what `ScreenIdentity.text` throws.
+ */
+export function identityText(identity: ScreenIdentity, field: ScreenIdentityText, items: Uint8Array): Uint8Array | undefined {
+  return identity.text(field)?.of(items).slice()
+}
 
 /**
  * One menu entry (server-screen.md §8.1): u16 BE length (20 + the three strings with their zero
