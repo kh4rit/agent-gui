@@ -99,7 +99,18 @@ export type ClientItem =
 export const ClientItem = {
   ses: (value: SESValue): ClientItem => ({ kind: "ses", value }),
   dynnCHL: (value: Uint8Array): ClientItem => ({ kind: "dynnCHL", value }),
-  dyntAtom: (value: Uint8Array): ClientItem => ({ kind: "dyntAtom", value }),
+  /**
+   * The atoms may hold a password field, so the item never prints its bytes: `toJSON` and
+   * `util.inspect` show `dyntAtom(value withheld)`, as Swift's `ClientItem` description does.
+   */
+  dyntAtom: (value: Uint8Array): ClientItem => {
+    const item = { kind: "dyntAtom" as const, value }
+    const withheld = () => "dyntAtom(value withheld)"
+    Object.defineProperty(item, "toJSON", { value: withheld, enumerable: false })
+    Object.defineProperty(item, "toString", { value: withheld, enumerable: false })
+    Object.defineProperty(item, Symbol.for("nodejs.util.inspect.custom"), { value: withheld, enumerable: false })
+    return item
+  },
   varInfoOKCode: (text: Uint8Array): ClientItem => ({ kind: "varInfoOKCode", text })
 } as const
 

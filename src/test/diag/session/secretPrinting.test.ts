@@ -132,3 +132,12 @@ describe("A password in an input step prints neither its bytes nor its length", 
     assert.deepStrictEqual(shown[0], shown[1], `${shown[0]?.[0] ?? ""} / ${shown[1]?.[0] ?? ""}`)
   })
 })
+
+test("a DYNT_ATOM item built by the ClientItem factory never prints its bytes", async () => {
+  const { ClientItem } = await import("../../../diag/codec/index.js")
+  const { inspect } = await import("node:util")
+  const item = ClientItem.dyntAtom(new TextEncoder().encode("quack-secret"))
+  assert.equal(JSON.stringify(item), '"dyntAtom(value withheld)"')
+  assert.equal(inspect(item), "dyntAtom(value withheld)")
+  assert.ok(!inspect({ items: [item] }).includes("113"))
+})
