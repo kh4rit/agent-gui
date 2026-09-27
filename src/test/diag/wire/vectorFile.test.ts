@@ -183,13 +183,10 @@ describe("Expectation reader", () => {
     ["expect.names", "EOC, CAS"],
     ["expect.names", "EOC,,CAS"]
   ]
-  // Swift's `Int(text)` rejects a value beyond Int.max; Expectations.int in
-  // src/test/vectors/expectations.ts still accepts any digit string (Number("999…") is 1e20), so
-  // that case is a known harness gap until the harness checks Number.isSafeInteger.
-  const knownGap = (value: string) =>
-    value === "99999999999999999999" ? { todo: "Expectations.int accepts integers beyond Number.MAX_SAFE_INTEGER" } : {}
+  // Swift's `Int(text)` rejects a value beyond Int.max; Expectations.int rejects a value beyond
+  // Number.MAX_SAFE_INTEGER.
   for (const [key, value] of malformedValues) {
-    test(`malformedValuesAreProblems(${key}, ${value})`, knownGap(value), () => {
+    test(`malformedValuesAreProblems(${key}, ${value})`, () => {
       const expect = new Expectations(new Map([[key, value]]))
       switch (key) {
         case "expect.int":

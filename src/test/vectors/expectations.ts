@@ -49,7 +49,7 @@ export class Expectations {
   int(key: string, required = true): number | undefined {
     const text = this.string(key, required)
     if (text === undefined) return undefined
-    if (!/^[0-9]+$/.test(text)) {
+    if (!/^[0-9]+$/.test(text) || !Number.isSafeInteger(Number(text))) {
       this.problems.push(`${key}: '${text}' is not a decimal int`)
       return undefined
     }
