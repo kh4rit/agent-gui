@@ -5,12 +5,21 @@ import assert from "node:assert/strict"
 import { describe, test } from "node:test"
 import {
   ApplItem,
+  ClientInput,
+  ClientInputStep,
+  ClientMessageEncoder,
   ContainerName,
+  Decompressor,
+  DiagMessage,
+  DiagMessageBody,
+  DyntDialogFlags,
   DyntFocus,
   InternalModeUUIDs,
   ItemPayloadError,
   LogonFieldStructure,
   MenuEntries,
+  ReturnedField,
+  SESValue,
   ScreenIdentity,
   ScreenIdentityError,
   ScreenIdentityText,
@@ -18,12 +27,13 @@ import {
   ScreenValueLayout,
   UIEventSource,
   byteRange,
+  type DiagItemType,
   type InternalModeEntry,
   type ItemPayloadErrorInfo
 } from "../../../diag/codec/index.js"
-import { ByteWriter, bytesEqual } from "../../../diag/wire/index.js"
+import { ByteWriter, DPTerminalName, bytesEqual } from "../../../diag/wire/index.js"
 import { menuEntryWalkErrorClass, screenValueFields } from "../../vectors/screenValueRunners.js"
-import { appl, appl4, attempt, cat, walkItems } from "../../support/codecTestSupport.js"
+import { appl, appl4, attempt, cat, walkItems, zzTestIdentity } from "../../support/codecTestSupport.js"
 import { field1Content, field2Content, rawAtom, u16BE, walkAtoms } from "../../support/dyntTestSupport.js"
 import { rawMenuEntry } from "../../support/screenTestSupport.js"
 import { SeededGenerator } from "../../support/seededGenerator.js"
@@ -498,6 +508,76 @@ describe("Screen robustness", () => {
 
   // MARK: Client input step (client-input.md §1, §2)
 
-  // inputStepsRoundTrip: needs ClientInput.swift (next wave) and ClientMessages.swift (other wave):
-  // it sends edited fields through `ClientInputStep` and `ClientMessageEncoder`.
+  /**
+   * Random edited fields through the input step and both encoders, decoded back: step first, EOM
+   * last, and one EFIELD_2 atom per field, byte for byte as dynt-atoms.md builds it.
+   */
+  test("inputStepsRoundTrip", () => {
+    const generator = new SeededGenerator(0x5cee_0006)
+    const encoders = [
+      new ClientMessageEncoder(zzTestIdentity(), DPTerminalName.fromHostName("zz-duckpond")),
+      new ClientMessageEncoder(zzTestIdentity(), DPTerminalName.empty, "lzh")
+    ]
+    const decompressor = new Decompressor()
+    for (let iteration = 0; iteration < 2_000; iteration++) {
+      const ses = generator.bool() ? new SESValue({ eventArray: 1 }) : undefined
+      const dynnCHL = generator.bool() ? generator.bytes(22) : undefined
+      const step = new ClientInputStep({ ses, dynnCHL })
+      const expectedAtoms: Uint8Array[] = []
+      for (let count = generator.int(0, 4); count > 0; count--) {
+        const text = generator.bytes(generator.int(0, 40))
+        const flags: [number, number] = [generator.uint8(), generator.uint8()]
+        const [area, block, group, attr, mlen] = [generator.bytes(1)[0], generator.bytes(1)[0], generator.bytes(1)[0], generator.bytes(1)[0], generator.bytes(1)[0]]
+        const [row, col, flag1, maxNrChars] = [generator.uint16(), generator.uint16(), generator.uint16(), generator.uint16()]
+        const field = new ReturnedField({
+          block,
+          row,
+          col,
+          mlen,
+          maxNrChars,
+          area,
+          group,
+          dialogFlags: new DyntDialogFlags({ flag1: flags[0], flag2: flags[1] }),
+          attributes: attr,
+          flag1
+        })
+        step.appendField(field, text)
+        expectedAtoms.push(
+          rawAtom(130, { content: field2Content(text, { flag1, mlen, maxNrChars }), flags, area, block, group, row, col, attr })
+        )
+      }
+      const which = iteration % 2
+      const payload = ClientInput.inputMessage(encoders[which], step)
+      const message = DiagMessage.parse(payload)
+      let body: Uint8Array = new Uint8Array(0)
+      switch (message.body.kind) {
+        case "items":
+          body = message.body.range.of(payload).slice()
+          break
+        case "compressed":
+          body = decompressor.decompress(message.body.data.of(payload), message.body.header)
+          break
+        default:
+          assert.fail(`unexpected body ${DiagMessageBody.bodyClass(message.body)}`)
+      }
+      const walked = walkItems(body)
+      assert.equal(walked.error, undefined)
+      assert.ok(
+        ApplItem.equals(walked.items[0]?.appl, ApplItem.stUser("dialogStepNumber")) && walked.items[walked.items.length - 1]?.type === "eom"
+      )
+      const expectedTypes: DiagItemType[] = [
+        ...(step.ses === undefined ? [] : ["ses" as const]),
+        ...(step.dynnCHL === undefined ? [] : ["appl" as const]),
+        ...(step.fieldCount === 0 ? [] : ["appl4" as const])
+      ]
+      assert.deepEqual(
+        walked.items.slice(1, -1).map(item => item.type),
+        expectedTypes
+      )
+      const atomItem = walked.items.slice(0, -1).at(-1)
+      if (step.fieldCount > 0 && atomItem !== undefined) {
+        assert.ok(ApplItem.equals(atomItem.appl, ApplItem.dynt("atom")) && bytesEqual(atomItem.valueRange.of(body), cat(...expectedAtoms)))
+      }
+    }
+  })
 })

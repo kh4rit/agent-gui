@@ -11,19 +11,32 @@ import { describe, test } from "node:test"
 import { inspect } from "node:util"
 import {
   ApplItem,
+  ClientInput,
+  ClientInputStep,
+  ClientMessageEncoder,
+  CompressionHeader,
   ControlItemScan,
+  Decompression,
+  DiagHeader,
   DiagItemEncoder,
+  DiagItemType,
+  DiagItemWalkError,
+  DiagItemWalker,
+  DialogStepNumber,
   InputEnvelope,
+  ItemPayloadError,
   RFCCall,
   RFCCallAssembler,
   RFCItemWalkError,
   RFCItemWalker,
   RFCStreamSummary,
+  RFCTransferValue,
+  ServerEcho,
   ServerMessageInfo,
   type RFCItem
 } from "../../../diag/codec/index.js"
-import { ByteWriter } from "../../../diag/wire/index.js"
-import { ascii, bytes, cat, repeated, throwsInfo } from "../../support/codecTestSupport.js"
+import { ByteWriter, DPTerminalName } from "../../../diag/wire/index.js"
+import { ascii, attempt, bytes, cat, repeated, throwsInfo, zzTestIdentity } from "../../support/codecTestSupport.js"
 import { rfcEnd, rfcItem } from "../../support/rfcTestSupport.js"
 
 describe("RFC_TR: interim messages, call parts, RFC items and the client's RFC_TR item", () => {
@@ -184,9 +197,70 @@ describe("RFC_TR: interim messages, call parts, RFC items and the client's RFC_T
     assert.deepEqual(RFCStreamSummary.listedFunctionNames, new Set(["OLE_FLUSH_CALL", "SAPGUI_PROGRESS_INDICATOR"]))
   })
 
-  // inputStepCarriesRFCTransfer: needs ClientInput.swift (next wave)
+  /** an input step's RFC_TR item goes right after DIALOG_STEP_NUMBER, with the minimal envelope and with the echoes */
+  test("inputStepCarriesRFCTransfer", () => {
+    const encoder = new ClientMessageEncoder(zzTestIdentity(), DPTerminalName.fromHostName("zz-moat"))
+    const bare = new ClientInputStep()
+    bare.rfcTransfer = new RFCTransferValue("mor")
+    assert.ok(bare.description.includes("RFC_TR_MOR: 0 bytes"))
+    const minimal = ClientInput.inputMessage(encoder, bare)
+    assert.deepEqual(shapes(minimal), ["ST_USER DIALOG_STEP_NUMBER", "RFC_TR RFC_TR_MOR", "EOM"])
 
-  // threeItemReply: needs ClientInput.swift (next wave)
+    const answer = new ClientInputStep({ envelope: InputEnvelope.controlReply(InputEnvelope.reference) })
+    answer.rfcTransfer = new RFCTransferValue("ret", bytes(0x42))
+    const echo = new ServerEcho()
+    echo.stepNumber = 7
+    echo.ses = repeated(0, 16)
+    echo.dynnCHL = bytes(1, 2)
+    const payload = ClientInput.inputMessage(encoder, answer, 0, echo)
+    assert.deepEqual(shapes(payload), ["ST_USER DIALOG_STEP_NUMBER", "RFC_TR RFC_TR_RET", "SES", "DYNN CHL", "DYNT DYNT_NOFOCUS", "EOM"])
+    assert.equal(encoder.lastStepNumber, 7, "the server's step, echoed")
+
+    const withEvent = new ClientInputStep()
+    withEvent.rfcTransfer = new RFCTransferValue("err")
+    withEvent.setFunctionKey(3)
+    assert.deepEqual(shapes(ClientInput.inputMessage(encoder, withEvent)), [
+      "ST_USER DIALOG_STEP_NUMBER",
+      "RFC_TR RFC_TR_ERR",
+      "UI_EVENT UI_EVENT_SOURCE",
+      "EOM"
+    ])
+  })
+
+  /** the three-item control reply (R-CT-26): msg_info 0x01, the given step, the RFC_TR item, EOM, whatever else the step would carry */
+  test("threeItemReply", () => {
+    const encoder = new ClientMessageEncoder(zzTestIdentity(), DPTerminalName.fromHostName("zz-moat"))
+    const answer = new RFCTransferValue("ret", cat(rfcItem(0x0101, [1]), rfcEnd()))
+    const payload = ClientInput.controlReply(encoder, answer, { mode: 1, modeStat: 0x0c, stepNumber: 8 })
+    const expected = new ByteWriter()
+    expected.bytes(DiagHeader.clientControlReply(false, 0x0c, 1).bytes)
+    DiagItemEncoder.appendAPPL(ApplItem.stUser("dialogStepNumber"), new DialogStepNumber(8).bytes, expected)
+    DiagItemEncoder.appendAPPL(ApplItem.rfcTR("ret"), answer.value, expected)
+    DiagItemEncoder.appendEOM(expected)
+    assert.deepEqual(payload, expected.toBytes())
+    assert.deepEqual(payload.slice(0, 8), bytes(1, 0, 0x0c, 0, 0, 0x01, 0, 0))
+    assert.equal(encoder.lastStepNumber, 8, "the replied message's step becomes the counter")
+
+    const part = ClientInput.controlReply(encoder, new RFCTransferValue("mor"), { stepNumber: undefined })
+    assert.deepEqual(shapes(part), ["ST_USER DIALOG_STEP_NUMBER", "RFC_TR RFC_TR_MOR", "EOM"])
+    assert.deepEqual(part.slice(0, 8), bytes(0, 0, 0, 0, 0, 0x01, 0, 0))
+    assert.equal(encoder.lastStepNumber, 9, "without a step of the server's, the next own step")
+    const back = ClientInput.controlReply(encoder, new RFCTransferValue("mor"), { stepNumber: 3, ownCount: true })
+    assert.equal(step(back), 3, "the replied message's step goes out")
+    assert.equal(encoder.lastStepNumber, 9, "an envelope that counts its own steps: the count stays")
+    ClientInput.controlReply(encoder, new RFCTransferValue("mor"), { stepNumber: 12, ownCount: true })
+    assert.equal(encoder.lastStepNumber, 12, "a higher replied step moves the count on")
+    ClientInput.controlReply(encoder, new RFCTransferValue("mor"), { stepNumber: 5 })
+    assert.equal(encoder.lastStepNumber, 5, "with echoes the replied step becomes the count, as an echoed step does")
+
+    const compressed = new ClientMessageEncoder(zzTestIdentity(), DPTerminalName.fromHostName("zz-moat"), "lzh")
+    const packed = ClientInput.controlReply(compressed, new RFCTransferValue("mor"), { stepNumber: 4 })
+    assert.deepEqual(packed.slice(0, 8), bytes(0, 0, 0, 0, 0, 0x01, 0, 1), "compress: the connection's")
+    const header = CompressionHeader.decode(packed.slice(8, 16))
+    const body = Decompression.decompress(packed.slice(16), header)
+    assert.deepEqual(shapes(cat(packed.slice(0, 8), body)), ["ST_USER DIALOG_STEP_NUMBER", "RFC_TR RFC_TR_MOR", "EOM"])
+    assert.ok(`${answer}` === "RFCTransferValue(RFC_TR_RET, 13 bytes)" && inspect(answer) === answer.description)
+  })
 
   /** a control reply's envelope keeps echoes, changed bit, carriers and DYNN CHL, and drops the rest */
   test("controlReplyEnvelope", () => {
@@ -200,6 +274,24 @@ describe("RFC_TR: interim messages, call parts, RFC items and the client's RFC_T
     )
   })
 
-  // step, shapes: the helpers of inputStepCarriesRFCTransfer and threeItemReply, which need
-  // ClientInput.swift (next wave)
+  /** The DIALOG_STEP_NUMBER of a client message, the header skipped. */
+  function step(payload: Uint8Array): number | undefined {
+    const body = payload.slice(DiagHeader.size)
+    const walker = new DiagItemWalker()
+    const item = attempt(() => walker.next(body), DiagItemWalkError)
+    if (item?.appl === undefined || ApplItem.displayName(item.appl) !== "ST_USER DIALOG_STEP_NUMBER") return undefined
+    return attempt(() => DialogStepNumber.decode(item.valueRange.of(body)).step, ItemPayloadError)
+  }
+
+  /** The (id, sid) names of a client message's items, the header skipped. */
+  function shapes(payload: Uint8Array): string[] {
+    const body = payload.slice(DiagHeader.size)
+    const walker = new DiagItemWalker()
+    const shapes: string[] = []
+    const next = () => attempt(() => walker.next(body), DiagItemWalkError)
+    for (let item = next(); item !== undefined; item = next()) {
+      shapes.push(item.appl !== undefined ? ApplItem.displayName(item.appl) : DiagItemType.name(item.type))
+    }
+    return shapes
+  }
 })
