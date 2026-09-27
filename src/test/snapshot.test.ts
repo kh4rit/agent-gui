@@ -72,7 +72,7 @@ test("the compact snapshot names identity, message, functions, fields, tables an
   assert.match(text, /k2 Save \[Ctrl\+S\]/)
   assert.match(text, /k3 New Entries \[F5\]/)
   assert.doesNotMatch(text, /k4 Print/)
-  assert.match(text, /1 disabled functions not shown/)
+  assert.match(text, /1 disabled function not shown/)
   assert.match(text, /f2 input "Pond" \(ZZV_RULES-POND\) = "001"  \[required, F4, max 3\]/)
   assert.match(text, /f3 password "Secret quack"/)
   assert.match(text, /f4 checkbox \[x\] "Frozen"/)
@@ -80,11 +80,12 @@ test("the compact snapshot names identity, message, functions, fields, tables an
   // the label named as f2's label is left out
   assert.doesNotMatch(text, /f1 label/)
   // table cells show their references; the grid lists rows and marks
-  assert.match(text, /table t1 ZZV_RULES: rows 1-2 of 57, rows can be marked \(gui_table t1 reads more\)/)
+  assert.match(text, /table t1 ZZV_RULES: rows 1-2 of 57, rows can be marked \(gui_table t1 reads more\); a cell is t1:ROW:COLUMN/)
   assert.match(text, /\| row \| mark \| Pond \(ZZV_RULES-POND\)\* \| Duck limit \(ZZV_RULES-DUCKS\) \|/)
-  assert.match(text, /\| 2 \| \[x\] \| 002 \| 7\{f11\} \|/)
+  assert.match(text, /\| 2 \| \[x\] \| 002 \| 7 \|/)
   assert.match(text, /\[-\] Duck Pond Guide  \{N1\}/)
   assert.match(text, /Define ponds  \{N2\}  \| Docs/)
+  assert.doesNotMatch(text, /@0Y@/)
   // table cells do not appear again under fields
   assert.doesNotMatch(text, /f10 input/)
 })

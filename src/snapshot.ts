@@ -18,14 +18,24 @@ export interface SnapshotOptions {
 
 const q = (text: string) => JSON.stringify(text)
 
-/** Removes SAP icon codes (`@0V@`) and trims. */
+/** The traffic lights among SAP's icon codes (ICON_GREEN_LIGHT, ICON_YELLOW_LIGHT, ICON_RED_LIGHT). */
+const ICON_WORDS = new Map([
+  ["08", "(green)"],
+  ["09", "(yellow)"],
+  ["0A", "(red)"]
+])
+
+/** Replaces SAP icon codes (`@08@`, `@0Y\\QTooltip@`): traffic lights by a word, others by nothing; trims. */
 export function plainText(text: string | undefined): string {
-  return (text ?? "").replace(/@[0-9A-Z]{2}(\\Q[^@]*)?@/g, "").trim()
+  return (text ?? "")
+    .replace(/@([0-9A-Z]{2})(\\Q[^@]*)?@/g, (_m, code: string) => ICON_WORDS.get(code) ?? "")
+    .replace(/\s{2,}/g, " ")
+    .trim()
 }
 
 function functionLabel(f: AgentFunction): string {
   const text = plainText(f.text) || plainText(f.tooltip) || f.code || (f.key ? f.key : "")
-  const extras = [f.key, f.code && f.code !== text ? f.code : undefined].filter(Boolean)
+  const extras = [f.key && f.key !== text ? f.key : undefined, f.code && f.code !== text ? f.code : undefined].filter(Boolean)
   return `${f.ref} ${text}${extras.length ? ` [${extras.join(" ")}]` : ""}${f.enabled ? "" : " (disabled)"}`
 }
 
@@ -43,7 +53,7 @@ function formatFunctions(screen: AgentScreen, full: boolean): string[] {
   const hidden = screen.functions.filter(f => !f.enabled).length
   const lines: string[] = []
   if (items.length) lines.push(`functions: ${items.join(" · ")}`)
-  if (!full && hidden) lines.push(`  (${hidden} disabled functions not shown)`)
+  if (!full && hidden) lines.push(`  (${hidden} disabled function${hidden === 1 ? "" : "s"} not shown)`)
   if (!full && screen.functions.some(f => f.where === "menu")) lines.push("  (menu functions: gui_screen detail=full)")
   return lines
 }
@@ -64,7 +74,7 @@ function describeField(f: AgentField, functions: Map<string, AgentFunction>, ful
       if (f.password) return words(f.ref, "password", label, name, f.editable === false ? "read-only" : undefined) + pos
       return `${words(f.ref, f.editable === false ? "read-only" : "input", label, name)} = ${q(f.text ?? "")}${flagText}${pos}`
     case "output":
-      return `${words(f.ref, "text", label ? label + " =" : undefined, q(f.text ?? ""), name)}${pos}`
+      return `${words(f.ref, "text", label ? label + " =" : undefined, q(plainText(f.text)), name)}${pos}`
     case "label":
       return `${f.ref} label ${q(plainText(f.text))}${pos}`
     case "checkbox":
@@ -95,6 +105,7 @@ function formatFields(screen: AgentScreen, full: boolean): string[] {
   const functions = new Map(screen.functions.map(f => [f.ref, f]))
   const fields = screen.fields.filter(f => !f.table && f.kind !== "tab")
   const usedLabels = new Set(fields.filter(f => f.label).map(f => plainText(f.label)))
+  for (const t of screen.tables) for (const c of t.columns) if (c.title) usedLabels.add(plainText(c.title))
   const lines: string[] = []
   for (const f of fields) {
     if (!full && f.kind === "label" && usedLabels.has(plainText(f.text))) continue
@@ -107,18 +118,16 @@ function formatFields(screen: AgentScreen, full: boolean): string[] {
 function formatTable(t: AgentTable): string[] {
   const range = t.rows.length ? `rows ${t.rows[0].row}-${t.rows[t.rows.length - 1].row}` : "no rows"
   const total = t.totalRows !== undefined ? ` of ${t.totalRows}` : ""
-  const lines = [`table ${t.ref}${t.name ? ` ${t.name}` : ""}: ${range}${total}${t.selectable ? ", rows can be marked" : ""}${t.totalRows !== undefined && t.totalRows > t.rows.length ? ` (gui_table ${t.ref} reads more)` : ""}`]
+  const lines = [
+    `table ${t.ref}${t.name ? ` ${t.name}` : ""}: ${range}${total}${t.selectable ? ", rows can be marked" : ""}${t.totalRows !== undefined && t.totalRows > t.rows.length ? ` (gui_table ${t.ref} reads more)` : ""}; a cell is ${t.ref}:ROW:COLUMN`
+  ]
   const header = t.columns.map((c, i) => {
     const title = plainText(c.title) || c.name || `col${i}`
     return `${title}${c.name && c.name !== title ? ` (${c.name})` : ""}${c.key ? "*" : ""}`
   })
   lines.push(`  | row |${t.selectable ? " mark |" : ""} ${header.join(" | ")} |`)
   for (const r of t.rows) {
-    const cells = t.columns.map((_c, i) => {
-      const ref = r.cellRefs[i]
-      const text = r.cells[i] ?? ""
-      return ref ? `${text}{${ref}}` : text
-    })
+    const cells = t.columns.map((_c, i) => plainText(r.cells[i] ?? ""))
     lines.push(`  | ${r.row} |${t.selectable ? ` ${r.selected ? "[x]" : "[ ]"} |` : ""} ${cells.join(" | ")} |`)
   }
   return lines
@@ -175,6 +184,7 @@ export function formatScreen(screen: AgentScreen, opts: SnapshotOptions = {}): s
     const l = screen.list
     const total = l.totalLines !== undefined ? ` of ${l.totalLines}` : ""
     lines.push(`list: lines ${l.firstLine}-${l.firstLine + l.lines.length - 1}${total}`)
+    for (const h of l.header ?? []) lines.push(`  head| ${h}`)
     l.lines.slice(0, options.maxListLines).forEach((text, i) => lines.push(`  ${String(l.firstLine + i).padStart(4)}| ${text}`))
     if (l.lines.length > options.maxListLines) lines.push(`  … ${l.lines.length - options.maxListLines} more lines (gui_table list reads them)`)
     if (l.hotspots?.length) lines.push(`  hotspots: ${l.hotspots.slice(0, 20).map(h => `${h.line},${h.column} ${q(h.text)}`).join(" · ")}`)
@@ -194,7 +204,7 @@ export function describeChange(before: AgentScreen | undefined, after: AgentScre
     if (before.transaction !== after.transaction && after.transaction) parts.push(`transaction ${after.transaction}`)
     if (!before.popup && after.popup) parts.push(`popup opened ${q(plainText(after.popup.title) || after.title || "")}`)
     else if (before.popup && !after.popup) parts.push("popup closed")
-    if (where(before) !== where(after)) parts.push(`new screen ${where(after)}`)
+    if (where(before) !== where(after) && where(after)) parts.push(`new screen ${where(after)}`)
     else if (!parts.length) parts.push("same screen")
   }
   if (after.message) parts.push(`message ${after.message.type}: ${after.message.text}`)

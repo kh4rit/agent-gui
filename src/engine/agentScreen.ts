@@ -103,6 +103,8 @@ export interface AgentTable {
 
 /** A classic ABAP list (report output, SE16 standard list). */
 export interface AgentList {
+  /** The list's fixed header lines. */
+  header?: string[]
   lines: string[]
   firstLine: number
   totalLines?: number

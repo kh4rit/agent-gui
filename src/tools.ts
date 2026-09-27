@@ -9,7 +9,7 @@ import { describeSystem } from "./config.js"
 import { errorMessage, plural, truncate } from "./format.js"
 import type { AgentControl, AgentList, AgentTable } from "./engine/agentScreen.js"
 import type { GuiService, StepResult, TriggerInput } from "./service.js"
-import { formatScreen } from "./snapshot.js"
+import { formatScreen, plainText } from "./snapshot.js"
 
 type ToolResult = { content: { type: "text"; text: string }[]; isError?: boolean }
 
@@ -40,6 +40,7 @@ export function formatStep(result: StepResult, detail?: "compact" | "full"): str
 function formatRows(data: AgentTable | AgentList): string {
   if ("lines" in data) {
     const lines = [`list: lines ${data.firstLine}-${data.firstLine + data.lines.length - 1}${data.totalLines !== undefined ? ` of ${data.totalLines}` : ""}`]
+    for (const h of data.header ?? []) lines.push(` head| ${h}`)
     data.lines.forEach((l, i) => lines.push(`${String(data.firstLine + i).padStart(5)}| ${l}`))
     return lines.join("\n")
   }
@@ -49,7 +50,7 @@ function formatRows(data: AgentTable | AgentList): string {
     `| row |${data.selectable ? " mark |" : ""} ${header.join(" | ")} |`
   ]
   for (const r of data.rows)
-    lines.push(`| ${r.row} |${data.selectable ? ` ${r.selected ? "[x]" : "[ ]"} |` : ""} ${data.columns.map((_c, i) => r.cells[i] ?? "").join(" | ")} |`)
+    lines.push(`| ${r.row} |${data.selectable ? ` ${r.selected ? "[x]" : "[ ]"} |` : ""} ${data.columns.map((_c, i) => plainText(r.cells[i] ?? "")).join(" | ")} |`)
   return lines.join("\n")
 }
 
@@ -58,14 +59,14 @@ function formatControl(c: AgentControl): string {
     const lines = [`tree ${c.ref}: ${plural(c.tree.nodes.length, "node")} loaded`]
     for (const n of c.tree.nodes) {
       const marker = n.hasChildren ? (n.expanded ? "[-]" : "[+]") : "   "
-      lines.push(`${"  ".repeat(n.depth)}${marker} ${n.text}  {${n.key}}${n.items?.length ? `  | ${n.items.join(" | ")}` : ""}`)
+      lines.push(`${"  ".repeat(n.depth)}${marker} ${plainText(n.text)}  {${n.key}}${n.items?.length ? `  | ${n.items.map(plainText).join(" | ")}` : ""}`)
     }
     return lines.join("\n")
   }
   if (c.grid) {
     const lines = [`grid ${c.ref}: ${plural(c.grid.rows.length, "row")}${c.grid.totalRows !== undefined ? ` of ${c.grid.totalRows}` : ""}`]
     lines.push(`| row | ${c.grid.columns.map(col => col.title || col.name).join(" | ")} |`)
-    c.grid.rows.forEach((r, i) => lines.push(`| ${i + 1} | ${r.join(" | ")} |`))
+    c.grid.rows.forEach((r, i) => lines.push(`| ${i + 1} | ${r.map(plainText).join(" | ")} |`))
     return lines.join("\n")
   }
   return `control ${c.ref}: ${c.className ?? c.kind}`
