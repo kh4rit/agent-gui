@@ -78,6 +78,11 @@ export class SeededGenerator {
     return this.closed(lower, upper, 32n)
   }
 
+  /** Swift `UInt16.random(in: lower ... upper, using:)`. */
+  uint16(lower = 0, upper = 0xffff): number {
+    return this.closed(lower, upper, 16n)
+  }
+
   /** `Bool.random(using:)`: bit 17 of the next value is clear. */
   bool(): boolean {
     return ((this.next() >> 17n) & 1n) === 0n
