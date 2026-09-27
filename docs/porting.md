@@ -64,6 +64,26 @@ TransactionField, ToolSupport, ToolTransport, FakeScenarios, the app's views.
 | `@inline(__always)`, `@usableFromInline`, `borrowing`, `consuming`, `~Copyable` | dropped |
 | `Secret` | the ported `Secret` class: never printable (`toString()`, `toJSON()` and `util.inspect` show `Secret(redacted)`), zeroed by `dispose()`. |
 
+## Conventions the ported modules use
+
+- Enums: a string union, or a union tagged by `kind`, with a same-named const object holding the
+  members and helpers (`DiagItemType.name(t)`, `ApplItem.of(id, sid)`, `ApplItem.dynt("atom")`,
+  `ApplItem.equals`). An unlabeled associated value becomes the field `value`.
+- `Range<Int>` → the class `ByteRange` (`lowerBound`, `upperBound`, `count`, `.of(bytes)`).
+- Option sets → plain numbers plus mask constants (`ComFlag`, `DyntAttributes`, `ListRunFlags`).
+- Initialisers: throwing `init(parsing:)` / `init(decoding:)` / `init(value:)` → static `parse` /
+  `decode`; failable inits → static `fromPayload`, `fromAtom`, `fromValue`, `of` … returning
+  `undefined`.
+- A Swift `extension` of a type declared in another file: its members go in an object named after
+  the Swift file that declares the extension (`DyntText.range(atom, part)` for `atom.range(of:)`,
+  `GUIStatus.part(sid)`), or free functions in that file; each with a doc note naming the Swift
+  member. This avoids import cycles.
+- `extension CodecSpecGap` constants live in `CodecSpecGap` in `src/diag/codec/diagCodec.ts`.
+- Encoders append to wire's `ByteWriter`.
+- Swift `try?` → catch only the Swift-declared error type, so unexpected errors still surface.
+- A method name that clashes with a property gets a descriptive suffix
+  (`tabs(inArea:)` → `tabsInArea`).
+
 ## Value semantics: the main porting hazard
 
 Swift structs and arrays are **copied** on assignment and when passed; TypeScript objects and
