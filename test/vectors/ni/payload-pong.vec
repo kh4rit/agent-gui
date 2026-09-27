@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#payload-classification
+# provenance: PV-0005, PV-0202
+# kind: ni-payload
+# description: A stray NI_PONG\0 received from the server is a keep-alive pong, not a DIAG message, and gets no reply.
+# derivation: Rule 3: the payload is exactly the 8 bytes of PV-0005 (exact match per PV-0202); IMPL-NI-9 says the client ignores it and sends nothing.
+# expect.class: keepalive-pong
+# expect.reply: none
+# expect.reply.frame: none
+hex:
+4E 49 5F 50 4F 4E 47 00                           # N I _ P O N G \0

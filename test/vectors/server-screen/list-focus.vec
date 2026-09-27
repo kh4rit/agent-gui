@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#85-lists-scrolling-and-focus
+# provenance: PV-0717, PV-0441, PV-0462
+# kind: appl-fields
+# description: VARINFO LIST_FOCUS on row 300, column 7.
+# derivation: u8 version, u16 BE row, u16 BE column (PV-0717).
+# expect.id: 0x0C
+# expect.sid: 0x0D
+# expect.field.version: 1
+# expect.field.row: 300
+# expect.field.col: 7
+# expect.error: none
+hex:
+01 01 2C 00 07                                    # value

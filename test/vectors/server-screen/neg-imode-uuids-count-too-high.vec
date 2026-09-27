@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#52-internal-mode-uuids
+# provenance: PV-0710
+# kind: imode-uuids
+# description: Count 2 but only one UUID entry present.
+# derivation: PV-0710 needs 1 + 17 x 2 = 35 bytes; 18 given (truncated).
+# expect.error: truncated
+hex:
+02                                                # count 2
+DE AD BE EF CA FE F0 0D BA AD F0 0D DE CA FB AD   # UUID (16 bytes, invented)
+01                                                # active context 1

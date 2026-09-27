@@ -1,0 +1,9 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#error-body-layout
+# provenance: PV-0054, PV-0303
+# kind: diag-error-body
+# description: Error body without any 0x0C byte: the split fails with missing-terminator.
+# derivation: The text must end with a 0x0C terminator (PV-0303); none is present, so the split fails (IMPL-DH-7). One fault only.
+# expect.error: missing-terminator
+hex:
+41 41 42 42                                       # error text bytes (opaque; they read the same in either byte order, #8)

@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/controls/alv-grid.md#31-plain-packet
+# provenance: PV-0940
+# kind: alv-rows
+# description: A stream without the plain-packet marker.
+# derivation: No FF FF FF FF 01 anywhere (PV-0940; IMPL-CT-9: missing-marker).
+# expect.column_lengths: 10,6
+# expect.error: missing-marker
+hex:
+FF FF FF FF 02 5A 5A 5F 4E 4F 5F 52 4F 57 53 5F   # almost a marker (last byte 02), then text (defect)
+48 45 52 45

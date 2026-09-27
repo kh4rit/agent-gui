@@ -1,0 +1,162 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#78-swooeys-answer-2026-09-25
+# provenance: PV-0910, PV-0911, PV-0919, PV-0920, PV-0921, PV-0927, PV-0928, PV-0958
+# kind: rfc-items
+# description: Swooey's answer to a call without verbs (Readings R-CT-28 to R-CT-31): the eleven-item head, the parameter, three tables of 0 rows, the end item.
+# derivation: The head's ids in the order of PV-0921 with invented echoes, 00 11 = E, 00 17 and 05 00 empty; 02 01 with the call's invented parameter and 02 03 of 256 spaces (PV-0927); the descriptor table, VARS and XML_DATA_STREAM as 03 01 and 03 02 (row width, row count as u32 BE, PV-0958) and no content for 0 rows (PV-0928); FF FF 00 00 FF FF (PV-0911, PV-0920).
+# expect.error: none
+# expect.items: 20
+# expect.item.1.id: 01 01
+# expect.item.1.length: 8
+# expect.item.1.value: 51 55 41 43 4B 52 46 43
+# expect.item.1.trailer: matches
+# expect.item.2.id: 01 03
+# expect.item.2.length: 4
+# expect.item.2.value: 00 00 0D 0C
+# expect.item.2.trailer: matches
+# expect.item.3.id: 01 06
+# expect.item.3.length: 11
+# expect.item.3.value: 01 44 55 43 4B 48 45 41 44 30 31
+# expect.item.3.trailer: matches
+# expect.item.4.id: 00 07
+# expect.item.4.length: 15
+# expect.item.4.value: 51 55 41 43 4B 2D 51 55 41 43 4B 2D 30 30 31
+# expect.item.4.trailer: matches
+# expect.item.5.id: 00 18
+# expect.item.5.length: 12
+# expect.item.5.value: 50 4F 4E 44 2D 4E 45 53 54 2D 31 32
+# expect.item.5.trailer: matches
+# expect.item.6.id: 00 11
+# expect.item.6.length: 1
+# expect.item.6.value: 45
+# expect.item.6.trailer: matches
+# expect.item.7.id: 00 13
+# expect.item.7.length: 4
+# expect.item.7.value: 44 55 43 4B
+# expect.item.7.trailer: matches
+# expect.item.8.id: 00 12
+# expect.item.8.length: 4
+# expect.item.8.value: 4D 4F 41 54
+# expect.item.8.trailer: matches
+# expect.item.9.id: 00 06
+# expect.item.9.length: 6
+# expect.item.9.value: 57 41 44 44 4C 45
+# expect.item.9.trailer: matches
+# expect.item.10.id: 00 17
+# expect.item.10.length: 0
+# expect.item.10.value: none
+# expect.item.10.trailer: matches
+# expect.item.11.id: 05 00
+# expect.item.11.length: 0
+# expect.item.11.value: none
+# expect.item.11.trailer: matches
+# expect.item.12.id: 02 01
+# expect.item.12.length: 15
+# expect.item.12.value: 5A 5A 5F 51 55 41 43 4B 5F 52 45 50 4F 52 54
+# expect.item.12.trailer: matches
+# expect.item.13.id: 02 03
+# expect.item.13.length: 256
+# expect.item.13.trailer: matches
+# expect.item.14.id: 03 01
+# expect.item.14.length: 8
+# expect.item.14.value: 5A 5A 5F 53 4C 4F 54 53
+# expect.item.14.trailer: matches
+# expect.item.15.id: 03 02
+# expect.item.15.length: 8
+# expect.item.15.value: 00 00 00 2C 00 00 00 00
+# expect.item.15.trailer: matches
+# expect.item.16.id: 03 01
+# expect.item.16.length: 4
+# expect.item.16.value: 56 41 52 53
+# expect.item.16.trailer: matches
+# expect.item.17.id: 03 02
+# expect.item.17.length: 8
+# expect.item.17.value: 00 00 01 51 00 00 00 00
+# expect.item.17.trailer: matches
+# expect.item.18.id: 03 01
+# expect.item.18.length: 15
+# expect.item.18.value: 58 4D 4C 5F 44 41 54 41 5F 53 54 52 45 41 4D
+# expect.item.18.trailer: matches
+# expect.item.19.id: 03 02
+# expect.item.19.length: 8
+# expect.item.19.value: 00 00 00 FF 00 00 00 00
+# expect.item.19.trailer: matches
+# expect.item.20.id: FF FF
+# expect.item.20.length: 0
+# expect.item.20.value: none
+# expect.item.20.trailer: matches
+# expect.end: yes
+# expect.reencodes: yes
+hex:
+01 01 00 08                           # item 01 01, length 8, echo of the call's 01 01
+51 55 41 43 4B 52 46 43                            # value
+01 01                                              # trailing pair repeating the id (PV-0919)
+01 03 00 04                           # item 01 03, length 4, echo of the call's 01 03
+00 00 0D 0C                                        # value
+01 03                                              # trailing pair repeating the id (PV-0919)
+01 06 00 0B                           # item 01 06, length 11, echo of the call's 01 06
+01 44 55 43 4B 48 45 41 44 30 31                   # value
+01 06                                              # trailing pair repeating the id (PV-0919)
+00 07 00 0F                           # item 00 07, length 15, echo of the call's 00 07
+51 55 41 43 4B 2D 51 55 41 43 4B 2D 30 30 31       # value
+00 07                                              # trailing pair repeating the id (PV-0919)
+00 18 00 0C                           # item 00 18, length 12, echo of the call's 00 18
+50 4F 4E 44 2D 4E 45 53 54 2D 31 32                # value
+00 18                                              # trailing pair repeating the id (PV-0919)
+00 11 00 01                           # item 00 11, length 1, E (PV-0921)
+45                                                 # value
+00 11                                              # trailing pair repeating the id (PV-0919)
+00 13 00 04                           # item 00 13, length 4, echo of the call's 00 13
+44 55 43 4B                                        # value
+00 13                                              # trailing pair repeating the id (PV-0919)
+00 12 00 04                           # item 00 12, length 4, echo of the call's 00 12
+4D 4F 41 54                                        # value
+00 12                                              # trailing pair repeating the id (PV-0919)
+00 06 00 06                           # item 00 06, length 6, echo of the call's 00 06
+57 41 44 44 4C 45                                  # value
+00 06                                              # trailing pair repeating the id (PV-0919)
+00 17 00 00                           # item 00 17, length 0, empty
+00 17                                              # trailing pair repeating the id (PV-0919)
+05 00 00 00                           # item 05 00, length 0, empty
+05 00                                              # trailing pair repeating the id (PV-0919)
+02 01 00 0F                           # item 02 01, length 15, the call's one other export parameter (R-CT-30)
+5A 5A 5F 51 55 41 43 4B 5F 52 45 50 4F 52 54       # value
+02 01                                              # trailing pair repeating the id (PV-0919)
+02 03 01 00                           # item 02 03, length 256, 256 spaces (PV-0927)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value (continued)
+02 03                                              # trailing pair repeating the id (PV-0919)
+03 01 00 08                           # item 03 01, length 8, the descriptor table's name, echoed
+5A 5A 5F 53 4C 4F 54 53                            # value
+03 01                                              # trailing pair repeating the id (PV-0919)
+03 02 00 08                           # item 03 02, length 8, row width 44, row count 0 (PV-0958)
+00 00 00 2C 00 00 00 00                            # value
+03 02                                              # trailing pair repeating the id (PV-0919)
+03 01 00 04                           # item 03 01, length 4
+56 41 52 53                                        # value
+03 01                                              # trailing pair repeating the id (PV-0919)
+03 02 00 08                           # item 03 02, length 8, row width 337, row count 0
+00 00 01 51 00 00 00 00                            # value
+03 02                                              # trailing pair repeating the id (PV-0919)
+03 01 00 0F                           # item 03 01, length 15
+58 4D 4C 5F 44 41 54 41 5F 53 54 52 45 41 4D       # value
+03 01                                              # trailing pair repeating the id (PV-0919)
+03 02 00 08                           # item 03 02, length 8, row width 255, row count 0
+00 00 00 FF 00 00 00 00                            # value
+03 02                                              # trailing pair repeating the id (PV-0919)
+FF FF 00 00                           # item FF FF, length 0, the end item
+FF FF                                              # trailing pair repeating the id (PV-0919)

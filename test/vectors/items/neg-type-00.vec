@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/items.md#unknown-item-types
+# provenance: PV-0100, PV-0417
+# kind: items
+# description: Type 0x00 is unknown; the walk stops at item 1.
+# derivation: 0x00 is outside the complete type set (PV-0417), so the walker stops with unknown-simple-type (IMPL-IT-2).
+# expect.items: 0
+# expect.error: unknown-simple-type
+# expect.error.item: 1
+# expect.error.type: 0x00
+hex:
+00                                                # type 0x00 (unknown)

@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#52-internal-mode-uuids
+# provenance: PV-0710, PV-0435, PV-0455
+# kind: imode-uuids
+# description: Two UUIDs; the second is marked active.
+# derivation: u8 count n, then n x (16-byte UUID, u8 active context); length 1 + 17n (PV-0710).
+# expect.count: 2
+# expect.uuid.1: DE AD BE EF CA FE F0 0D BA AD F0 0D DE CA FB AD
+# expect.active.1: 0x00
+# expect.uuid.2: 01 23 45 67 89 AB CD EF FE DC BA 98 76 54 32 10
+# expect.active.2: 0x01
+# expect.error: none
+hex:
+02                                                # count 2
+DE AD BE EF CA FE F0 0D BA AD F0 0D DE CA FB AD   # UUID (16 bytes, invented)
+00                                                # active context 0
+01 23 45 67 89 AB CD EF FE DC BA 98 76 54 32 10   # UUID (16 bytes, invented)
+01                                                # active context 1

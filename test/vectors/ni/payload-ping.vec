@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#keep-alive
+# provenance: PV-0004, PV-0005, PV-0201, PV-0202
+# kind: ni-payload
+# description: The keep-alive request payload NI_PING\0; the client answers with NI_PONG\0, written on the wire as a 12-byte frame with length 8.
+# derivation: Rule 2: the payload is exactly the 8 bytes of PV-0004 (PV-0202); the reply payload is PV-0005 and its frame is u32 BE 8 plus that payload (PV-0201).
+# expect.class: keepalive-ping
+# expect.reply: 4E 49 5F 50 4F 4E 47 00
+# expect.reply.frame: 00 00 00 08 4E 49 5F 50 4F 4E 47 00
+hex:
+4E 49 5F 50 49 4E 47 00                           # N I _ P I N G \0

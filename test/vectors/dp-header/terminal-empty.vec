@@ -1,0 +1,45 @@
+# source: spec
+# spec: docs/protocol/dp-header.md#terminal-name
+# provenance: PV-0020, PV-0021, PV-0022, PV-0023, PV-0210, PV-0211, PV-0212, PV-0213, PV-0214, PV-0215, PV-0216, PV-0217, PV-0218, PV-0219, PV-0220, PV-0221, PV-0222, PV-0223, PV-0224, PV-0225, PV-0226, PV-0227, PV-0228, PV-0229, PV-0230, PV-0231, PV-0232, PV-0233, PV-0234, PV-0240, PV-0241, PV-0242, PV-0243, PV-0244, PV-0245, PV-0246, PV-0247, PV-0248, PV-0249, PV-0250, PV-0251, PV-0252, PV-0253, PV-0254, PV-0255, PV-0256, PV-0257, PV-0258, PV-0259, PV-0260, PV-0261, PV-0262, PV-0263
+# kind: dp-header
+# description: A first message whose terminal name is empty: the terminal field is 15 zero bytes, as when no name is set.
+# derivation: Template (PV-0210..PV-0263) with the terminal left at 15 x 00 (PV-0255; IMPL-DP-4 when nothing of the host name remains); length 8 u32 LE (PV-0021, PV-0022, PV-0221); 8 arbitrary bytes follow.
+# expect.error: none
+# expect.length: 8
+# expect.body_length: 8
+# expect.terminal: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+# expect.terminal.length: 0
+# expect.template: yes
+hex:
+FF FF FF FF                                       # request_id (offset 0, 4 bytes)
+0A                                                # retcode (offset 4, 1 byte)
+00                                                # sender_id (offset 5, 1 byte)
+00                                                # action_type (offset 6, 1 byte)
+00 00 00 00                                       # req_info (offset 7, 4 bytes)
+FF FF FF FF                                       # tid (offset 11, 4 bytes)
+FF FF                                             # uid (offset 15, 2 bytes)
+FF                                                # mode (offset 17, 1 byte)
+FF FF FF FF                                       # wp_id (offset 18, 4 bytes)
+FF FF FF FF                                       # wp_ca_blk (offset 22, 4 bytes)
+FF FF FF FF                                       # appc_ca_blk (offset 26, 4 bytes)
+08 00 00 00                                       # length = 8, u32 LE (offset 30)
+00                                                # new_stat (offset 34, 1 byte)
+FF FF FF FF                                       # unused1 (offset 35, 4 bytes)
+FF FF                                             # rq_id (offset 39, 2 bytes)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20   # unused2 (offset 41, 40 bytes)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00      # terminal (offset 81, 15 bytes): empty: 15 x 00 (PV-0255)
+00 00 00 00 00 00 00 00 00 00                     # unused3 (offset 96, 10 bytes)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20   # unused4 (offset 106, 20 bytes)
+20 20 20 20
+00 00 00 00                                       # unused5 (offset 126, 4 bytes)
+00 00 00 00                                       # unused6 (offset 130, 4 bytes)
+FF FF FF FF                                       # unused7 (offset 134, 4 bytes)
+00 00 00 00                                       # unused8 (offset 138, 4 bytes)
+01                                                # unused9 (offset 142, 1 byte)
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   # unused10 (offset 143, 57 bytes)
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00
+10 11 12 13 14 15 16 17                           # after the DP header: 8 bytes, opaque to this kind

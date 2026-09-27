@@ -1,0 +1,9 @@
+# source: spec
+# spec: docs/protocol/controls/transport.md#31-layout
+# provenance: PV-0935, PV-0936
+# kind: control-properties
+# description: An empty CONTROL_PROPERTIES value: no entries.
+# derivation: The value is a sequence of zero entries (PV-0935).
+# expect.entries: 0
+# expect.error: none
+hex:

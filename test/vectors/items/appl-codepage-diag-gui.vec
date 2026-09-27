@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/items.md#st_r3info-0x06
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402, PV-0435, PV-0455
+# kind: items
+# description: An APPL item ST_R3INFO / CODEPAGE_DIAG_GUI; only the walk and the (id, sid) are checked, not the value.
+# derivation: Type 0x10, id 0x06 ST_R3INFO (PV-0435), sid 0x23 CODEPAGE_DIAG_GUI (PV-0455), u16 BE length 5 (PV-0102); value bytes arbitrary because the code page value layout is gap #18.
+# expect.items: 1
+# expect.item.1.type: appl
+# expect.item.1.id: 0x06
+# expect.item.1.sid: 0x23
+# expect.item.1.id_name: ST_R3INFO
+# expect.item.1.sid_name: CODEPAGE_DIAG_GUI
+# expect.item.1.offset: 5
+# expect.item.1.length: 5
+# expect.error: none
+hex:
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+23                                                # sid 0x23 CODEPAGE_DIAG_GUI
+00 05                                             # length 5, u16 BE
+01 02 03 04 05                                    # value (opaque here)

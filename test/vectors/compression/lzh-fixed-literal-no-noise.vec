@@ -1,0 +1,19 @@
+# source: spec
+# spec: docs/protocol/compression-lzh.md#fixed-codes
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068, PV-0350, PV-0351, PV-0352, PV-0354, PV-0355, PV-0358, PV-0363, PV-0364, PV-0365, PV-0374, PV-0314
+# kind: decompress
+# description: One literal 0x41 with noise count 0 and no trailing byte; the end-of-block code ends inside the last byte.
+# derivation: Header as in lzh-fixed-literal-reference-prefix. Bits: 0-1 count 0 = 0,0 (PV-0352, R-LZH-1); 2 final 1; 3-4 type 1 = 1,0 (PV-0354, PV-0355); 5-12 fixed code 01110001 for 0x41 (PV-0363, PV-0364, PV-0365); 13-19 end of block 0000000 (PV-0358); 20-23 zero fill. Byte 0 = bits 0,0,1,1,0,0,1,1 = 0xCC; byte 1 = 1,0,0,0,1,0,0,0 = 0x11; byte 2 = 0x00. There is no trailing byte, so a decoder must not need lookahead beyond the data (IMPL-LZH-1).
+# expect.error: none
+# expect.algorithm: lzh
+# expect.uncompressed_length: 1
+# expect.output_length: 1
+# expect.output: 41
+hex:
+01 00 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7
+CC                                                # bits 0-7: count 0, final 1, type 1, first 3 bits of 01110001
+11                                                # bits 8-15: last 5 bits of the literal code, 3 bits of end of block
+00                                                # bits 16-19: rest of end of block; 20-23 zero fill

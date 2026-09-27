@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/compression-lzh.md#literal-and-length-symbols
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068, PV-0350, PV-0351, PV-0352, PV-0354, PV-0355, PV-0358, PV-0359, PV-0361, PV-0363, PV-0364, PV-0365, PV-0373, PV-0374, PV-0314
+# kind: decompress
+# description: Thirteen 0x41 bytes: a literal plus a match whose length needs one extra bit (symbol 265, extra 1, length 12); noise count 2.
+# derivation: Header: length 13. Bits: 0-1 count 2 = 0,1; 2-3 noise 1,0 (PV-0352); 4 final 1; 5-6 type 1 = 1,0; 7-14 literal 0x41 = 01110001; 15-21 length symbol 265 = fixed code 9 = 0001001 (PV-0365); 22 extra bit 1, so length = 11 + 1 = 12 (PV-0359, PV-0373); 23-27 distance symbol 0 = 00000 (distance 1); 28-34 end of block; 35-39 zero fill. Bytes 0x36 0x47 0x64 0x00 0x00.
+# expect.error: none
+# expect.algorithm: lzh
+# expect.uncompressed_length: 13
+# expect.output_length: 13
+# expect.output: 41 41 41 41 41 41 41 41 41 41 41 41 41
+hex:
+0D 00 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7
+36                                                # bits 0-7: count 2 (0,1), noise 1,0, final 1, type 1 (1,0), 1 bit of literal
+47                                                # bits 8-15: rest of literal 0x41, first bit of symbol 265
+64                                                # bits 16-23: rest of symbol 265 (0001001), extra bit 1, first bit of distance 0
+00                                                # bits 24-31: rest of distance symbol 0, 4 bits of end of block
+00                                                # bits 32-34: rest of end of block; 35-39 zero fill

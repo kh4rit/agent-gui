@@ -1,0 +1,20 @@
+# source: spec
+# spec: docs/protocol/items.md#appl
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402, PV-0441, PV-0462
+# kind: items
+# description: An APPL item VARINFO / OKCODE with an empty value: the item is its 5 header bytes only.
+# derivation: Type 0x10, id 0x0C VARINFO (PV-0441), sid 0x04 OKCODE (PV-0462), u16 BE length 0 (PV-0102); the value starts at offset 5 (PV-0402) and is empty, so the input ends right after the header (reading R-IT-1).
+# expect.items: 1
+# expect.item.1.type: appl
+# expect.item.1.id: 0x0C
+# expect.item.1.sid: 0x04
+# expect.item.1.id_name: VARINFO
+# expect.item.1.sid_name: OKCODE
+# expect.item.1.offset: 5
+# expect.item.1.length: 0
+# expect.error: none
+hex:
+10                                                # type APPL
+0C                                                # id 0x0C VARINFO
+04                                                # sid 0x04 OKCODE
+00 00                                             # length 0, u16 BE

@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#84-client-side-counterparts
+# provenance: PV-0728, PV-0433, PV-0453
+# kind: appl-fields
+# description: ST_USER FONTMETRIC (client-side counterpart).
+# derivation: Four u16 BE (PV-0728).
+# expect.id: 0x04
+# expect.sid: 0x04
+# expect.field.var_y: 17
+# expect.field.var_x: 8
+# expect.field.fixed_y: 16
+# expect.field.fixed_x: 9
+# expect.error: none
+hex:
+00 11 00 08 00 10 00 09                           # value

@@ -1,0 +1,57 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#63-tolerance-a-decoder-owes-the-server
+# provenance: PV-0125, PV-0413, PV-0707, PV-0600, PV-0603, PV-0621
+# kind: screen-identity
+# description: The minimal screen with a leading DIALOG_STEP_NUMBER and a trailing EOM: the identity is the same as without them.
+# derivation: R-SE-2 and R-SS-7: neither a leading step item nor a trailing EOM changes what the screen carries; the step value 7 is invented; between them are the items of minimal-logon-screen.vec, byte for byte (inputs at the invented block 2, rows 48 and 51, col 62, IMPL-SS-1).
+# expect.dbname: none
+# expect.client: none
+# expect.cpuname: none
+# expect.tcode: none
+# expect.dynproname: SAPMSYST
+# expect.dynpronumber: 1337
+# expect.cuaname: none
+# expect.cuastatus: none
+# expect.session_title: none
+# expect.session_icon: none
+# expect.gui_theme: none
+# expect.area: none
+# expect.atoms: 2
+# expect.efields: 2
+# expect.efields.invisible: 1
+# expect.menus: 0
+# expect.menu_entries: 0
+# expect.error: none
+hex:
+10                                                # type APPL
+04                                                # id 0x04 ST_USER
+26                                                # sid 0x26 DIALOG_STEP_NUMBER
+00 04                                             # length 4, u16 BE
+00 00 00 07                                       # step 7, u32 BE
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0D                                                # sid 0x0D DYNPRONAME
+00 08                                             # length 8, u16 BE
+53 41 50 4D 53 59 53 54                           # DYNPRONAME 'SAPMSYST', no padding
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0E                                                # sid 0x0E DYNPRONUMBER
+00 04                                             # length 4, u16 BE
+31 33 33 37                                       # DYNPRONUMBER '1337'
+12                                                # type APPL4
+09                                                # id 0x09 DYNT
+02                                                # sid 0x02 DYNT_ATOM
+00 00 00 26                                       # length 38, u32 BE
+00 13                                             # atom_length 19 (input, who goes there)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 02 00                                       # etype 130, area 0, block 2, group 0
+00 30 00 3E                                       # row 48, col 62
+40                                                # attribute YES3D
+00 00 00 0C 00 0C                                 # payload
+00 13                                             # atom_length 19 (input, secret quack)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 02 00                                       # etype 130, area 0, block 2, group 0
+00 33 00 3E                                       # row 51, col 62
+42                                                # attribute INVISIBLE|YES3D
+00 00 00 0C 00 28                                 # payload
+0C                                                # type EOM

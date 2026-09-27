@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#layout
+# provenance: PV-0060
+# kind: compression-header
+# description: Only 7 of the 8 compression header bytes are present.
+# derivation: The header is 8 bytes (PV-0060); the first 7 bytes of a valid LZH header cannot hold it (IMPL-CH-4: truncated).
+# expect.error: truncated
+hex:
+02 01 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic; byte 7 missing

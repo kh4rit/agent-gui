@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#uncompressed-length
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068
+# kind: compression-header
+# description: LZH header for 70000 uncompressed bytes; the length uses three bytes.
+# derivation: 70000 = 0x00011170 as u32 LE = 70 11 01 00 (PV-0061, PV-0062); 0x12 = LZH (PV-0064); magic (PV-0067); level 2 (PV-0068).
+# expect.error: none
+# expect.uncompressed_length: 70000
+# expect.algorithm: lzh
+# expect.version: 1
+# expect.level: 2
+hex:
+70 11 01 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7

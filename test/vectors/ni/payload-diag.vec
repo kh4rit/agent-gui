@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#payload-classification
+# provenance: PV-0004, PV-0005, PV-0006, PV-0007, PV-0030
+# kind: ni-payload
+# description: An 8-byte payload of zeros is none of the literals, so it is a DIAG message (here: a DIAG header with every field 0).
+# derivation: Rule 5 and reading R-NI-8: not empty, not equal to PV-0004 or PV-0005, not starting with PV-0006 or PV-0007, so DIAG; 8 zero bytes form a DIAG header (PV-0030).
+# expect.class: diag
+# expect.reply: none
+# expect.reply.frame: none
+hex:
+00 00 00 00 00 00 00 00                           # DIAG header, all fields 0

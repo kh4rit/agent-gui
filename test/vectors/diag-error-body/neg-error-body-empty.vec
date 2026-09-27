@@ -1,0 +1,8 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#error-body-layout
+# provenance: PV-0054, PV-0303
+# kind: diag-error-body
+# description: Empty error body (an err_no != 0 message that ends right after its header): the split fails with missing-terminator.
+# derivation: An error body needs at least the 0x0C terminator (PV-0303); zero bytes contain none (IMPL-DH-7).
+# expect.error: missing-terminator
+hex:

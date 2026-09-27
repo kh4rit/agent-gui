@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#83-window-and-area-size
+# provenance: PV-0704
+# kind: appl-fields
+# description: AREASIZE value with one byte too many.
+# derivation: PV-0704 fixes 16 bytes; a 17th byte makes the value overlong (IMPL-SS-3, #39).
+# expect.id: 0x0C
+# expect.sid: 0x07
+# expect.error: overlong
+hex:
+00 00 00 18 00 00 00 50 00 00 00 15 00 00 00 4E   # 16 bytes
+00                                                # extra byte

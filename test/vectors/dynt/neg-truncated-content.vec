@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#walking-an-atom-sequence
+# provenance: PV-0140, PV-0602, PV-0603, PV-0650
+# kind: dynt-atoms
+# description: A FNAME atom whose header is complete but whose payload is cut short.
+# derivation: atom_length 24 (PV-0602/0603) claims a whole atom of 24 bytes: 13-byte header (PV-0140) plus 11 payload bytes (PV-0650). Only 20 bytes are present (header + 7 of 11 text bytes), so 20 < 24 and the walk stops with truncated at atom 1 (IMPL-DA-3).
+# expect.atoms: 0
+# expect.error: truncated
+# expect.error.atom: 1
+hex:
+00 18                  # atom_length 24
+00                     # dlg_flag_1
+00                     # dlg_flag_2
+72                     # etype 114 (FNAME)
+00                     # area
+01                     # block
+00                     # group
+00 02                  # row 2
+00 01                  # col 1
+00                     # attribute
+52 53 59 53 54 2D 42   # only 7 of the 11 announced payload bytes

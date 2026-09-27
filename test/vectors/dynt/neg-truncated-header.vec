@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#walking-an-atom-sequence
+# provenance: PV-0140, PV-0602, PV-0603
+# kind: dynt-atoms
+# description: The input ends inside an atom's 13-byte header.
+# derivation: atom_length is read as 24 (u16 BE, PV-0602/0603), but only 8 bytes are present, fewer than both the 24 the atom claims and the 13-byte header (PV-0140). The walk stops with truncated at atom 1 (IMPL-DA-3).
+# expect.atoms: 0
+# expect.error: truncated
+# expect.error.atom: 1
+hex:
+00 18                  # atom_length 24
+00                     # dlg_flag_1
+00                     # dlg_flag_2
+72                     # etype 114
+00                     # area
+01                     # block
+00                     # group
+# input ends here: only 8 of the 13 header bytes are present

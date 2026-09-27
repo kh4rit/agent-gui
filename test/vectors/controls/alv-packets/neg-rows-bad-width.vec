@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/controls/alv-grid.md#31-plain-packet
+# provenance: PV-0940, PV-0941
+# kind: alv-rows
+# description: A plain row packet whose declared width (15) differs from the catalog's sum (16).
+# derivation: PV-0941 requires width = 10 + 6 (IMPL-CT-9: bad-row-width).
+# expect.column_lengths: 10,6
+# expect.error: bad-row-width
+hex:
+FF FF FF FF 01                                    # marker
+01 00 00 00                                       # row count 1
+0F 00 00 00                                       # row width 15 (defect)
+5A 5A 5F 57 41 46 46 4C 45 20 31 32 30 20 20      # 15 row bytes

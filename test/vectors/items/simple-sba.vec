@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/items.md#sba
+# provenance: PV-0100, PV-0412, PV-0116, PV-0404
+# kind: items
+# description: A single SBA simple item: type 0x0B and its 2-byte value.
+# derivation: Type byte 0x0B (PV-0412) followed by its fixed 2-byte value (PV-0116), a size that excludes the type byte (PV-0404); the value starts at offset 1 and the item is 3 bytes; value bytes are a counting pattern.
+# expect.items: 1
+# expect.item.1.type: sba
+# expect.item.1.offset: 1
+# expect.item.1.length: 2
+# expect.error: none
+hex:
+0B                                                # type SBA
+01 02                                             # value, 2 bytes (opaque)

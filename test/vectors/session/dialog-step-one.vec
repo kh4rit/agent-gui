@@ -1,0 +1,10 @@
+# source: spec
+# spec: docs/protocol/session.md#41-dialog_step_number-payload
+# provenance: PV-0125, PV-0521
+# kind: dialog-step
+# description: DIALOG_STEP_NUMBER value 1 (the first client dialog message).
+# derivation: One u32 BE (PV-0125, PV-0125). The reference client's first dialog message carries step 1 (PV-0521); 1 = 0x00000001.
+# expect.error: none
+# expect.step: 1
+hex:
+00 00 00 01            # step 1, u32 BE

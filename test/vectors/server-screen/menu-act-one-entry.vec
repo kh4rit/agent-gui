@@ -1,0 +1,34 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#81-menu-entries-mnuentry
+# provenance: PV-0718, PV-0719, PV-0720, PV-0721, PV-0440, PV-0461
+# kind: menu-entries
+# description: MENU_ACT value: one entry with an accelerator, VKEY|SEL flags and position_1 = 1.
+# derivation: Each entry: u16 BE length (whole entry), 4 positions, flag byte, virtual key, 6 return codes, 6 function codes, then text, accelerator, info zero-terminated (PV-0718/PV-0719); entries back to back (PV-0720); flag names per PV-0721; texts invented.
+# expect.entries: 1
+# expect.entry.1.offset: 0
+# expect.entry.1.length: 35
+# expect.entry.1.position_1: 1
+# expect.entry.1.position_2: 0
+# expect.entry.1.position_3: 0
+# expect.entry.1.position_4: 0
+# expect.entry.1.flags: 0x12
+# expect.entry.1.flags.names: SEL,VKEY
+# expect.entry.1.virtual_key: 0
+# expect.entry.1.return_codes: 01 00 00 00 00 00
+# expect.entry.1.function_codes: 00 00 00 00 00 00
+# expect.entry.1.text_offset: 20
+# expect.entry.1.text_length: 11
+# expect.entry.1.accelerator_offset: 32
+# expect.entry.1.accelerator_length: 1
+# expect.entry.1.info_offset: 34
+# expect.entry.1.info_length: 0
+# expect.error: none
+hex:
+00 23                                             # entry length 35 (Knock Knock)
+01 00 00 00                                       # position_1..4
+12 00                                             # flags 0x12, virtual_key 0
+01 00 00 00 00 00                                 # return codes 1..6
+00 00 00 00 00 00                                 # function codes 1..6
+4B 6E 6F 63 6B 20 4B 6E 6F 63 6B 00               # text 'Knock Knock' + 00
+4B 00                                             # accelerator 'K' + 00
+00                                                # info '' + 00

@@ -1,0 +1,19 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#81-menu-entries-mnuentry
+# provenance: PV-0718, PV-0719
+# kind: menu-entries
+# description: One entry whose length field says 40 while its fixed part and three strings take 41 bytes.
+# derivation: PV-0719: the length counts the whole entry, here 20 + 19 + 1 + 1 = 41; a different value is entry-length-mismatch (IMPL-SS-5, #50).
+# expect.entries: 0
+# expect.error: entry-length-mismatch
+# expect.error.entry: 1
+hex:
+00 28                                             # entry length 40 (declared 40, parts add up to 41)
+02 00 00 00                                       # position_1..4
+02 0F                                             # flags 0x02, virtual_key 15
+01 00 00 00 00 00                                 # return codes 1..6
+00 00 00 00 00 00                                 # function codes 1..6
+52 75 6E 20 41 77 61 79 20 53 63 72 65 61 6D 69   # text 'Run Away Screaming' + 00
+6E 67 00                                          # text 'Run Away Screaming' + 00 (cont.)
+00                                                # accelerator '' + 00
+00                                                # info '' + 00

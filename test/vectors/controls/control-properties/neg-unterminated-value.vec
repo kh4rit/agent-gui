@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/controls/transport.md#31-layout
+# provenance: PV-0935
+# kind: control-properties
+# description: A CONTROL_ID entry whose text runs to the end of the value without its zero byte.
+# derivation: u16 BE id 0x0002 then text with no terminating 00 (PV-0935 requires one; IMPL-CT-1: truncated, as for any string that ends before its zero byte).
+# expect.entries: 0
+# expect.error: truncated
+# expect.error.entry: 1
+hex:
+00 02                                             # id 0x0002 CONTROL_ID
+5A 5A 5F 4F 4F 50 53 5F 4E 4F 5F 5A 45 52 4F      # text 'ZZ_OOPS_NO_ZERO', no 00 (defect)

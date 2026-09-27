@@ -1,0 +1,20 @@
+# source: spec
+# spec: docs/protocol/items.md#appl4
+# provenance: PV-0100, PV-0103, PV-0104, PV-0107, PV-0400, PV-0401, PV-0403, PV-0440, PV-0461
+# kind: items
+# description: An APPL4 item MNUENTRY / MENU_ACT with an empty value: the item is its 7 header bytes only.
+# derivation: Type 0x12, id 0x0B MNUENTRY (PV-0440), sid 0x01 MENU_ACT (PV-0461), u32 BE length 0 (PV-0104); the value starts at offset 7 (PV-0403) and is empty.
+# expect.items: 1
+# expect.item.1.type: appl4
+# expect.item.1.id: 0x0B
+# expect.item.1.sid: 0x01
+# expect.item.1.id_name: MNUENTRY
+# expect.item.1.sid_name: MENU_ACT
+# expect.item.1.offset: 7
+# expect.item.1.length: 0
+# expect.error: none
+hex:
+12                                                # type APPL4
+0B                                                # id 0x0B MNUENTRY
+01                                                # sid 0x01 MENU_ACT
+00 00 00 00                                       # length 0, u32 BE

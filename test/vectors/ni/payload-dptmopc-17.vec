@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#dispatcher-frames
+# provenance: PV-0007, PV-0204
+# kind: ni-payload
+# description: A 17-byte **DPTMOPC** payload (literal plus 5 bytes), the length pysap expects: class dispatcher-dptmopc, no reply.
+# derivation: Rule 4: the payload begins with the 12 bytes of PV-0007; the 5 trailing bytes (PV-0204) have unknown content (#3) and are arbitrary here.
+# expect.class: dispatcher-dptmopc
+# expect.reply: none
+# expect.reply.frame: none
+hex:
+2A 2A 44 50 54 4D 4F 50 43 2A 2A 00               # * * D P T M O P C * * \0
+B1 B2 B3 B4 B5                                    # 5 trailing bytes (arbitrary)

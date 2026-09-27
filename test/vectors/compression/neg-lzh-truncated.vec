@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/compression-lzh.md#end-of-stream
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068, PV-0350, PV-0351, PV-0352, PV-0354, PV-0355, PV-0363, PV-0365, PV-0374
+# kind: decompress
+# description: The data ends before the final end-of-block code is complete.
+# derivation: Header: length 1. Data = lzh-fixed-literal-no-noise without its last byte: the end of block occupies bits 13-19, and bits 16-19 are missing, so decoding fails with data-truncated (PV-0374, IMPL-LZH-1).
+# expect.error: data-truncated
+# expect.algorithm: lzh
+# expect.uncompressed_length: 1
+hex:
+01 00 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7
+CC 11                                             # first two bytes of lzh-fixed-literal-no-noise

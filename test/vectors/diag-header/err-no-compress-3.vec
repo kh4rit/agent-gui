@@ -1,0 +1,19 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#body-classification
+# provenance: PV-0030, PV-0031, PV-0032, PV-0033, PV-0034, PV-0035, PV-0036, PV-0037, PV-0038, PV-0053, PV-0054
+# kind: diag-header
+# description: err_no 0x01 with compress 3: an SNC frame follows; SNC messages are not decoded whatever err_no is.
+# derivation: compress 3 means an SNC frame follows (PV-0053); IMPL-DH-3 classifies every compress 2 or 3 message as snc, whatever err_no is (PV-0054).
+# expect.error: none
+# expect.mode: 0x00
+# expect.com_flag: 0x00
+# expect.mode_stat: 0x00
+# expect.err_no: 0x01
+# expect.msg_type: 0x00
+# expect.msg_info: 0x00
+# expect.msg_rc: 0x00
+# expect.compress: 0x03
+# expect.com_flag.names: none
+# expect.body: snc
+hex:
+00 00 00 01 00 00 00 03                           # mode com_flag mode_stat err_no msg_type msg_info msg_rc compress

@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/items.md#sfe
+# provenance: PV-0100, PV-0411, PV-0115, PV-0421
+# kind: simple-item-fields
+# description: SFE fields: format, color and extended, one byte each.
+# derivation: Type 0x0A (PV-0411), 3-byte value (PV-0115) split per PV-0421 into format = 0x21, color = 0x42, extended = 0x84 (distinct arbitrary values).
+# expect.type: sfe
+# expect.field.format: 33
+# expect.field.color: 66
+# expect.field.extended: 132
+# expect.error: none
+hex:
+0A                                                # type SFE
+21 42 84                                          # format, color, extended

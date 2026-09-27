@@ -1,0 +1,20 @@
+# source: spec
+# spec: docs/protocol/items.md#length-semantics
+# provenance: PV-0100, PV-0105, PV-0106, PV-0107
+# kind: items
+# description: An XMLBLOB whose length is 0, followed by a 1-byte XMLBLOB; the walker moves on without reading a value.
+# derivation: With the length counting the value only (PV-0107, reading R-IT-3), length 0 means the next item starts right after the length field; structural only (whether servers send it is not stated).
+# expect.items: 2
+# expect.item.1.type: xmlblob
+# expect.item.1.offset: 5
+# expect.item.1.length: 0
+# expect.item.2.type: xmlblob
+# expect.item.2.offset: 10
+# expect.item.2.length: 1
+# expect.error: none
+hex:
+11                                                # item 1: type
+00 00 00 00                                       # item 1: length 0
+11                                                # item 2: type
+00 00 00 01                                       # item 2: length 1
+EE                                                # item 2: value

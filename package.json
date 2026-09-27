@@ -1,0 +1,53 @@
+{
+  "name": "agent-gui",
+  "version": "0.0.1",
+  "description": "SAP GUI transactions for AI agents: an MCP server that speaks the DIAG protocol directly (log on, start transactions, read screens, fill fields, table controls, trees, save to transport requests) for Copilot, Claude Code and other MCP clients",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "tsc -p tsconfig.json && node scripts/test.mjs",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "prepare": "tsc -p tsconfig.json"
+  },
+  "keywords": [
+    "sap",
+    "sapgui",
+    "diag",
+    "mcp",
+    "copilot",
+    "github-copilot",
+    "claude-code",
+    "model-context-protocol"
+  ],
+  "author": "Vasilii Kharitonov",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.4",
+    "typescript": "^5.9.3"
+  },
+  "bin": {
+    "agent-gui": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "skills",
+    "!dist/test"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kh4rit/agent-gui.git"
+  },
+  "homepage": "https://github.com/kh4rit/agent-gui#readme",
+  "bugs": {
+    "url": "https://github.com/kh4rit/agent-gui/issues"
+  }
+}

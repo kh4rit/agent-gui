@@ -1,0 +1,36 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#81-menu-entries-mnuentry
+# provenance: PV-0718, PV-0719, PV-0720, PV-0721, PV-0440, PV-0461
+# kind: menu-entries
+# description: MENU_PFK value: one entry with virtual key 5, return code 5 and an info text.
+# derivation: Each entry: u16 BE length (whole entry), 4 positions, flag byte, virtual key, 6 return codes, 6 function codes, then text, accelerator, info zero-terminated (PV-0718/PV-0719); entries back to back (PV-0720); flag names per PV-0721; texts invented.
+# expect.entries: 1
+# expect.entry.1.offset: 0
+# expect.entry.1.length: 61
+# expect.entry.1.position_1: 0
+# expect.entry.1.position_2: 0
+# expect.entry.1.position_3: 0
+# expect.entry.1.position_4: 0
+# expect.entry.1.flags: 0x02
+# expect.entry.1.flags.names: SEL
+# expect.entry.1.virtual_key: 5
+# expect.entry.1.return_codes: 05 00 00 00 00 00
+# expect.entry.1.function_codes: 00 00 00 00 00 00
+# expect.entry.1.text_offset: 20
+# expect.entry.1.text_length: 19
+# expect.entry.1.accelerator_offset: 40
+# expect.entry.1.accelerator_length: 0
+# expect.entry.1.info_offset: 41
+# expect.entry.1.info_length: 19
+# expect.error: none
+hex:
+00 3D                                             # entry length 61 (Forgot Secret Quack)
+00 00 00 00                                       # position_1..4
+02 05                                             # flags 0x02, virtual_key 5
+05 00 00 00 00 00                                 # return codes 1..6
+00 00 00 00 00 00                                 # function codes 1..6
+46 6F 72 67 6F 74 20 53 65 63 72 65 74 20 51 75   # text 'Forgot Secret Quack' + 00
+61 63 6B 00                                       # text 'Forgot Secret Quack' + 00 (cont.)
+00                                                # accelerator '' + 00
+46 6F 72 67 6F 74 20 53 65 63 72 65 74 20 51 75   # info 'Forgot Secret Quack' + 00
+61 63 6B 00                                       # info 'Forgot Secret Quack' + 00 (cont.)

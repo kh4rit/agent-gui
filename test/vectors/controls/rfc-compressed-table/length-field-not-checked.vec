@@ -1,0 +1,19 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#5-compressed-table-content
+# provenance: PV-0916, PV-0917, PV-0918, PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068
+# kind: rfc-compressed-table
+# description: A length field (7) that fits neither source's reading is reported, not rejected; the header and data decode as usual.
+# derivation: L = 7 at offset 4 (PV-0917): below the 8-byte header under ODG's reading and below 16 under Wireshark's, but its extent is a conflict (#82), so IMPL-CT-4 only reports it; header at 8 valid (PV-0916, PV-0918); data = 6 bytes after the header.
+# expect.length_field: 7
+# expect.uncompressed_length: 100
+# expect.algorithm: lzh
+# expect.version: 1
+# expect.level: 2
+# expect.data_offset: 16
+# expect.data_length: 6
+# expect.error: none
+hex:
+5A 5A 5A 5A                                       # bytes 0-3: ODG's unexplained tag (arbitrary 'ZZZZ' here)
+00 00 00 07                                       # length field L = 7, u32 BE (PV-0917; its extent is #82, reported only)
+64 00 00 00 12 1F 9D 02                           # compression header at offset 8 (PV-0916, PV-0918; v1 layout)
+A5 5A 3C C3 0F F0                                 # compressed data, 6 bytes (arbitrary: this kind does not decompress)

@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/items.md#okc
+# provenance: PV-0100, PV-0409
+# kind: items
+# description: OKC (0x08) has no confirmed size, so the walker stops at it instead of guessing.
+# derivation: 0x08 is OKC (PV-0409); both sources flag its size as unknown (#30), so it is handled like an unknown simple type (IMPL-IT-8, IMPL-IT-2).
+# expect.items: 0
+# expect.error: unknown-simple-type
+# expect.error.item: 1
+# expect.error.type: 0x08
+hex:
+08                                                # type 0x08 OKC (size unknown)
+0C                                                # an EOM that is never reached

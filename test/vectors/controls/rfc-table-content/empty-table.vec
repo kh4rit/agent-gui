@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#4-table-content-split-into-rows
+# provenance: PV-0910, PV-0912, PV-0913, PV-0914, PV-0919
+# kind: rfc-table-content
+# description: An empty table: the first item is already the 03 06 end item.
+# derivation: No 03 05 items, so the content is empty (PV-0913); 03 06 with length 0 (PV-0914).
+# expect.rows: 0
+# expect.content_length: 0
+# expect.content: none
+# expect.end_length: 0
+# expect.trailing: 0
+# expect.error: none
+hex:
+03 06 00 00                                       # item 03 06 (table content end), length 0

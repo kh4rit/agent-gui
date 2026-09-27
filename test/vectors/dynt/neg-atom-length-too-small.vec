@@ -1,0 +1,20 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#walking-an-atom-sequence
+# provenance: PV-0140, PV-0602, PV-0603
+# kind: dynt-atoms
+# description: A complete 13-byte atom header whose declared atom_length (5) is smaller than the header itself.
+# derivation: All 13 header bytes (PV-0140) are present, so nothing is truncated; the only fault is atom_length read as 5 (u16 BE, PV-0602). A valid atom counts its whole self and cannot be shorter than its 13-byte header (PV-0603, R-DA-3), so the walk stops with bad-atom-length at atom 1 rather than advancing by 5. Other header bytes are arbitrary.
+# expect.atoms: 0
+# expect.error: bad-atom-length
+# expect.error.atom: 1
+hex:
+00 05                  # atom_length 5 (< 13: impossible)
+00                     # dlg_flag_1
+00                     # dlg_flag_2
+72                     # etype 114 (arbitrary)
+00                     # area
+01                     # block
+00                     # group
+00 01                  # row
+00 01                  # col
+00                     # attribute

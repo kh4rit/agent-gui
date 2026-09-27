@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#frame-layout
+# provenance: PV-0001, PV-0002, PV-0003
+# kind: ni-stream
+# description: One complete frame with a 5-byte payload, then a clean end of stream.
+# derivation: u32 BE length 5 (PV-0001, PV-0002) counting only the payload (PV-0003); payload bytes are arbitrary because the framer treats payloads as opaque.
+# expect.frames: 1
+# expect.frame.1.offset: 4
+# expect.frame.1.length: 5
+# expect.error: none
+# expect.trailing: 0
+hex:
+00 00 00 05                                       # length 5, u32 BE
+01 02 03 04 05                                    # payload

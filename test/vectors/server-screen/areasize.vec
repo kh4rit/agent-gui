@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#83-window-and-area-size
+# provenance: PV-0704, PV-0441, PV-0462
+# kind: appl-fields
+# description: VARINFO AREASIZE of a 24 x 80 window with a 21 x 78 area.
+# derivation: Four u32 BE in the order window_height, window_width, area_height, area_width (PV-0704).
+# expect.id: 0x0C
+# expect.sid: 0x07
+# expect.field.window_height: 24
+# expect.field.window_width: 80
+# expect.field.area_height: 21
+# expect.field.area_width: 78
+# expect.error: none
+hex:
+00 00 00 18 00 00 00 50 00 00 00 15 00 00 00 4E   # value

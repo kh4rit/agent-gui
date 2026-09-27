@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#86-container-items
+# provenance: PV-0713
+# kind: stringz-fields
+# description: CONTAINER NAME with an empty first and third string.
+# derivation: An empty zero-terminated string is its zero byte alone (PV-0713).
+# expect.id: 0x0A
+# expect.sid: 0x06
+# expect.strings: 3
+# expect.string.1.offset: 0
+# expect.string.1.length: 0
+# expect.string.2.offset: 1
+# expect.string.2.length: 7
+# expect.string.3.offset: 9
+# expect.string.3.length: 0
+# expect.trailing: 0
+# expect.error: none
+hex:
+00                                                # string 1 '' + 00
+4C 49 4C 59 50 41 44 00                           # string 2 'LILYPAD' + 00
+00                                                # string 3 '' + 00

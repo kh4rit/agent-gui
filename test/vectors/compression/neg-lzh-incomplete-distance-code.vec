@@ -1,0 +1,17 @@
+# source: spec
+# spec: docs/protocol/compression-lzh.md#code-set-validity
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068, PV-0350, PV-0351, PV-0352, PV-0354, PV-0355, PV-0364, PV-0366, PV-0368, PV-0369, PV-0370, PV-0372
+# kind: decompress
+# description: A dynamic block whose distance code has a single symbol of length 1, which is incomplete.
+# derivation: Header: length 1. Same construction as lzh-dynamic-literal except HDIST = 0 (bits 10-14 all 0, one distance length) and a single distance length 1, so the data after it moves one bit earlier: literal 0x41 = 0 at bit 100, end of block = 1 at bit 101. One code of length 1 leaves half the code space unassigned, so the distance code is incomplete and decoding fails with bad-code-lengths (PV-0372).
+# expect.error: bad-code-lengths
+# expect.algorithm: lzh
+# expect.uncompressed_length: 1
+hex:
+01 00 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7
+14 00 07                                          # count 0, final 1, type 2, HLIT 0, HDIST 0, HCLEN 14, ...
+02 00 00 00 00 40                                 # code-length code lengths
+DA FC 4F 21                                       # ... literal/length lengths, one distance length, literal, end of block, zero fill

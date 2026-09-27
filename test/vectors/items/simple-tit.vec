@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/items.md#item-types
+# provenance: PV-0100, PV-0407, PV-0112, PV-0404
+# kind: items
+# description: A single TIT simple item: type 0x03 and its 3-byte value.
+# derivation: Type byte 0x03 (PV-0407) followed by its fixed 3-byte value (PV-0112), a size that excludes the type byte (PV-0404); the value starts at offset 1 and the item is 4 bytes; value bytes are a counting pattern.
+# expect.items: 1
+# expect.item.1.type: tit
+# expect.item.1.offset: 1
+# expect.item.1.length: 3
+# expect.error: none
+hex:
+03                                                # type TIT
+01 02 03                                          # value, 3 bytes (opaque)

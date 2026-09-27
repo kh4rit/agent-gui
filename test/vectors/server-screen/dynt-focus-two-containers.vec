@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#85-lists-scrolling-and-focus
+# provenance: PV-0711, PV-0438, PV-0458
+# kind: dynt-focus
+# description: Focus with offsets and two container ids.
+# derivation: u8 area id, u16 BE row, col, row offset, col offset, then one u8 per container id to the end (PV-0711).
+# expect.area_id: 2
+# expect.row: 258
+# expect.col: 772
+# expect.row_offset: 5
+# expect.col_offset: 6
+# expect.containers: 07 09
+# expect.error: none
+hex:
+02                                                # area id 2
+01 02 03 04                                       # row 258, col 772
+00 05 00 06                                       # row offset 5, col offset 6
+07 09                                             # container ids

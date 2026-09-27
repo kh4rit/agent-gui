@@ -1,0 +1,19 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#flag-bits
+# provenance: PV-0030, PV-0031, PV-0032, PV-0033, PV-0034, PV-0035, PV-0036, PV-0037, PV-0038, PV-0040, PV-0050, PV-0054
+# kind: diag-header
+# description: com_flag with only EOS (0x01) set; the other fields hold distinct synthetic values so an offset mistake shows.
+# derivation: com_flag at offset 1 (PV-0032) = 0x01, the EOS mask (PV-0040); mode, mode_stat, msg_type, msg_info, msg_rc are arbitrary one-byte values at their offsets (PV-0031..PV-0037); err_no 0 and compress 0 give an item body (PV-0054, PV-0050).
+# expect.error: none
+# expect.mode: 0x03
+# expect.com_flag: 0x01
+# expect.mode_stat: 0x5A
+# expect.err_no: 0x00
+# expect.msg_type: 0x6B
+# expect.msg_info: 0x7C
+# expect.msg_rc: 0x8D
+# expect.compress: 0x00
+# expect.com_flag.names: EOS
+# expect.body: items
+hex:
+03 01 5A 00 6B 7C 8D 00                           # mode com_flag mode_stat err_no msg_type msg_info msg_rc compress

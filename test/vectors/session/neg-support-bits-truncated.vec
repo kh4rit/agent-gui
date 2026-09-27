@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/session.md#53-note-on-the-item-length
+# provenance: PV-0124
+# kind: support-bits
+# description: A SUPPORTDATA mask one byte short of the required 32 bytes.
+# derivation: The mask is exactly 32 bytes (PV-0124); the input stops after 31 bytes, one byte short of the mask, so the decode is truncated. The set bits are otherwise valid, so the length is the only fault.
+# expect.error: truncated
+hex:
+81                     # byte 0
+00 00 00 00 00 00 00   # bytes 1-7
+00 00 00 00 00 00 00 00 # bytes 8-15
+80 20 00 00 00 00 20   # bytes 16-22
+00 00 00 00 00 00 00 00 # bytes 23-30 (only 8 -> total 31 bytes)

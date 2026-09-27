@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/controls/transport.md#31-layout
+# provenance: PV-0935, PV-0936
+# kind: control-properties
+# description: One complete entry, then a single byte that cannot hold a 2-byte id.
+# derivation: Entry per PV-0935, then one stray byte 0x00: the input ends inside the next id (IMPL-CT-1: truncated).
+# expect.entries: 1
+# expect.entry.1.id: 4
+# expect.entry.1.id_name: CONTROL_ROW
+# expect.entry.1.value_offset: 2
+# expect.entry.1.value_length: 1
+# expect.error: truncated
+# expect.error.entry: 2
+hex:
+00 04 30 00                                       # id 0x0004 CONTROL_ROW, text '0' + 00
+00                                                # defect: see description

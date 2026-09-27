@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/items.md#slc
+# provenance: PV-0100, PV-0414, PV-0118, PV-0404
+# kind: items
+# description: A single SLC simple item: type 0x13 and its 2-byte value.
+# derivation: Type byte 0x13 (PV-0414) followed by its fixed 2-byte value (PV-0118), a size that excludes the type byte (PV-0404); the value starts at offset 1 and the item is 3 bytes; value bytes are a counting pattern.
+# expect.items: 1
+# expect.item.1.type: slc
+# expect.item.1.offset: 1
+# expect.item.1.length: 2
+# expect.error: none
+hex:
+13                                                # type SLC
+01 02                                             # value, 2 bytes (opaque)

@@ -1,0 +1,22 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#85-lists-scrolling-and-focus
+# provenance: PV-0715, PV-0441, PV-0462
+# kind: appl-fields
+# description: VARINFO SCROLL_INFOS2 with visible size and a scroll flag.
+# derivation: Eight u32 BE then a u8 (PV-0715); flag byte arbitrary.
+# expect.id: 0x0C
+# expect.sid: 0x06
+# expect.field.total_height: 500
+# expect.field.total_width: 132
+# expect.field.data_height: 480
+# expect.field.data_width: 120
+# expect.field.height_offset: 40
+# expect.field.width_offset: 0
+# expect.field.visible_height: 18
+# expect.field.visible_width: 80
+# expect.field.scroll_flag: 90
+# expect.error: none
+hex:
+00 00 01 F4 00 00 00 84 00 00 01 E0 00 00 00 78   # value
+00 00 00 28 00 00 00 00 00 00 00 12 00 00 00 50   # value (cont.)
+5A                                                # value (cont.)

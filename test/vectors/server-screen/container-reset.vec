@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#86-container-items
+# provenance: PV-0712, PV-0439, PV-0460
+# kind: appl-fields
+# description: CONTAINER RESET geometry.
+# derivation: u8 container_id, then u16 BE row, col, width, height (PV-0712).
+# expect.id: 0x0A
+# expect.sid: 0x01
+# expect.field.container_id: 3
+# expect.field.row: 2
+# expect.field.col: 1
+# expect.field.width: 60
+# expect.field.height: 10
+# expect.error: none
+hex:
+03 00 02 00 01 00 3C 00 0A                        # value

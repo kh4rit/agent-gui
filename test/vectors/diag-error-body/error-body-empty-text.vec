@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#error-body-layout
+# provenance: PV-0054, PV-0303
+# kind: diag-error-body
+# description: Error body consisting only of the terminator: an empty text and no items.
+# derivation: The first 0x0C byte ends the text (PV-0303, reading R-DH-6), here at offset 0, so the text is empty and nothing follows.
+# expect.error: none
+# expect.text.length: 0
+# expect.items.offset: 1
+# expect.items.length: 0
+hex:
+0C                                                # terminator at once: empty text

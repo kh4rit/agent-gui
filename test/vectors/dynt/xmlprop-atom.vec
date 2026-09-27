@@ -1,0 +1,35 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#text-atoms-fname-114-xmlprop-120
+# provenance: PV-0140, PV-0602, PV-0603, PV-0606, PV-0610, PV-0611, PV-0612, PV-0626, PV-0630, PV-0650
+# kind: dynt-atoms
+# description: An XMLPROP (120) atom whose payload is a one-byte opaque XML-property string.
+# derivation: atom_length 14 (PV-0602/0603); header (PV-0140) etype 0x78=120 (PV-0606/0630), row 1 col 20 (PV-0610/0611), attr 0x40 YES3D (PV-0612/0626). Payload is the whole content, atom_length-13=1 byte (PV-0650); the byte 0x41 is arbitrary (the XML text is opaque to the walker).
+# expect.atoms: 1
+# expect.atom.1.etype: 120
+# expect.atom.1.length: 14
+# expect.atom.1.dlg_flag_1: 0x00
+# expect.atom.1.dlg_flag_2: 0x00
+# expect.atom.1.area: 0
+# expect.atom.1.block: 1
+# expect.atom.1.group: 0
+# expect.atom.1.row: 1
+# expect.atom.1.col: 20
+# expect.atom.1.attr: 0x40
+# expect.atom.1.attr.names: YES3D
+# expect.atom.1.content_offset: 13
+# expect.atom.1.content_length: 1
+# expect.atom.1.text_offset: 13
+# expect.atom.1.text_length: 1
+# expect.error: none
+hex:
+00 0E                  # atom_length 14
+00                     # dlg_flag_1
+00                     # dlg_flag_2
+78                     # etype 120 (XMLPROP)
+00                     # area
+01                     # block
+00                     # group
+00 01                  # row 1
+00 14                  # col 20
+40                     # attribute YES3D
+41                     # XML text (1 byte, opaque)

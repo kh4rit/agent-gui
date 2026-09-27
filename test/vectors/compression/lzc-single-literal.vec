@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/compression-lzc.md#code-packing
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0080, PV-0350, PV-0310, PV-0312, PV-0384, PV-0385, PV-0386, PV-0388, PV-0395, PV-0314
+# kind: decompress
+# description: The single byte 0x41 as one 9-bit code.
+# derivation: Header: length 1, 0x11 = LZC, 1F 9D, byte 7 = 16 | 0x80 = 0x90 (maxbits 16, block mode; PV-0310, PV-0312). The code stream starts at data byte 0 (PV-0350): code 0x041 (a literal, PV-0385) in 9 bits, least significant bit first (PV-0384, PV-0388), gives bytes 0x41 0x00 with bits 9-15 zero. Decoding stops once 1 byte is output (PV-0395).
+# expect.error: none
+# expect.algorithm: lzc
+# expect.uncompressed_length: 1
+# expect.block_mode: 1
+# expect.output_length: 1
+# expect.output: 41
+hex:
+01 00 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+90                                                # byte 7
+41 00                                             # code 0x041 in 9 bits; 7 spare zero bits

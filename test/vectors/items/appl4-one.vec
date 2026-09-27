@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/items.md#appl4
+# provenance: PV-0100, PV-0103, PV-0104, PV-0107, PV-0400, PV-0401, PV-0403, PV-0438, PV-0458
+# kind: items
+# description: A single APPL4 item DYNT / DYNT_ATOM with a 3-byte value.
+# derivation: Type 0x12 (PV-0103), id 0x09 DYNT (PV-0438) at offset 1 (PV-0400), sid 0x02 DYNT_ATOM (PV-0458) at offset 2 (PV-0401), u32 BE length 3 at offset 3 (PV-0104) counting only the value (PV-0107), value at offset 7 (PV-0403); value bytes arbitrary (atom layout is gap #19).
+# expect.items: 1
+# expect.item.1.type: appl4
+# expect.item.1.id: 0x09
+# expect.item.1.sid: 0x02
+# expect.item.1.id_name: DYNT
+# expect.item.1.sid_name: DYNT_ATOM
+# expect.item.1.offset: 7
+# expect.item.1.length: 3
+# expect.error: none
+hex:
+12                                                # type APPL4
+09                                                # id 0x09 DYNT
+02                                                # sid 0x02 DYNT_ATOM
+00 00 00 03                                       # length 3, u32 BE
+C1 C2 C3                                          # value (opaque here)

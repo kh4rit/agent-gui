@@ -1,0 +1,75 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#field-_2-variants-130-131-132
+# provenance: PV-0140, PV-0602, PV-0603, PV-0604, PV-0605, PV-0606, PV-0608, PV-0610, PV-0611, PV-0612, PV-0626, PV-0630, PV-0651, PV-0652
+# kind: dynt-atoms
+# description: Two edited fields returned by a client as EFIELD_2 (130) atoms echoing block/row/col with the new text, one per changed field (client-input.md §2).
+# derivation: Each atom follows the etype-130 layout (PV-0651/PV-0652): flag1 u16 BE = 0, dlen = text byte length, mlen, maxnrchars u16 BE, then dlen text bytes at payload offset 6. atom_length = 13 + 6 + text (PV-0603). Header row/col echoed (PV-0610/PV-0611), attr 0x40 YES3D (PV-0626); dlg flags carried verbatim (0), not interpreted (#34). Atom 1 returns "42" at row 38; atom 2 returns "PONG" at row 41; both at block 5, col 47. Positions and values invented (D15; not the example client's block 1, col 20, IMPL-SS-1). No password field is used.
+# expect.atoms: 2
+# expect.atom.1.etype: 130
+# expect.atom.1.length: 21
+# expect.atom.1.dlg_flag_1: 0x00
+# expect.atom.1.dlg_flag_2: 0x00
+# expect.atom.1.area: 0
+# expect.atom.1.block: 5
+# expect.atom.1.group: 0
+# expect.atom.1.row: 38
+# expect.atom.1.col: 47
+# expect.atom.1.attr: 0x40
+# expect.atom.1.attr.names: YES3D
+# expect.atom.1.content_offset: 13
+# expect.atom.1.content_length: 8
+# expect.atom.1.field.dlen: 2
+# expect.atom.1.field.mlen: 3
+# expect.atom.1.field.maxnrchars: 3
+# expect.atom.1.text_offset: 19
+# expect.atom.1.text_length: 2
+# expect.atom.2.etype: 130
+# expect.atom.2.length: 23
+# expect.atom.2.dlg_flag_1: 0x00
+# expect.atom.2.dlg_flag_2: 0x00
+# expect.atom.2.area: 0
+# expect.atom.2.block: 5
+# expect.atom.2.group: 0
+# expect.atom.2.row: 41
+# expect.atom.2.col: 47
+# expect.atom.2.attr: 0x40
+# expect.atom.2.attr.names: YES3D
+# expect.atom.2.content_offset: 34
+# expect.atom.2.content_length: 10
+# expect.atom.2.field.dlen: 4
+# expect.atom.2.field.mlen: 8
+# expect.atom.2.field.maxnrchars: 8
+# expect.atom.2.text_offset: 40
+# expect.atom.2.text_length: 4
+# expect.error: none
+hex:
+00 15                  # atom 1: atom_length 21
+00                     # dlg_flag_1 (verbatim, #34)
+00                     # dlg_flag_2 (verbatim, #34)
+82                     # etype 130 (EFIELD_2)
+00                     # area
+05                     # block 5
+00                     # group
+00 26                  # row 38
+00 2F                  # col 47
+40                     # attribute YES3D (0x40)
+00 00                  # field2_flag1 (u16 BE)
+02                     # field2_dlen 2
+03                     # field2_mlen 3
+00 03                  # field2_maxnrchars 3 (u16 BE)
+34 32                  # text "42"
+00 17                  # atom 2: atom_length 23
+00                     # dlg_flag_1
+00                     # dlg_flag_2
+82                     # etype 130 (EFIELD_2)
+00                     # area
+05                     # block 5
+00                     # group
+00 29                  # row 41
+00 2F                  # col 47
+40                     # attribute YES3D (0x40)
+00 00                  # field2_flag1 (u16 BE)
+04                     # field2_dlen 4
+08                     # field2_mlen 8
+00 08                  # field2_maxnrchars 8 (u16 BE)
+50 4F 4E 47            # text "PONG"

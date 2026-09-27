@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#error-body-layout
+# provenance: PV-0054, PV-0303
+# kind: diag-error-body
+# description: Error body with a 4-byte text and no items after the terminator.
+# derivation: Text, one 0x0C terminator, then an empty item sequence (PV-0303, reading R-DH-6); the text bytes contain no 0x0C, so the open questions of #8 do not affect the split.
+# expect.error: none
+# expect.text.length: 4
+# expect.items.offset: 5
+# expect.items.length: 0
+hex:
+41 41 42 42                                       # error text bytes (opaque; they read the same in either byte order, #8)
+0C                                                # terminator

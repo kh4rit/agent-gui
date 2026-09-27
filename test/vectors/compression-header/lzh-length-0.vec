@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#uncompressed-length
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068
+# kind: compression-header
+# description: LZH header declaring an uncompressed length of 0: legal at the header level (the data must then decompress to nothing).
+# derivation: 0 as u32 LE = 00 00 00 00 (PV-0061, PV-0062; reading R-CH-3: the header has no zero check); 0x12 = LZH (PV-0064, PV-0066); magic (PV-0067); level 2 (PV-0068).
+# expect.error: none
+# expect.uncompressed_length: 0
+# expect.algorithm: lzh
+# expect.version: 1
+# expect.level: 2
+hex:
+00 00 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7

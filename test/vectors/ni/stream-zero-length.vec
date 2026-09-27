@@ -1,0 +1,17 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#zero-length-and-oversized-frames
+# provenance: PV-0001, PV-0002, PV-0003, PV-0205
+# kind: ni-stream
+# description: A zero-length frame followed by a 2-byte frame; the framer delivers an empty payload and carries on.
+# derivation: A length of 0 is a valid frame with an empty payload (PV-0205), and the next frame starts right after its length field (PV-0001..PV-0003); frame 2's payload is arbitrary.
+# expect.frames: 2
+# expect.frame.1.offset: 4
+# expect.frame.1.length: 0
+# expect.frame.2.offset: 8
+# expect.frame.2.length: 2
+# expect.error: none
+# expect.trailing: 0
+hex:
+00 00 00 00                                       # frame 1: length 0, empty payload
+00 00 00 02                                       # frame 2: length 2
+01 02                                             # frame 2: payload

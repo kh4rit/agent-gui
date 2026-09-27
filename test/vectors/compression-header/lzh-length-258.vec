@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#layout
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068
+# kind: compression-header
+# description: LZH header for 258 uncompressed bytes at level 2; 258 = 0x0102 tells a little-endian reading from a big-endian one.
+# derivation: 258 as u32 LE = 02 01 00 00 (PV-0061, PV-0062); 0x12 = version 1, algorithm 2 = LZH (PV-0063, PV-0064, PV-0066); magic 1F 9D (PV-0067); byte 7 = level 2 (PV-0068).
+# expect.error: none
+# expect.uncompressed_length: 258
+# expect.algorithm: lzh
+# expect.version: 1
+# expect.level: 2
+hex:
+02 01 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7

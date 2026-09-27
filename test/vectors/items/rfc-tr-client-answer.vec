@@ -1,0 +1,30 @@
+# source: spec
+# spec: docs/protocol/controls/transport.md#21-direction-of-the-rfc_tr-sids
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0125, PV-0400, PV-0401, PV-0402, PV-0413, PV-0433, PV-0437, PV-0453, PV-0457, PV-0524, PV-0900, PV-0901
+# kind: items
+# description: The item shape of a client's RFC_TR answer: step number, RFC_TR sid 0x01 as APPL, EOM (answer value opaque and invented).
+# derivation: Step number first and EOM last as in later client messages (PV-0524 pattern; value u32 BE per PV-0125); RFC_TR sid 0x01 RFC_TR_RET is the client's (PV-0901) and is carried as APPL (PV-0900); the answer's content is #80, so its bytes are arbitrary.
+# expect.items: 3
+# expect.item.1.type: appl
+# expect.item.1.id: 0x04
+# expect.item.1.sid: 0x26
+# expect.item.1.id_name: ST_USER
+# expect.item.1.sid_name: DIALOG_STEP_NUMBER
+# expect.item.1.offset: 5
+# expect.item.1.length: 4
+# expect.item.2.type: appl
+# expect.item.2.id: 0x08
+# expect.item.2.sid: 0x01
+# expect.item.2.id_name: RFC_TR
+# expect.item.2.sid_name: RFC_TR_RET
+# expect.item.2.offset: 14
+# expect.item.2.length: 16
+# expect.item.3.type: eom
+# expect.item.3.offset: 31
+# expect.item.3.length: 0
+# expect.error: none
+hex:
+10 04 26 00 04 00 00 00 03                        # APPL ST_USER DIALOG_STEP_NUMBER = 3
+10 08 01 00 10 5A 5A 5F 4F 50 41 51 55 45 5F 41   # APPL RFC_TR RFC_TR_RET: client answer (value opaque)
+4E 53 57 45 52
+0C                                                # EOM

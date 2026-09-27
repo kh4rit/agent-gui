@@ -1,0 +1,9 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#85-lists-scrolling-and-focus
+# provenance: PV-0711
+# kind: dynt-focus
+# description: Focus value of 8 bytes, one short of the fixed part.
+# derivation: PV-0711 needs 9 bytes before the container ids; the value ends inside col offset (truncated).
+# expect.error: truncated
+hex:
+01 00 03 00 14 00 00 00                           # 8 bytes

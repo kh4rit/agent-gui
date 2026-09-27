@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/session.md#3-st_user-connect-payload
+# provenance: PV-0504
+# kind: connect
+# description: A CONNECT value one byte short of the required 12 bytes.
+# derivation: The CONNECT value is exactly 12 bytes (PV-0504); 11 bytes end inside the ws_type field, so the decode is truncated.
+# expect.error: truncated
+hex:
+00 01 87 68            # protocol_version 100200
+00 00 04 4C            # code_page 1100
+00 00 13               # ws_type field cut short (3 of 4 bytes)

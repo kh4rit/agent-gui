@@ -1,0 +1,19 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#31-pysaps-example-server
+# provenance: PV-0030, PV-0041, PV-0043, PV-0702
+# kind: diag-header
+# description: The header-only logoff message of pysap's example server: com_flag EOP | EOC.
+# derivation: PV-0702: mode 0, com_flag 0x0A = EOC (0x02) | EOP (0x08), other bytes 0, compress 0; body classification items (empty).
+# expect.error: none
+# expect.mode: 0x00
+# expect.com_flag: 0x0A
+# expect.mode_stat: 0x00
+# expect.err_no: 0x00
+# expect.msg_type: 0x00
+# expect.msg_info: 0x00
+# expect.msg_rc: 0x00
+# expect.compress: 0x00
+# expect.com_flag.names: EOC,EOP
+# expect.body: items
+hex:
+00 0A 00 00 00 00 00 00                           # DIAG header, com_flag EOC|EOP

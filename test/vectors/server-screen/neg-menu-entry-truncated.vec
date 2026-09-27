@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#81-menu-entries-mnuentry
+# provenance: PV-0718
+# kind: menu-entries
+# description: An entry cut inside its 20-byte fixed part.
+# derivation: PV-0718 needs 20 fixed bytes; 17 given (truncated).
+# expect.entries: 0
+# expect.error: truncated
+# expect.error.entry: 1
+hex:
+00 23                                             # entry length 35
+01 00 00 00                                       # position_1..4
+02 05                                             # flags, vkey
+00 00 00 00 00 00                                 # return codes
+00 00 00                                          # value ends inside the function codes

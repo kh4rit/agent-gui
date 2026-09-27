@@ -1,0 +1,34 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#attribute-byte
+# provenance: PV-0140, PV-0602, PV-0603, PV-0606, PV-0612, PV-0620, PV-0621, PV-0622, PV-0623, PV-0624, PV-0625, PV-0626, PV-0627, PV-0630, PV-0650
+# kind: dynt-atoms
+# description: A minimal atom with every attribute bit set, to exercise the full attribute decode.
+# derivation: atom_length 13 (PV-0602/0603) = header only, so content_length 0. Attribute byte 0xFF sets all eight bits PROTECTED..COMBOSTYLE (PV-0620..PV-0627); the names list is in ascending mask order. etype 0x72=114 (PV-0606/0630) with an empty payload (PV-0650 with zero length), so text_offset 13 and text_length 0.
+# expect.atoms: 1
+# expect.atom.1.etype: 114
+# expect.atom.1.length: 13
+# expect.atom.1.dlg_flag_1: 0x00
+# expect.atom.1.dlg_flag_2: 0x00
+# expect.atom.1.area: 0
+# expect.atom.1.block: 0
+# expect.atom.1.group: 0
+# expect.atom.1.row: 0
+# expect.atom.1.col: 0
+# expect.atom.1.attr: 0xFF
+# expect.atom.1.attr.names: PROTECTED,INVISIBLE,INTENSIFY,JUSTRIGHT,MATCHCODE,PROPFONT,YES3D,COMBOSTYLE
+# expect.atom.1.content_offset: 13
+# expect.atom.1.content_length: 0
+# expect.atom.1.text_offset: 13
+# expect.atom.1.text_length: 0
+# expect.error: none
+hex:
+00 0D                  # atom_length 13 (header only)
+00                     # dlg_flag_1
+00                     # dlg_flag_2
+72                     # etype 114 (FNAME)
+00                     # area
+00                     # block
+00                     # group
+00 00                  # row 0
+00 00                  # col 0
+FF                     # attribute: all eight bits set

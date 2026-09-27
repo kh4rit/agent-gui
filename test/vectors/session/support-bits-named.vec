@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/session.md#52-named-bits
+# provenance: PV-0124, PV-0509, PV-0512, PV-0513, PV-0514, PV-0515, PV-0516
+# kind: support-bits
+# description: A 32-byte mask with five named bits set across bytes 0, 16, 17 and 22.
+# derivation: 32-byte value (PV-0124). Bit N sits in byte N/8 at mask 1<<(N%8) (PV-0509, reading R-SE-5). Byte 0 = 0x81 sets PROGRESS_INDICATOR (bit 0, PV-0512) and SAPGUI_IMODE (bit 7, PV-0513); byte 16 = 0x80 sets ENABLE_UTF8 (bit 135, PV-0514); byte 17 = 0x20 sets ENABLE_APPL4 (bit 141, PV-0515); byte 22 = 0x20 sets DIALOG_STEP_NUMBER (bit 181, PV-0516); all other bytes 0.
+# expect.error: none
+# expect.length: 32
+# expect.set_bits: PROGRESS_INDICATOR,SAPGUI_IMODE,ENABLE_UTF8,ENABLE_APPL4,DIALOG_STEP_NUMBER
+hex:
+81                     # byte 0: bit 0 (0x01) + bit 7 (0x80)
+00 00 00 00 00 00 00   # bytes 1-7
+00 00 00 00 00 00 00 00 # bytes 8-15
+80                     # byte 16: ENABLE_UTF8 (0x80)
+20                     # byte 17: ENABLE_APPL4 (0x20)
+00 00 00 00            # bytes 18-21
+20                     # byte 22: DIALOG_STEP_NUMBER (0x20)
+00 00 00 00 00 00 00 00 00 # bytes 23-31

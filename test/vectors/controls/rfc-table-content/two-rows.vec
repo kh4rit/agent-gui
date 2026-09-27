@@ -1,0 +1,24 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#4-table-content-split-into-rows
+# provenance: PV-0910, PV-0912, PV-0913, PV-0914, PV-0919
+# kind: rfc-table-content
+# description: Table content in two rows (5 and 3 bytes) ended by an empty 03 06 item.
+# derivation: Each row is an RFC item (PV-0910): id 03 05, u16 BE length, value, trailing pair repeating the id (PV-0919); values concatenate (PV-0913); 03 06 with length 0 ends the table (PV-0912, PV-0914); values are the invented text 'ZZTEA' + 'POT'.
+# expect.rows: 2
+# expect.row.1.offset: 4
+# expect.row.1.length: 5
+# expect.row.2.offset: 15
+# expect.row.2.length: 3
+# expect.content_length: 8
+# expect.content: 5A 5A 54 45 41 50 4F 54
+# expect.end_length: 0
+# expect.trailing: 0
+# expect.error: none
+hex:
+03 05 00 05                                       # item 03 05 (table content), length 5
+5A 5A 54 45 41                                    # value of row 1
+03 05                                             # trailing id pair 03 05 (PV-0919)
+03 05 00 03                                       # item 03 05 (table content), length 3
+50 4F 54                                          # value of row 2
+03 05                                             # trailing id pair 03 05 (PV-0919)
+03 06 00 00                                       # item 03 06 (table content end), length 0

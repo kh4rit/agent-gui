@@ -1,0 +1,8 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#layout
+# provenance: PV-0030
+# kind: diag-header
+# description: No bytes at all where a DIAG header should start.
+# derivation: The header is 8 bytes (PV-0030); an empty input cannot hold it (IMPL-DH-1: truncated).
+# expect.error: truncated
+hex:

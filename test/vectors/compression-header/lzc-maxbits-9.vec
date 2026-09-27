@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#byte-7
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0080, PV-0310, PV-0311, PV-0312
+# kind: compression-header
+# description: LZC header with the smallest maxbits the code range allows (9).
+# derivation: 300 as u32 LE = 2C 01 00 00 (PV-0061, PV-0062); 0x11 = LZC (PV-0065); magic (PV-0067); byte 7 = 0x89: maxbits = 0x89 & 0x1F = 9 (PV-0069, PV-0310, reading R-CH-5 as corrected in v1; 9 is the smallest value PV-0080 and PV-0311 allow), block mode 1 (PV-0312), unused bits 0x00.
+# expect.error: none
+# expect.uncompressed_length: 300
+# expect.algorithm: lzc
+# expect.version: 1
+# expect.maxbits: 9
+# expect.block_mode: 1
+# expect.unused_bits: 0x00
+hex:
+2C 01 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+89                                                # byte 7

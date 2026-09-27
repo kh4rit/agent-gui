@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#86-container-items
+# provenance: PV-0712, PV-0439, PV-0460
+# kind: appl-fields
+# description: CONTAINER TABSTRIP_PAGE geometry with 16-bit values above 255.
+# derivation: Same 9-byte layout (PV-0712); distinct high and low bytes check big-endian order.
+# expect.id: 0x0A
+# expect.sid: 0x09
+# expect.field.container_id: 254
+# expect.field.row: 258
+# expect.field.col: 772
+# expect.field.width: 1286
+# expect.field.height: 1800
+# expect.error: none
+hex:
+FE 01 02 03 04 05 06 07 08                        # value

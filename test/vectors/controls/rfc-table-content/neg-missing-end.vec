@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#4-table-content-split-into-rows
+# provenance: PV-0910, PV-0912, PV-0913, PV-0914, PV-0919
+# kind: rfc-table-content
+# description: One complete row with its trailing pair, then the input ends: no 03 06 end item.
+# derivation: Row per PV-0910/PV-0913; the input ends where the next id should be (IMPL-CT-3: truncated).
+# expect.rows: 1
+# expect.row.1.offset: 4
+# expect.row.1.length: 8
+# expect.error: truncated
+# expect.error.row: 2
+hex:
+03 05 00 08                                       # item 03 05 (table content), length 8
+5A 5A 5F 43 52 55 4D 42                           # value of row 1
+03 05                                             # trailing id pair 03 05 (PV-0919)

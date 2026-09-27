@@ -1,0 +1,35 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#text-atoms-fname-114-xmlprop-120
+# provenance: PV-0140, PV-0141, PV-0602, PV-0603, PV-0606, PV-0610, PV-0611, PV-0612, PV-0630, PV-0650
+# kind: dynt-atoms
+# description: A single FNAME (114) atom carrying the DDIC name RSYST-BNAME.
+# derivation: atom_length 24 (u16 BE, PV-0602) counts the whole atom incl. its 2 length bytes (PV-0603); 13-byte header (PV-0140/0141) with etype 0x72=114 (PV-0606/0630), row 2, col 1 (PV-0610/0611), attr 0x00 (PV-0612); payload is the whole atom_length-13=11 bytes (PV-0650), here the characters of "RSYST-BNAME" in ASCII (R-DA-5: identical in any ASCII-compatible code page).
+# expect.atoms: 1
+# expect.atom.1.etype: 114
+# expect.atom.1.length: 24
+# expect.atom.1.dlg_flag_1: 0x00
+# expect.atom.1.dlg_flag_2: 0x00
+# expect.atom.1.area: 0
+# expect.atom.1.block: 1
+# expect.atom.1.group: 0
+# expect.atom.1.row: 2
+# expect.atom.1.col: 1
+# expect.atom.1.attr: 0x00
+# expect.atom.1.attr.names: none
+# expect.atom.1.content_offset: 13
+# expect.atom.1.content_length: 11
+# expect.atom.1.text_offset: 13
+# expect.atom.1.text_length: 11
+# expect.error: none
+hex:
+00 18                  # atom_length 24 (u16 BE), whole atom
+00                     # dlg_flag_1
+00                     # dlg_flag_2
+72                     # etype 114 (FNAME)
+00                     # area
+01                     # block
+00                     # group
+00 02                  # row 2 (u16 BE)
+00 01                  # col 1 (u16 BE)
+00                     # attribute (none set)
+52 53 59 53 54 2D 42 4E 41 4D 45   # "RSYST-BNAME" (11 ASCII bytes)

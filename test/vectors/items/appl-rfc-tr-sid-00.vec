@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/items.md#rfc_tr-0x08
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402, PV-0437, PV-0457
+# kind: items
+# description: RFC_TR is the one sid table that starts at 0x00: sid 0x00 is RFC_TR_REQ.
+# derivation: Type 0x10, id 0x08 RFC_TR (PV-0437), sid 0x00 RFC_TR_REQ (PV-0457), u16 BE length 2 (PV-0102), value arbitrary.
+# expect.items: 1
+# expect.item.1.type: appl
+# expect.item.1.id: 0x08
+# expect.item.1.sid: 0x00
+# expect.item.1.id_name: RFC_TR
+# expect.item.1.sid_name: RFC_TR_REQ
+# expect.item.1.offset: 5
+# expect.item.1.length: 2
+# expect.error: none
+hex:
+10                                                # type APPL
+08                                                # id 0x08 RFC_TR
+00                                                # sid 0x00 RFC_TR_REQ
+00 02                                             # length 2, u16 BE
+5A 5B                                             # value (opaque)

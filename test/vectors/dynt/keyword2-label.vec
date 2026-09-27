@@ -1,0 +1,42 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#field-_2-variants-130-131-132
+# provenance: PV-0140, PV-0602, PV-0603, PV-0606, PV-0610, PV-0611, PV-0612, PV-0620, PV-0625, PV-0630, PV-0651, PV-0652
+# kind: dynt-atoms
+# description: A static label KEYWORD_2 (132) with the invented caption Socks lost, protected and proportional-font.
+# derivation: atom_length 29 (PV-0602/0603); header (PV-0140) etype 0x84=132 (PV-0606/0630), row 2 col 1 (PV-0610/0611), attr 0x21 = PROTECTED|PROPFONT (PV-0612/0620/0625). Payload (PV-0651): flag1 0, dlen 10, mlen 10, maxnrchars 18, then dlen=10 text bytes (PV-0652) "Socks lost" (0x53 0x6F 0x63 0x6B 0x73 0x20 0x6C 0x6F 0x73 0x74), an invented caption (D15), so dlen = atom_length-19 = 10. content_length = 29-13 = 16; text at payload offset 6 = input offset 19.
+# expect.atoms: 1
+# expect.atom.1.etype: 132
+# expect.atom.1.length: 29
+# expect.atom.1.dlg_flag_1: 0x00
+# expect.atom.1.dlg_flag_2: 0x00
+# expect.atom.1.area: 0
+# expect.atom.1.block: 1
+# expect.atom.1.group: 0
+# expect.atom.1.row: 2
+# expect.atom.1.col: 1
+# expect.atom.1.attr: 0x21
+# expect.atom.1.attr.names: PROTECTED,PROPFONT
+# expect.atom.1.content_offset: 13
+# expect.atom.1.content_length: 16
+# expect.atom.1.field.dlen: 10
+# expect.atom.1.field.mlen: 10
+# expect.atom.1.field.maxnrchars: 18
+# expect.atom.1.text_offset: 19
+# expect.atom.1.text_length: 10
+# expect.error: none
+hex:
+00 1D                  # atom_length 29
+00                     # dlg_flag_1
+00                     # dlg_flag_2
+84                     # etype 132 (KEYWORD_2)
+00                     # area
+01                     # block
+00                     # group
+00 02                  # row 2
+00 01                  # col 1
+21                     # attribute PROTECTED|PROPFONT (0x01|0x20)
+00 00                  # field2_flag1
+0A                     # field2_dlen 10
+0A                     # field2_mlen 10
+00 12                  # field2_maxnrchars 18
+53 6F 63 6B 73 20 6C 6F 73 74   # text "Socks lost" (invented, D15)

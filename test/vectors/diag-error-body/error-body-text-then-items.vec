@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#error-body-layout
+# provenance: PV-0054, PV-0303, PV-0105, PV-0106, PV-0107
+# kind: diag-error-body
+# description: Error body with a 4-byte text followed by an item sequence holding one XMLBLOB item.
+# derivation: Text, 0x0C terminator, then items (PV-0303, reading R-DH-6); the items are one XMLBLOB (type 0x11 PV-0105, u32 BE length 2 PV-0106 and PV-0107, arbitrary value bytes). This kind only locates the item bytes; walking them is the items kind's job.
+# expect.error: none
+# expect.text.length: 4
+# expect.items.offset: 5
+# expect.items.length: 7
+hex:
+41 41 42 42                                       # error text bytes (opaque; they read the same in either byte order, #8)
+0C                                                # terminator
+11                                                # item type XMLBLOB
+00 00 00 02                                       # length 2, u32 BE
+AA BB                                             # value (opaque)

@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#algorithm-byte
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0065, PV-0066, PV-0067
+# kind: compression-header
+# description: Algorithm byte 0x13: nibble 3 is not a defined algorithm (project policy IMPL-CH-1).
+# derivation: Low nibble 3 (PV-0063) is neither 1 (PV-0065) nor 2 (PV-0064); IMPL-CH-1 gives unknown-algorithm. Length, magic and byte 7 are valid.
+# expect.error: unknown-algorithm
+hex:
+00 01 00 00                                       # uncompressed length, u32 LE
+13                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7

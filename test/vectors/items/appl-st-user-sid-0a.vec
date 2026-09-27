@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/items.md#st_user-0x04
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402, PV-0433, PV-0453
+# kind: items
+# description: ST_USER sid 0x0A has no name in either source; the item is still walked and reported with an unknown sid name.
+# derivation: id 0x04 ST_USER (PV-0433); the ST_USER sid table has no 0x0A (PV-0453), so sid_name is unknown; u16 BE length 1 (PV-0102), one value byte, stepped over by its length (IMPL-IT-1).
+# expect.items: 1
+# expect.item.1.type: appl
+# expect.item.1.id: 0x04
+# expect.item.1.sid: 0x0A
+# expect.item.1.id_name: ST_USER
+# expect.item.1.sid_name: unknown
+# expect.item.1.offset: 5
+# expect.item.1.length: 1
+# expect.error: none
+hex:
+10                                                # type APPL
+04                                                # id 0x04 ST_USER
+0A                                                # sid 0x0A (unnamed under ST_USER)
+00 01                                             # length 1, u16 BE
+FF                                                # value (opaque)

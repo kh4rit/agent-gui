@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#52-internal-mode-uuids
+# provenance: PV-0710
+# kind: imode-uuids
+# description: Count 1 with a second entry's bytes after the first.
+# derivation: PV-0710 gives 1 + 17 = 18 bytes for count 1; 35 given (overlong, IMPL-SS-3).
+# expect.error: overlong
+hex:
+01                                                # count 1
+DE AD BE EF CA FE F0 0D BA AD F0 0D DE CA FB AD   # UUID (16 bytes, invented)
+01                                                # active context 1
+01 23 45 67 89 AB CD EF FE DC BA 98 76 54 32 10   # UUID (16 bytes, invented)
+00                                                # active context 0

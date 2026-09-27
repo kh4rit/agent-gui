@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#lzh-level
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068
+# kind: compression-header
+# description: LZH header with level 0 in byte 7: decoders ignore the LZH level, so the header decodes.
+# derivation: 256 as u32 LE = 00 01 00 00 (PV-0061, PV-0062); 0x12 = LZH, version 1 (PV-0064, PV-0066); magic (PV-0067); byte 7 = level 0, reported and never checked (PV-0068, IMPL-CH-3).
+# expect.error: none
+# expect.uncompressed_length: 256
+# expect.algorithm: lzh
+# expect.version: 1
+# expect.level: 0
+hex:
+00 01 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+00                                                # byte 7

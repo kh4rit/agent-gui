@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#magic-bytes
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067
+# kind: compression-header
+# description: Magic 1F 9E instead of 1F 9D.
+# derivation: Bytes 5-6 must be 1F 9D (PV-0067); 9E differs, so IMPL-CH-2 gives bad-magic. Length, algorithm byte (LZH) and byte 7 are valid.
+# expect.error: bad-magic
+hex:
+02 01 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9E                                             # magic
+02                                                # byte 7

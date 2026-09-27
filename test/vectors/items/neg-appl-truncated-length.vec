@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402
+# kind: items
+# description: The input ends inside the APPL length field.
+# derivation: After type, id and sid, APPL needs a 2-byte length at offset 3 (PV-0102); only 1 byte is present, so truncated at item 1 (IMPL-IT-5).
+# expect.items: 0
+# expect.error: truncated
+# expect.error.item: 1
+hex:
+10                                                # type APPL
+04                                                # id 0x04
+26                                                # sid 0x26
+00                                                # 1 of 2 length bytes

@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/compression-lzh.md#stream-layout
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068, PV-0350, PV-0351, PV-0352, PV-0354, PV-0355, PV-0357, PV-0358, PV-0359, PV-0361, PV-0363, PV-0364, PV-0365, PV-0373, PV-0374, PV-0314, PV-0377
+# kind: decompress
+# description: Two fixed-code blocks with no alignment between them; a match in the second block reaches back into the first block.
+# derivation: Header: length 6. Bits: 0-1 count 0; 2 final 0; 3-4 type 1 = 1,0; 5-28 literals 0x41 0x42 0x43 (codes 113, 114, 115); 29-35 end of block; 36 final 1, directly at the next bit (PV-0357); 37-38 type 1 = 1,0; 39-45 length symbol 257 (length 3) = 0000001; 46-50 distance symbol 2 (distance 3) = 00010; 51-57 end of block; 58-63 zero fill. Bytes 0xC8 0xD1 0xC9 0x19 0x30 0x20 0x02 0x00. The history carries over between blocks of one message (PV-0377).
+# expect.error: none
+# expect.algorithm: lzh
+# expect.uncompressed_length: 6
+# expect.output_length: 6
+# expect.output: 41 42 43 41 42 43
+hex:
+06 00 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7
+C8 D1 C9 19                                       # block 1: bits 0-1 count 0; 2 final 0; 3-4 type 1; 5-28 A B C; 29-35 end of block ...
+30 20 02 00                                       # ... bit 36 final 1, type 1, symbol 257, distance symbol 2, end of block; zero fill

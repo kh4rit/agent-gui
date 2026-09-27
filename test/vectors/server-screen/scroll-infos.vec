@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#85-lists-scrolling-and-focus
+# provenance: PV-0714, PV-0441, PV-0462
+# kind: appl-fields
+# description: VARINFO SCROLL_INFOS of a list scrolled down by 40 rows.
+# derivation: Six u32 BE (PV-0714).
+# expect.id: 0x0C
+# expect.sid: 0x02
+# expect.field.total_height: 500
+# expect.field.total_width: 132
+# expect.field.data_height: 480
+# expect.field.data_width: 120
+# expect.field.height_offset: 40
+# expect.field.width_offset: 0
+# expect.error: none
+hex:
+00 00 01 F4 00 00 00 84 00 00 01 E0 00 00 00 78   # value
+00 00 00 28 00 00 00 00                           # value (cont.)

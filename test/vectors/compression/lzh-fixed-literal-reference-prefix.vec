@@ -1,0 +1,20 @@
+# source: spec
+# spec: docs/protocol/compression-lzh.md#noise-prefix
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068, PV-0072, PV-0350, PV-0351, PV-0352, PV-0353, PV-0354, PV-0355, PV-0358, PV-0363, PV-0364, PV-0365, PV-0374, PV-0375, PV-0314
+# kind: decompress
+# description: One literal 0x41 in a single fixed-code block, framed as the reference encoder frames it: noise count 3, three 1 noise bits, and a trailing 0x00 byte.
+# derivation: Header: length 1 u32 LE, 0x12 = LZH, 1F 9D, level 2. Data bit positions count from bit 0x01 of byte 0 (PV-0351): 0-1 noise count 3 LSB first = 1,1 and 2-4 noise 1,1,1 (PV-0352, PV-0353); 5 final flag 1; 6-7 block type 1 LSB first = 1,0 (PV-0354, PV-0355); so byte 0 = 0x7F. 8-15 fixed code of literal 0x41 = 48 + 65 = 113 = 01110001, most significant bit first (PV-0363, PV-0364, PV-0365), so byte 1 = 0x8E. 16-22 end of block 256 = 0000000, 23 zero fill, so byte 2 = 0x00 (PV-0358, PV-0374). Byte 3 is the reference trailing 0x00 (PV-0375), ignored by decoders.
+# expect.error: none
+# expect.algorithm: lzh
+# expect.uncompressed_length: 1
+# expect.output_length: 1
+# expect.output: 41
+hex:
+01 00 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7
+7F                                                # bits 0-7: count 3 (1,1), noise 1,1,1, final 1, type 1 (1,0)
+8E                                                # bits 8-15: literal 0x41 = 01110001
+00                                                # bits 16-22: end of block 0000000; bit 23: zero fill
+00                                                # reference trailing byte 0x00

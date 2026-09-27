@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/compression-lzc.md#end-of-stream
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0080, PV-0350, PV-0310, PV-0312, PV-0384, PV-0385, PV-0386, PV-0388, PV-0391, PV-0392, PV-0395, PV-0314
+# kind: decompress
+# description: Valid data that decodes to 7 bytes under a header that declares 8.
+# derivation: Header: length 8, byte 7 0x90. Data exactly as in lzc-code-equals-next-free. After its four codes 4 bits remain, fewer than 9, and no further chunk exists, so the stream ends with 7 bytes output (PV-0395); 7 differs from 8, so decoding fails with length-mismatch (PV-0314, IMPL-LZC-2).
+# expect.error: length-mismatch
+# expect.algorithm: lzc
+# expect.uncompressed_length: 8
+# expect.block_mode: 1
+hex:
+08 00 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+90                                                # byte 7
+41 84 04 1C 08                                    # as lzc-code-equals-next-free

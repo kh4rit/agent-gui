@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#lzh-level
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068
+# kind: compression-header
+# description: LZH header with byte 7 = 0xFF: any LZH level decodes, even a bit pattern that would fail as LZC.
+# derivation: 256 as u32 LE (PV-0061, PV-0062); 0x12 = LZH (PV-0064, PV-0066); magic (PV-0067); byte 7 = 255 is not interpreted for LZH (PV-0068, IMPL-CH-3), so the LZC rule bad-maxbits does not apply.
+# expect.error: none
+# expect.uncompressed_length: 256
+# expect.algorithm: lzh
+# expect.version: 1
+# expect.level: 255
+hex:
+00 01 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+FF                                                # byte 7

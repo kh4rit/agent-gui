@@ -1,0 +1,499 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#82-logon-field-structure
+# provenance: PV-0140, PV-0141, PV-0602, PV-0603, PV-0606, PV-0610, PV-0611, PV-0612, PV-0620, PV-0621, PV-0625, PV-0626, PV-0630, PV-0650, PV-0651, PV-0652, PV-0724
+# kind: dynt-atoms
+# description: The 21 atoms of the invented logon-style screen: four label/input lines with FNAME and XMLPROP children, and a closing label.
+# derivation: Field structure per PV-0724 (label and EFIELD_2 input per line, FNAME/XMLPROP children, input sizes 3/12/40/2) with our own layout (IMPL-SS-1): block 3, rows 31/34/37/40 and closing label 43, labels at col 36 and 16 wide (closing label 11), inputs at col 55; D15 texts and names; atom header per PV-0140/PV-0141; _2 payload per PV-0651/PV-0652 (dlen = text bytes); FNAME/XMLPROP per PV-0650; dlg flags 0 (arbitrary, #34).
+# expect.atoms: 21
+# expect.atom.1.etype: 132
+# expect.atom.1.length: 35
+# expect.atom.1.dlg_flag_1: 0x00
+# expect.atom.1.dlg_flag_2: 0x00
+# expect.atom.1.area: 0
+# expect.atom.1.block: 3
+# expect.atom.1.group: 0
+# expect.atom.1.row: 31
+# expect.atom.1.col: 36
+# expect.atom.1.attr: 0x21
+# expect.atom.1.attr.names: PROTECTED,PROPFONT
+# expect.atom.1.content_offset: 13
+# expect.atom.1.content_length: 22
+# expect.atom.1.text_offset: 19
+# expect.atom.1.text_length: 16
+# expect.atom.1.field.dlen: 16
+# expect.atom.1.field.mlen: 16
+# expect.atom.1.field.maxnrchars: 16
+# expect.atom.2.etype: 114
+# expect.atom.2.length: 24
+# expect.atom.2.dlg_flag_1: 0x00
+# expect.atom.2.dlg_flag_2: 0x00
+# expect.atom.2.area: 0
+# expect.atom.2.block: 3
+# expect.atom.2.group: 0
+# expect.atom.2.row: 31
+# expect.atom.2.col: 36
+# expect.atom.2.attr: 0x21
+# expect.atom.2.attr.names: PROTECTED,PROPFONT
+# expect.atom.2.content_offset: 48
+# expect.atom.2.content_length: 11
+# expect.atom.2.text_offset: 48
+# expect.atom.2.text_length: 11
+# expect.atom.3.etype: 130
+# expect.atom.3.length: 22
+# expect.atom.3.dlg_flag_1: 0x00
+# expect.atom.3.dlg_flag_2: 0x00
+# expect.atom.3.area: 0
+# expect.atom.3.block: 3
+# expect.atom.3.group: 0
+# expect.atom.3.row: 31
+# expect.atom.3.col: 55
+# expect.atom.3.attr: 0x40
+# expect.atom.3.attr.names: YES3D
+# expect.atom.3.content_offset: 72
+# expect.atom.3.content_length: 9
+# expect.atom.3.text_offset: 78
+# expect.atom.3.text_length: 3
+# expect.atom.3.field.dlen: 3
+# expect.atom.3.field.mlen: 3
+# expect.atom.3.field.maxnrchars: 3
+# expect.atom.4.etype: 114
+# expect.atom.4.length: 24
+# expect.atom.4.dlg_flag_1: 0x00
+# expect.atom.4.dlg_flag_2: 0x00
+# expect.atom.4.area: 0
+# expect.atom.4.block: 3
+# expect.atom.4.group: 0
+# expect.atom.4.row: 31
+# expect.atom.4.col: 55
+# expect.atom.4.attr: 0x40
+# expect.atom.4.attr.names: YES3D
+# expect.atom.4.content_offset: 94
+# expect.atom.4.content_length: 11
+# expect.atom.4.text_offset: 94
+# expect.atom.4.text_length: 11
+# expect.atom.5.etype: 120
+# expect.atom.5.length: 84
+# expect.atom.5.dlg_flag_1: 0x00
+# expect.atom.5.dlg_flag_2: 0x00
+# expect.atom.5.area: 0
+# expect.atom.5.block: 3
+# expect.atom.5.group: 0
+# expect.atom.5.row: 31
+# expect.atom.5.col: 55
+# expect.atom.5.attr: 0x40
+# expect.atom.5.attr.names: YES3D
+# expect.atom.5.content_offset: 118
+# expect.atom.5.content_length: 71
+# expect.atom.5.text_offset: 118
+# expect.atom.5.text_length: 71
+# expect.atom.6.etype: 132
+# expect.atom.6.length: 35
+# expect.atom.6.dlg_flag_1: 0x00
+# expect.atom.6.dlg_flag_2: 0x00
+# expect.atom.6.area: 0
+# expect.atom.6.block: 3
+# expect.atom.6.group: 0
+# expect.atom.6.row: 34
+# expect.atom.6.col: 36
+# expect.atom.6.attr: 0x21
+# expect.atom.6.attr.names: PROTECTED,PROPFONT
+# expect.atom.6.content_offset: 202
+# expect.atom.6.content_length: 22
+# expect.atom.6.text_offset: 208
+# expect.atom.6.text_length: 16
+# expect.atom.6.field.dlen: 16
+# expect.atom.6.field.mlen: 16
+# expect.atom.6.field.maxnrchars: 16
+# expect.atom.7.etype: 114
+# expect.atom.7.length: 23
+# expect.atom.7.dlg_flag_1: 0x00
+# expect.atom.7.dlg_flag_2: 0x00
+# expect.atom.7.area: 0
+# expect.atom.7.block: 3
+# expect.atom.7.group: 0
+# expect.atom.7.row: 34
+# expect.atom.7.col: 36
+# expect.atom.7.attr: 0x21
+# expect.atom.7.attr.names: PROTECTED,PROPFONT
+# expect.atom.7.content_offset: 237
+# expect.atom.7.content_length: 10
+# expect.atom.7.text_offset: 237
+# expect.atom.7.text_length: 10
+# expect.atom.8.etype: 130
+# expect.atom.8.length: 31
+# expect.atom.8.dlg_flag_1: 0x00
+# expect.atom.8.dlg_flag_2: 0x00
+# expect.atom.8.area: 0
+# expect.atom.8.block: 3
+# expect.atom.8.group: 0
+# expect.atom.8.row: 34
+# expect.atom.8.col: 55
+# expect.atom.8.attr: 0x40
+# expect.atom.8.attr.names: YES3D
+# expect.atom.8.content_offset: 260
+# expect.atom.8.content_length: 18
+# expect.atom.8.text_offset: 266
+# expect.atom.8.text_length: 12
+# expect.atom.8.field.dlen: 12
+# expect.atom.8.field.mlen: 12
+# expect.atom.8.field.maxnrchars: 12
+# expect.atom.9.etype: 114
+# expect.atom.9.length: 23
+# expect.atom.9.dlg_flag_1: 0x00
+# expect.atom.9.dlg_flag_2: 0x00
+# expect.atom.9.area: 0
+# expect.atom.9.block: 3
+# expect.atom.9.group: 0
+# expect.atom.9.row: 34
+# expect.atom.9.col: 55
+# expect.atom.9.attr: 0x40
+# expect.atom.9.attr.names: YES3D
+# expect.atom.9.content_offset: 291
+# expect.atom.9.content_length: 10
+# expect.atom.9.text_offset: 291
+# expect.atom.9.text_length: 10
+# expect.atom.10.etype: 120
+# expect.atom.10.length: 87
+# expect.atom.10.dlg_flag_1: 0x00
+# expect.atom.10.dlg_flag_2: 0x00
+# expect.atom.10.area: 0
+# expect.atom.10.block: 3
+# expect.atom.10.group: 0
+# expect.atom.10.row: 34
+# expect.atom.10.col: 55
+# expect.atom.10.attr: 0x40
+# expect.atom.10.attr.names: YES3D
+# expect.atom.10.content_offset: 314
+# expect.atom.10.content_length: 74
+# expect.atom.10.text_offset: 314
+# expect.atom.10.text_length: 74
+# expect.atom.11.etype: 132
+# expect.atom.11.length: 35
+# expect.atom.11.dlg_flag_1: 0x00
+# expect.atom.11.dlg_flag_2: 0x00
+# expect.atom.11.area: 0
+# expect.atom.11.block: 3
+# expect.atom.11.group: 0
+# expect.atom.11.row: 37
+# expect.atom.11.col: 36
+# expect.atom.11.attr: 0x21
+# expect.atom.11.attr.names: PROTECTED,PROPFONT
+# expect.atom.11.content_offset: 401
+# expect.atom.11.content_length: 22
+# expect.atom.11.text_offset: 407
+# expect.atom.11.text_length: 16
+# expect.atom.11.field.dlen: 16
+# expect.atom.11.field.mlen: 16
+# expect.atom.11.field.maxnrchars: 16
+# expect.atom.12.etype: 114
+# expect.atom.12.length: 25
+# expect.atom.12.dlg_flag_1: 0x00
+# expect.atom.12.dlg_flag_2: 0x00
+# expect.atom.12.area: 0
+# expect.atom.12.block: 3
+# expect.atom.12.group: 0
+# expect.atom.12.row: 37
+# expect.atom.12.col: 36
+# expect.atom.12.attr: 0x21
+# expect.atom.12.attr.names: PROTECTED,PROPFONT
+# expect.atom.12.content_offset: 436
+# expect.atom.12.content_length: 12
+# expect.atom.12.text_offset: 436
+# expect.atom.12.text_length: 12
+# expect.atom.13.etype: 130
+# expect.atom.13.length: 19
+# expect.atom.13.dlg_flag_1: 0x00
+# expect.atom.13.dlg_flag_2: 0x00
+# expect.atom.13.area: 0
+# expect.atom.13.block: 3
+# expect.atom.13.group: 0
+# expect.atom.13.row: 37
+# expect.atom.13.col: 55
+# expect.atom.13.attr: 0x42
+# expect.atom.13.attr.names: INVISIBLE,YES3D
+# expect.atom.13.content_offset: 461
+# expect.atom.13.content_length: 6
+# expect.atom.13.text_offset: 467
+# expect.atom.13.text_length: 0
+# expect.atom.13.field.dlen: 0
+# expect.atom.13.field.mlen: 12
+# expect.atom.13.field.maxnrchars: 40
+# expect.atom.14.etype: 114
+# expect.atom.14.length: 25
+# expect.atom.14.dlg_flag_1: 0x00
+# expect.atom.14.dlg_flag_2: 0x00
+# expect.atom.14.area: 0
+# expect.atom.14.block: 3
+# expect.atom.14.group: 0
+# expect.atom.14.row: 37
+# expect.atom.14.col: 55
+# expect.atom.14.attr: 0x42
+# expect.atom.14.attr.names: INVISIBLE,YES3D
+# expect.atom.14.content_offset: 480
+# expect.atom.14.content_length: 12
+# expect.atom.14.text_offset: 480
+# expect.atom.14.text_length: 12
+# expect.atom.15.etype: 120
+# expect.atom.15.length: 83
+# expect.atom.15.dlg_flag_1: 0x00
+# expect.atom.15.dlg_flag_2: 0x00
+# expect.atom.15.area: 0
+# expect.atom.15.block: 3
+# expect.atom.15.group: 0
+# expect.atom.15.row: 37
+# expect.atom.15.col: 55
+# expect.atom.15.attr: 0x42
+# expect.atom.15.attr.names: INVISIBLE,YES3D
+# expect.atom.15.content_offset: 505
+# expect.atom.15.content_length: 70
+# expect.atom.15.text_offset: 505
+# expect.atom.15.text_length: 70
+# expect.atom.16.etype: 132
+# expect.atom.16.length: 35
+# expect.atom.16.dlg_flag_1: 0x00
+# expect.atom.16.dlg_flag_2: 0x00
+# expect.atom.16.area: 0
+# expect.atom.16.block: 3
+# expect.atom.16.group: 0
+# expect.atom.16.row: 40
+# expect.atom.16.col: 36
+# expect.atom.16.attr: 0x21
+# expect.atom.16.attr.names: PROTECTED,PROPFONT
+# expect.atom.16.content_offset: 588
+# expect.atom.16.content_length: 22
+# expect.atom.16.text_offset: 594
+# expect.atom.16.text_length: 16
+# expect.atom.16.field.dlen: 16
+# expect.atom.16.field.mlen: 16
+# expect.atom.16.field.maxnrchars: 16
+# expect.atom.17.etype: 114
+# expect.atom.17.length: 26
+# expect.atom.17.dlg_flag_1: 0x00
+# expect.atom.17.dlg_flag_2: 0x00
+# expect.atom.17.area: 0
+# expect.atom.17.block: 3
+# expect.atom.17.group: 0
+# expect.atom.17.row: 40
+# expect.atom.17.col: 36
+# expect.atom.17.attr: 0x21
+# expect.atom.17.attr.names: PROTECTED,PROPFONT
+# expect.atom.17.content_offset: 623
+# expect.atom.17.content_length: 13
+# expect.atom.17.text_offset: 623
+# expect.atom.17.text_length: 13
+# expect.atom.18.etype: 130
+# expect.atom.18.length: 21
+# expect.atom.18.dlg_flag_1: 0x00
+# expect.atom.18.dlg_flag_2: 0x00
+# expect.atom.18.area: 0
+# expect.atom.18.block: 3
+# expect.atom.18.group: 0
+# expect.atom.18.row: 40
+# expect.atom.18.col: 55
+# expect.atom.18.attr: 0x40
+# expect.atom.18.attr.names: YES3D
+# expect.atom.18.content_offset: 649
+# expect.atom.18.content_length: 8
+# expect.atom.18.text_offset: 655
+# expect.atom.18.text_length: 2
+# expect.atom.18.field.dlen: 2
+# expect.atom.18.field.mlen: 2
+# expect.atom.18.field.maxnrchars: 2
+# expect.atom.19.etype: 114
+# expect.atom.19.length: 26
+# expect.atom.19.dlg_flag_1: 0x00
+# expect.atom.19.dlg_flag_2: 0x00
+# expect.atom.19.area: 0
+# expect.atom.19.block: 3
+# expect.atom.19.group: 0
+# expect.atom.19.row: 40
+# expect.atom.19.col: 55
+# expect.atom.19.attr: 0x40
+# expect.atom.19.attr.names: YES3D
+# expect.atom.19.content_offset: 670
+# expect.atom.19.content_length: 13
+# expect.atom.19.text_offset: 670
+# expect.atom.19.text_length: 13
+# expect.atom.20.etype: 120
+# expect.atom.20.length: 87
+# expect.atom.20.dlg_flag_1: 0x00
+# expect.atom.20.dlg_flag_2: 0x00
+# expect.atom.20.area: 0
+# expect.atom.20.block: 3
+# expect.atom.20.group: 0
+# expect.atom.20.row: 40
+# expect.atom.20.col: 55
+# expect.atom.20.attr: 0x40
+# expect.atom.20.attr.names: YES3D
+# expect.atom.20.content_offset: 696
+# expect.atom.20.content_length: 74
+# expect.atom.20.text_offset: 696
+# expect.atom.20.text_length: 74
+# expect.atom.21.etype: 132
+# expect.atom.21.length: 30
+# expect.atom.21.dlg_flag_1: 0x00
+# expect.atom.21.dlg_flag_2: 0x00
+# expect.atom.21.area: 0
+# expect.atom.21.block: 3
+# expect.atom.21.group: 0
+# expect.atom.21.row: 43
+# expect.atom.21.col: 36
+# expect.atom.21.attr: 0x21
+# expect.atom.21.attr.names: PROTECTED,PROPFONT
+# expect.atom.21.content_offset: 783
+# expect.atom.21.content_length: 17
+# expect.atom.21.text_offset: 789
+# expect.atom.21.text_length: 11
+# expect.atom.21.field.dlen: 11
+# expect.atom.21.field.mlen: 11
+# expect.atom.21.field.maxnrchars: 11
+# expect.error: none
+hex:
+00 23                                             # atom_length 35 (label, pond number)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+84 00 03 00                                       # etype 132, area 0, block 3, group 0
+00 1F 00 24                                       # row 31, col 36
+21                                                # attribute PROTECTED|PROPFONT
+00 00 10 10 00 10 50 6F 6E 64 20 4E 75 6D 62 65   # payload
+72 20 20 20 20 20                                 # payload (cont.)
+00 18                                             # atom_length 24 (FNAME ZZGATE-POND)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 1F 00 24                                       # row 31, col 36
+21                                                # attribute PROTECTED|PROPFONT
+5A 5A 47 41 54 45 2D 50 4F 4E 44                  # payload
+00 16                                             # atom_length 22 (input, pond number)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 03 00                                       # etype 130, area 0, block 3, group 0
+00 1F 00 37                                       # row 31, col 55
+40                                                # attribute YES3D
+00 00 03 03 00 03 30 34 32                        # payload
+00 18                                             # atom_length 24 (FNAME ZZGATE-POND)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 1F 00 37                                       # row 31, col 55
+40                                                # attribute YES3D
+5A 5A 47 41 54 45 2D 50 4F 4E 44                  # payload
+00 54                                             # atom_length 84 (XMLPROP)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+78 00 03 00                                       # etype 120, area 0, block 3, group 0
+00 1F 00 37                                       # row 31, col 55
+40                                                # attribute YES3D
+3C 50 72 6F 70 65 72 74 79 62 61 67 3E 3C 44 65   # payload
+66 61 75 6C 74 54 6F 6F 6C 74 69 70 3E 57 68 69   # payload (cont.)
+63 68 20 70 6F 6E 64 3F 3C 2F 44 65 66 61 75 6C   # payload (cont.)
+74 54 6F 6F 6C 74 69 70 3E 3C 2F 50 72 6F 70 65   # payload (cont.)
+72 74 79 62 61 67 3E                              # payload (cont.)
+00 23                                             # atom_length 35 (label, who goes there)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+84 00 03 00                                       # etype 132, area 0, block 3, group 0
+00 22 00 24                                       # row 34, col 36
+21                                                # attribute PROTECTED|PROPFONT
+00 00 10 10 00 10 57 68 6F 20 47 6F 65 73 20 54   # payload
+68 65 72 65 20 20                                 # payload (cont.)
+00 17                                             # atom_length 23 (FNAME ZZGATE-WHO)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 22 00 24                                       # row 34, col 36
+21                                                # attribute PROTECTED|PROPFONT
+5A 5A 47 41 54 45 2D 57 48 4F                     # payload
+00 1F                                             # atom_length 31 (input, who goes there)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 03 00                                       # etype 130, area 0, block 3, group 0
+00 22 00 37                                       # row 34, col 55
+40                                                # attribute YES3D
+00 00 0C 0C 00 0C 20 20 20 20 20 20 20 20 20 20   # payload
+20 20                                             # payload (cont.)
+00 17                                             # atom_length 23 (FNAME ZZGATE-WHO)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 22 00 37                                       # row 34, col 55
+40                                                # attribute YES3D
+5A 5A 47 41 54 45 2D 57 48 4F                     # payload
+00 57                                             # atom_length 87 (XMLPROP)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+78 00 03 00                                       # etype 120, area 0, block 3, group 0
+00 22 00 37                                       # row 34, col 55
+40                                                # attribute YES3D
+3C 50 72 6F 70 65 72 74 79 62 61 67 3E 3C 44 65   # payload
+66 61 75 6C 74 54 6F 6F 6C 74 69 70 3E 59 6F 75   # payload (cont.)
+72 20 64 75 63 6B 20 6E 61 6D 65 3C 2F 44 65 66   # payload (cont.)
+61 75 6C 74 54 6F 6F 6C 74 69 70 3E 3C 2F 50 72   # payload (cont.)
+6F 70 65 72 74 79 62 61 67 3E                     # payload (cont.)
+00 23                                             # atom_length 35 (label, secret quack)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+84 00 03 00                                       # etype 132, area 0, block 3, group 0
+00 25 00 24                                       # row 37, col 36
+21                                                # attribute PROTECTED|PROPFONT
+00 00 10 10 00 10 53 65 63 72 65 74 20 51 75 61   # payload
+63 6B 20 20 20 20                                 # payload (cont.)
+00 19                                             # atom_length 25 (FNAME ZZGATE-QUACK)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 25 00 24                                       # row 37, col 36
+21                                                # attribute PROTECTED|PROPFONT
+5A 5A 47 41 54 45 2D 51 55 41 43 4B               # payload
+00 13                                             # atom_length 19 (input, secret quack, empty)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 03 00                                       # etype 130, area 0, block 3, group 0
+00 25 00 37                                       # row 37, col 55
+42                                                # attribute INVISIBLE|YES3D
+00 00 00 0C 00 28                                 # payload
+00 19                                             # atom_length 25 (FNAME ZZGATE-QUACK)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 25 00 37                                       # row 37, col 55
+42                                                # attribute INVISIBLE|YES3D
+5A 5A 47 41 54 45 2D 51 55 41 43 4B               # payload
+00 53                                             # atom_length 83 (XMLPROP)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+78 00 03 00                                       # etype 120, area 0, block 3, group 0
+00 25 00 37                                       # row 37, col 55
+42                                                # attribute INVISIBLE|YES3D
+3C 50 72 6F 70 65 72 74 79 62 61 67 3E 3C 44 65   # payload
+66 61 75 6C 74 54 6F 6F 6C 74 69 70 3E 57 68 69   # payload (cont.)
+73 70 65 72 20 69 74 3C 2F 44 65 66 61 75 6C 74   # payload (cont.)
+54 6F 6F 6C 74 69 70 3E 3C 2F 50 72 6F 70 65 72   # payload (cont.)
+74 79 62 61 67 3E                                 # payload (cont.)
+00 23                                             # atom_length 35 (label, mother tongue)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+84 00 03 00                                       # etype 132, area 0, block 3, group 0
+00 28 00 24                                       # row 40, col 36
+21                                                # attribute PROTECTED|PROPFONT
+00 00 10 10 00 10 4D 6F 74 68 65 72 20 54 6F 6E   # payload
+67 75 65 20 20 20                                 # payload (cont.)
+00 1A                                             # atom_length 26 (FNAME ZZGATE-TONGUE)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 28 00 24                                       # row 40, col 36
+21                                                # attribute PROTECTED|PROPFONT
+5A 5A 47 41 54 45 2D 54 4F 4E 47 55 45            # payload
+00 15                                             # atom_length 21 (input, mother tongue)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 03 00                                       # etype 130, area 0, block 3, group 0
+00 28 00 37                                       # row 40, col 55
+40                                                # attribute YES3D
+00 00 02 02 00 02 20 20                           # payload
+00 1A                                             # atom_length 26 (FNAME ZZGATE-TONGUE)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 28 00 37                                       # row 40, col 55
+40                                                # attribute YES3D
+5A 5A 47 41 54 45 2D 54 4F 4E 47 55 45            # payload
+00 57                                             # atom_length 87 (XMLPROP)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+78 00 03 00                                       # etype 120, area 0, block 3, group 0
+00 28 00 37                                       # row 40, col 55
+40                                                # attribute YES3D
+3C 50 72 6F 70 65 72 74 79 62 61 67 3E 3C 44 65   # payload
+66 61 75 6C 74 54 6F 6F 6C 74 69 70 3E 51 75 61   # payload (cont.)
+63 6B 20 6F 72 20 68 6F 6E 6B 3F 3C 2F 44 65 66   # payload (cont.)
+61 75 6C 74 54 6F 6F 6C 74 69 70 3E 3C 2F 50 72   # payload (cont.)
+6F 70 65 72 74 79 62 61 67 3E                     # payload (cont.)
+00 1E                                             # atom_length 30 (label, closing line)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+84 00 03 00                                       # etype 132, area 0, block 3, group 0
+00 2B 00 24                                       # row 43, col 36
+21                                                # attribute PROTECTED|PROPFONT
+00 00 0B 0B 00 0B 4B 6E 6F 63 6B 20 4B 6E 6F 63   # payload
+6B                                                # payload (cont.)

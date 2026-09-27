@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/compression-lzc.md#decoding-a-code
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0350, PV-0310, PV-0312, PV-0384, PV-0386, PV-0388, PV-0393
+# kind: decompress
+# description: The first code of the stream is 257, not a literal.
+# derivation: Header: length 1, byte 7 0x90. Code 257 = 0x101 in 9 bits LSB first: bits 1,0,0,0,0,0,0,0,1, giving 01 01. With no previous code only 0-255 (or a clear) is valid, so decoding fails with bad-code (PV-0393).
+# expect.error: bad-code
+# expect.algorithm: lzc
+# expect.uncompressed_length: 1
+# expect.block_mode: 1
+hex:
+01 00 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+90                                                # byte 7
+01 01                                             # code 0x101 in 9 bits

@@ -1,0 +1,38 @@
+# source: spec
+# spec: docs/protocol/controls/transport.md#21-direction-of-the-rfc_tr-sids
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402, PV-0413, PV-0437, PV-0457, PV-0900, PV-0901, PV-0902
+# kind: items
+# description: RFC_TR items as a server sends them: sids 0x00, 0x04 and 0x06, each as APPL, then EOM (values opaque, invented).
+# derivation: RFC_TR is carried as APPL (PV-0900) with id 0x08 (PV-0437); sids 0x00, 0x04, 0x06 are the server's (PV-0901, PV-0902) and are named RFC_TR_REQ, RFC_TR_MOR, RFC_TR_RNB (PV-0457); values are arbitrary ASCII because the RFC_TR grammar is #79.
+# expect.items: 4
+# expect.item.1.type: appl
+# expect.item.1.id: 0x08
+# expect.item.1.sid: 0x00
+# expect.item.1.id_name: RFC_TR
+# expect.item.1.sid_name: RFC_TR_REQ
+# expect.item.1.offset: 5
+# expect.item.1.length: 20
+# expect.item.2.type: appl
+# expect.item.2.id: 0x08
+# expect.item.2.sid: 0x04
+# expect.item.2.id_name: RFC_TR
+# expect.item.2.sid_name: RFC_TR_MOR
+# expect.item.2.offset: 30
+# expect.item.2.length: 8
+# expect.item.3.type: appl
+# expect.item.3.id: 0x08
+# expect.item.3.sid: 0x06
+# expect.item.3.id_name: RFC_TR
+# expect.item.3.sid_name: RFC_TR_RNB
+# expect.item.3.offset: 43
+# expect.item.3.length: 11
+# expect.item.4.type: eom
+# expect.item.4.offset: 55
+# expect.item.4.length: 0
+# expect.error: none
+hex:
+10 08 00 00 14 5A 5A 5F 4F 50 41 51 55 45 5F 43   # APPL RFC_TR RFC_TR_REQ: server call (value opaque)
+41 4C 4C 5F 42 59 54 45 53
+10 08 04 00 08 5A 5A 5F 53 45 54 55 50            # APPL RFC_TR RFC_TR_MOR: server set-up call (value opaque)
+10 08 06 00 0B 5A 5A 5F 50 52 4F 47 52 45 53 53   # APPL RFC_TR RFC_TR_RNB (value opaque)
+0C                                                # EOM

@@ -1,0 +1,10 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#zero-length-and-oversized-frames
+# provenance: PV-0205
+# kind: ni-payload
+# description: The empty payload of a zero-length frame is class empty and gets no reply.
+# derivation: Rule 1: a length-0 frame is valid and carries an empty payload (PV-0205); no source gives it a meaning, so IMPL-NI-8 ignores it.
+# expect.class: empty
+# expect.reply: none
+# expect.reply.frame: none
+hex:

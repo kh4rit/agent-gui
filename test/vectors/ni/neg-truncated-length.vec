@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#reading-a-byte-stream
+# provenance: PV-0001, PV-0002, PV-0003
+# kind: ni-stream
+# description: The stream ends after 3 of the 4 length bytes.
+# derivation: A frame needs 4 length bytes (PV-0001); at end of stream 3 buffered bytes mean the stream ended inside a frame (truncated).
+# expect.frames: 0
+# expect.error: truncated
+# expect.trailing: 3
+hex:
+00 00 00                                          # 3 of 4 length bytes

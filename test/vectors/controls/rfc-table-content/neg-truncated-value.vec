@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#4-table-content-split-into-rows
+# provenance: PV-0910, PV-0913
+# kind: rfc-table-content
+# description: A row whose declared length (8) runs past the end of the input (5 value bytes present).
+# derivation: Item header per PV-0910 with length 8, but only 5 value bytes follow (IMPL-CT-3: truncated).
+# expect.rows: 0
+# expect.error: truncated
+# expect.error.row: 1
+hex:
+03 05 00 08                                       # item 03 05, length 8
+5A 5A 54 45 41                                    # only 5 value bytes (defect)

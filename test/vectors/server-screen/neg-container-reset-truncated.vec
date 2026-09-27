@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#86-container-items
+# provenance: PV-0712
+# kind: appl-fields
+# description: CONTAINER RESET value of 8 bytes.
+# derivation: PV-0712 needs 9 bytes; the value ends inside height (truncated).
+# expect.id: 0x0A
+# expect.sid: 0x01
+# expect.error: truncated
+hex:
+03 00 02 00 01 00 3C 00                           # 8 bytes

@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/compression-lzc.md#decoding-a-code
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0080, PV-0350, PV-0310, PV-0312, PV-0384, PV-0385, PV-0386, PV-0388, PV-0391, PV-0392, PV-0395, PV-0314
+# kind: decompress
+# description: ABABABA: the fourth code equals next free, the entry being defined at that moment.
+# derivation: Header: length 7, byte 7 0x90. Codes, 9 bits each, LSB first (PV-0388): 0x041 (A; first code, no entry), 0x042 (B; entry 257 = AB), 257 (AB; entry 258 = BA), 259 = next free, so its string is AB + A = ABA and entry 259 = ABA (PV-0386, PV-0391, PV-0392). Bits 0-8 = 0x041, 9-17 = 0x042, 18-26 = 0x101, 27-35 = 0x103, 36-39 zero, giving 41 84 04 1C 08.
+# expect.error: none
+# expect.algorithm: lzc
+# expect.uncompressed_length: 7
+# expect.block_mode: 1
+# expect.output_length: 7
+# expect.output: 41 42 41 42 41 42 41
+hex:
+07 00 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+90                                                # byte 7
+41 84 04 1C 08                                    # codes 0x041, 0x042, 0x101, 0x103 (9 bits each); 4 spare zero bits

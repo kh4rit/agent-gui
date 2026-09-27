@@ -1,0 +1,41 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#81-menu-entries-mnuentry
+# provenance: PV-0718, PV-0719, PV-0720
+# kind: menu-entries
+# description: A good first entry, then a second entry whose text string is not terminated before the value ends.
+# derivation: Entry 1 as in menu-kyb-two-entries; entry 2 lacks the zero byte of its text (truncated, #39); entry 1 still counts.
+# expect.entries: 1
+# expect.entry.1.offset: 0
+# expect.entry.1.length: 42
+# expect.entry.1.position_1: 1
+# expect.entry.1.position_2: 0
+# expect.entry.1.position_3: 0
+# expect.entry.1.position_4: 0
+# expect.entry.1.flags: 0x02
+# expect.entry.1.flags.names: SEL
+# expect.entry.1.virtual_key: 5
+# expect.entry.1.return_codes: 00 00 00 00 00 00
+# expect.entry.1.function_codes: 00 00 00 00 00 00
+# expect.entry.1.text_offset: 20
+# expect.entry.1.text_length: 19
+# expect.entry.1.accelerator_offset: 40
+# expect.entry.1.accelerator_length: 0
+# expect.entry.1.info_offset: 41
+# expect.entry.1.info_length: 0
+# expect.error: truncated
+# expect.error.entry: 2
+hex:
+00 2A                                             # entry length 42 (Forgot Secret Quack)
+01 00 00 00                                       # position_1..4
+02 05                                             # flags 0x02, virtual_key 5
+00 00 00 00 00 00                                 # return codes 1..6
+00 00 00 00 00 00                                 # function codes 1..6
+46 6F 72 67 6F 74 20 53 65 63 72 65 74 20 51 75   # text 'Forgot Secret Quack' + 00
+61 63 6B 00                                       # text 'Forgot Secret Quack' + 00 (cont.)
+00                                                # accelerator '' + 00
+00                                                # info '' + 00
+00 1E                                             # entry 2 length 30
+02 00 00 00                                       # positions
+02 0F                                             # flags, vkey
+00 00 00 00 00 00 00 00 00 00 00 00               # codes
+52 75 6E                                          # text without its zero byte; value ends

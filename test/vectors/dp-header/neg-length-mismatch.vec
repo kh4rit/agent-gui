@@ -1,0 +1,42 @@
+# source: spec
+# spec: docs/protocol/dp-header.md#length-field
+# provenance: PV-0020, PV-0021, PV-0022, PV-0221
+# kind: dp-header
+# description: The DP length says 9 but only 8 bytes follow the DP header: length-mismatch.
+# derivation: The DP length counts the bytes after the 200-byte header (PV-0020, PV-0022) as u32 LE at offset 30 (PV-0021, PV-0221); 9 != 8, so IMPL-DP-3 rejects the message. Everything else is the testhost template.
+# expect.error: length-mismatch
+# expect.length: 9
+# expect.body_length: 8
+hex:
+FF FF FF FF                                       # request_id (offset 0, 4 bytes)
+0A                                                # retcode (offset 4, 1 byte)
+00                                                # sender_id (offset 5, 1 byte)
+00                                                # action_type (offset 6, 1 byte)
+00 00 00 00                                       # req_info (offset 7, 4 bytes)
+FF FF FF FF                                       # tid (offset 11, 4 bytes)
+FF FF                                             # uid (offset 15, 2 bytes)
+FF                                                # mode (offset 17, 1 byte)
+FF FF FF FF                                       # wp_id (offset 18, 4 bytes)
+FF FF FF FF                                       # wp_ca_blk (offset 22, 4 bytes)
+FF FF FF FF                                       # appc_ca_blk (offset 26, 4 bytes)
+09 00 00 00                                       # length = 9, u32 LE (offset 30)
+00                                                # new_stat (offset 34, 1 byte)
+FF FF FF FF                                       # unused1 (offset 35, 4 bytes)
+FF FF                                             # rq_id (offset 39, 2 bytes)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20   # unused2 (offset 41, 40 bytes)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20
+74 65 73 74 68 6F 73 74 00 00 00 00 00 00 00      # terminal (offset 81, 15 bytes): 'testhost' + 7 x 00
+00 00 00 00 00 00 00 00 00 00                     # unused3 (offset 96, 10 bytes)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20   # unused4 (offset 106, 20 bytes)
+20 20 20 20
+00 00 00 00                                       # unused5 (offset 126, 4 bytes)
+00 00 00 00                                       # unused6 (offset 130, 4 bytes)
+FF FF FF FF                                       # unused7 (offset 134, 4 bytes)
+00 00 00 00                                       # unused8 (offset 138, 4 bytes)
+01                                                # unused9 (offset 142, 1 byte)
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   # unused10 (offset 143, 57 bytes)
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00
+10 11 12 13 14 15 16 17                           # after the DP header: 8 bytes, opaque to this kind

@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#52-internal-mode-uuids
+# provenance: PV-0710, PV-0435, PV-0455
+# kind: imode-uuids
+# description: One UUID, active context 1 (the shape of pysap's example value, with invented bytes).
+# derivation: u8 count n, then n x (16-byte UUID, u8 active context); length 1 + 17n (PV-0710).
+# expect.count: 1
+# expect.uuid.1: DE AD BE EF CA FE F0 0D BA AD F0 0D DE CA FB AD
+# expect.active.1: 0x01
+# expect.error: none
+hex:
+01                                                # count 1
+DE AD BE EF CA FE F0 0D BA AD F0 0D DE CA FB AD   # UUID (16 bytes, invented)
+01                                                # active context 1

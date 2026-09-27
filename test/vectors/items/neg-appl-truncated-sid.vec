@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402
+# kind: items
+# description: The input ends after the APPL id, before the sid.
+# derivation: 0x10 needs a one-byte id, a one-byte sid and a 2-byte length (PV-0400, PV-0401, PV-0102); only the id is present, so truncated at item 1 (IMPL-IT-5).
+# expect.items: 0
+# expect.error: truncated
+# expect.error.item: 1
+hex:
+10                                                # type APPL
+04                                                # id 0x04; sid and length missing

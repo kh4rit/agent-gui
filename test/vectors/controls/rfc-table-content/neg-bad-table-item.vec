@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#4-table-content-split-into-rows
+# provenance: PV-0910, PV-0912, PV-0913, PV-0914, PV-0919
+# kind: rfc-table-content
+# description: One row, then an item with id 03 01 (table name) where a table item is expected.
+# derivation: Row per PV-0910/PV-0913; the next id is neither 03 05 nor 03 06 (PV-0912), so IMPL-CT-3 gives bad-table-item.
+# expect.rows: 1
+# expect.row.1.offset: 4
+# expect.row.1.length: 6
+# expect.error: bad-table-item
+# expect.error.row: 2
+hex:
+03 05 00 06                                       # item 03 05 (table content), length 6
+5A 5A 5F 4A 41 4D                                 # value of row 1
+03 05                                             # trailing id pair 03 05 (PV-0919)
+03 01 00 02 5A 5A 03 01                           # defect: see description

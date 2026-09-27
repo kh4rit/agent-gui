@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#algorithm-byte
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0065, PV-0066, PV-0067
+# kind: compression-header
+# description: Algorithm byte 0x10 (the dissectors' wrong LZC label): algorithm nibble 0 names no algorithm, so this must not decode as LZC.
+# derivation: Dispatch uses the low nibble (PV-0063); 0x10 has nibble 0, which is neither LZC (1, PV-0065) nor LZH (2, PV-0064); IMPL-CH-1 gives unknown-algorithm. Length, magic and byte 7 are valid.
+# expect.error: unknown-algorithm
+hex:
+00 01 00 00                                       # uncompressed length, u32 LE
+10                                                # algorithm byte
+1F 9D                                             # magic
+90                                                # byte 7

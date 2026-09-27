@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#lzc-maxbits-and-block-mode
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0310, PV-0311, PV-0312
+# kind: compression-header
+# description: LZC header with maxbits 17 (one above the largest valid value): the header fails with bad-maxbits.
+# derivation: Length, algorithm byte 0x11 (PV-0065) and magic (PV-0067) are valid; byte 7 = 0x91 = 0x80 (block mode, PV-0312) | 17; maxbits = byte 7 & 0x1F = 17 (PV-0310) lies outside 9-16 (PV-0311), checked after the algorithm nibble (IMPL-CH-4). One fault only.
+# expect.error: bad-maxbits
+hex:
+00 01 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+91                                                # byte 7

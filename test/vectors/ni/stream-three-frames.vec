@@ -1,0 +1,22 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#frame-layout
+# provenance: PV-0001, PV-0002, PV-0003
+# kind: ni-stream
+# description: Three back-to-back frames of 3, 1 and 8 payload bytes; each frame starts right after the previous one.
+# derivation: Each frame is a u32 BE length (PV-0001, PV-0002) of its payload only (PV-0003), so frame n+1 starts 4 + length bytes after frame n; payload bytes are arbitrary.
+# expect.frames: 3
+# expect.frame.1.offset: 4
+# expect.frame.1.length: 3
+# expect.frame.2.offset: 11
+# expect.frame.2.length: 1
+# expect.frame.3.offset: 16
+# expect.frame.3.length: 8
+# expect.error: none
+# expect.trailing: 0
+hex:
+00 00 00 03                                       # frame 1: length 3
+AA BB CC                                          # frame 1: payload
+00 00 00 01                                       # frame 2: length 1
+7F                                                # frame 2: payload
+00 00 00 08                                       # frame 3: length 8
+10 11 12 13 14 15 16 17                           # frame 3: payload

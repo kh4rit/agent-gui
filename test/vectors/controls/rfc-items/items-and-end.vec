@@ -1,0 +1,30 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#3-rfc-item-framing-the-rfc-protocol
+# provenance: PV-0910, PV-0911, PV-0919, PV-0920
+# kind: rfc-items
+# description: Two items, one of them empty, and the end item; the item encoder writes the input again from the walked items.
+# derivation: Each item is id1 id2, a u16 BE length, the value and the id again (PV-0910, PV-0919); FF FF with length 0 and its trailing pair ends the stream (PV-0911, PV-0920); the value 'ZZ' is invented.
+# expect.error: none
+# expect.items: 3
+# expect.item.1.id: 01 01
+# expect.item.1.length: 2
+# expect.item.1.value: 5A 5A
+# expect.item.1.trailer: matches
+# expect.item.2.id: 00 17
+# expect.item.2.length: 0
+# expect.item.2.value: none
+# expect.item.2.trailer: matches
+# expect.item.3.id: FF FF
+# expect.item.3.length: 0
+# expect.item.3.value: none
+# expect.item.3.trailer: matches
+# expect.end: yes
+# expect.reencodes: yes
+hex:
+01 01 00 02                           # item 01 01, length 2, an invented value
+5A 5A                                              # value
+01 01                                              # trailing pair repeating the id (PV-0919)
+00 17 00 00                           # item 00 17, length 0, empty
+00 17                                              # trailing pair repeating the id (PV-0919)
+FF FF 00 00                           # item FF FF, length 0, the end item (PV-0911)
+FF FF                                              # trailing pair repeating the id (PV-0919)

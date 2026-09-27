@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#on-the-wire
+# provenance: PV-0001, PV-0002, PV-0003, PV-0004, PV-0200
+# kind: ni-stream
+# description: A keep-alive ping as it arrives from the server: an ordinary frame with length 8 whose payload is NI_PING\0.
+# derivation: u32 BE length 8 (PV-0001, PV-0002) counting only the payload (PV-0003), then the 8 literal bytes of PV-0004; PV-0200 states that a ping travels in exactly this framed form.
+# expect.frames: 1
+# expect.frame.1.offset: 4
+# expect.frame.1.length: 8
+# expect.error: none
+# expect.trailing: 0
+hex:
+00 00 00 08                                       # length 8, u32 BE
+4E 49 5F 50 49 4E 47 00                           # N I _ P I N G \0

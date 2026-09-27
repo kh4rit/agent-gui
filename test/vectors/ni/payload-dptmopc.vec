@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#dispatcher-frames
+# provenance: PV-0007
+# kind: ni-payload
+# description: A 12-byte payload that is exactly the **DPTMOPC**\0 literal is classified by its prefix, although pysap expects 17 bytes (PV-0204).
+# derivation: Rule 4 matches the 12 bytes of PV-0007 at payload offset 0 whatever the payload length (R-NI-9); no DIAG header precedes the literal (R-NI-6).
+# expect.class: dispatcher-dptmopc
+# expect.reply: none
+# expect.reply.frame: none
+hex:
+2A 2A 44 50 54 4D 4F 50 43 2A 2A 00               # * * D P T M O P C * * \0

@@ -1,0 +1,9 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#layout
+# provenance: PV-0030
+# kind: diag-header
+# description: Only 7 of the 8 header bytes are present.
+# derivation: The header is 8 bytes (PV-0030); 7 bytes cannot hold it (IMPL-DH-1: truncated).
+# expect.error: truncated
+hex:
+00 00 00 00 00 00 00                              # 7 of 8 header bytes

@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#reading-a-byte-stream
+# provenance: PV-0001, PV-0002, PV-0003
+# kind: ni-stream
+# description: A complete length field announcing 3 payload bytes, then end of stream.
+# derivation: Length 3 as u32 BE (PV-0001, PV-0002) needs 3 more bytes (PV-0003); none follow, so the stream ended inside a frame.
+# expect.frames: 0
+# expect.error: truncated
+# expect.trailing: 4
+hex:
+00 00 00 03                                       # length 3; payload missing

@@ -1,0 +1,68 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#walking-an-atom-sequence
+# provenance: PV-0140, PV-0602, PV-0603, PV-0605, PV-0606, PV-0610, PV-0611, PV-0612, PV-0626, PV-0630, PV-0650, PV-0651, PV-0652
+# kind: dynt-atoms
+# description: An EFIELD_2 (130) input field followed by its FNAME (114) child RSYST-MANDT.
+# derivation: Atom 1 (130) has atom_length 21 (PV-0602/0603): header (PV-0140) etype 0x82, row 1 col 20, attr 0x40 YES3D; payload flag1 0, dlen 2, mlen 2, maxnrchars 3, text "AB" (PV-0651/0652). It ends after 21 bytes, so atom 2 starts at input offset 21. Atom 2 (114) has atom_length 24: header etype 0x72=114 (PV-0606/0630), same row/col, payload is the whole atom_length-13=11 bytes (PV-0650), here "RSYST-MANDT" in ASCII (R-DA-5). Both atoms carry dlg_flag_2 = 1 (PV-0605), an arbitrary value carried verbatim (SPEC-GAP #34). Total input 45 bytes; the walker steps by each atom_length (PV-0603).
+# expect.atoms: 2
+# expect.atom.1.etype: 130
+# expect.atom.1.length: 21
+# expect.atom.1.dlg_flag_1: 0x00
+# expect.atom.1.dlg_flag_2: 0x01
+# expect.atom.1.area: 0
+# expect.atom.1.block: 1
+# expect.atom.1.group: 0
+# expect.atom.1.row: 1
+# expect.atom.1.col: 20
+# expect.atom.1.attr: 0x40
+# expect.atom.1.attr.names: YES3D
+# expect.atom.1.content_offset: 13
+# expect.atom.1.content_length: 8
+# expect.atom.1.field.dlen: 2
+# expect.atom.1.field.mlen: 2
+# expect.atom.1.field.maxnrchars: 3
+# expect.atom.1.text_offset: 19
+# expect.atom.1.text_length: 2
+# expect.atom.2.etype: 114
+# expect.atom.2.length: 24
+# expect.atom.2.dlg_flag_1: 0x00
+# expect.atom.2.dlg_flag_2: 0x01
+# expect.atom.2.area: 0
+# expect.atom.2.block: 1
+# expect.atom.2.group: 0
+# expect.atom.2.row: 1
+# expect.atom.2.col: 20
+# expect.atom.2.attr: 0x40
+# expect.atom.2.attr.names: YES3D
+# expect.atom.2.content_offset: 34
+# expect.atom.2.content_length: 11
+# expect.atom.2.text_offset: 34
+# expect.atom.2.text_length: 11
+# expect.error: none
+hex:
+00 15                  # atom 1: atom_length 21
+00                     # dlg_flag_1
+01                     # dlg_flag_2
+82                     # etype 130 (EFIELD_2)
+00                     # area
+01                     # block
+00                     # group
+00 01                  # row 1
+00 14                  # col 20
+40                     # attribute YES3D
+00 00                  # field2_flag1
+02                     # field2_dlen 2
+02                     # field2_mlen 2
+00 03                  # field2_maxnrchars 3
+41 42                  # text "AB"
+00 18                  # atom 2: atom_length 24
+00                     # dlg_flag_1
+01                     # dlg_flag_2
+72                     # etype 114 (FNAME)
+00                     # area
+01                     # block
+00                     # group
+00 01                  # row 1
+00 14                  # col 20
+40                     # attribute YES3D
+52 53 59 53 54 2D 4D 41 4E 44 54   # "RSYST-MANDT" (11 ASCII bytes)

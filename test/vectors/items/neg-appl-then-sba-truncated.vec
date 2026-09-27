@@ -1,0 +1,24 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402, PV-0412, PV-0116, PV-0404, PV-0433, PV-0453
+# kind: items
+# description: A complete APPL item followed by an SBA with 1 of its 2 value bytes.
+# derivation: Item 1: 0x10, id 0x04, sid 0x26, u16 BE length 1, 1 value byte (PV-0102, PV-0402); item 2: SBA 0x0B (PV-0412) needs 2 value bytes (PV-0116, PV-0404) but 1 remains, so truncated at item 2 (IMPL-IT-5).
+# expect.items: 1
+# expect.item.1.type: appl
+# expect.item.1.id: 0x04
+# expect.item.1.sid: 0x26
+# expect.item.1.id_name: ST_USER
+# expect.item.1.sid_name: DIALOG_STEP_NUMBER
+# expect.item.1.offset: 5
+# expect.item.1.length: 1
+# expect.error: truncated
+# expect.error.item: 2
+hex:
+10                                                # type APPL
+04                                                # id 0x04 ST_USER
+26                                                # sid 0x26 DIALOG_STEP_NUMBER
+00 01                                             # length 1, u16 BE
+AA                                                # value (opaque)
+0B                                                # type SBA
+01                                                # 1 of 2 value bytes

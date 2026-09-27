@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/compression-lzh.md#end-of-stream
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068, PV-0350, PV-0351, PV-0352, PV-0354, PV-0355, PV-0358, PV-0363, PV-0364, PV-0365, PV-0374, PV-0314
+# kind: decompress
+# description: The no-noise literal stream followed by two arbitrary bytes; everything after the final block is ignored.
+# derivation: Header: length 1. Data bytes 0-2 exactly as in lzh-fixed-literal-no-noise; bytes FF A5 are arbitrary and follow the end of block of the final block, so decoders ignore them (PV-0374, IMPL-LZH-5).
+# expect.error: none
+# expect.algorithm: lzh
+# expect.uncompressed_length: 1
+# expect.output_length: 1
+# expect.output: 41
+hex:
+01 00 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7
+CC 11 00                                          # as lzh-fixed-literal-no-noise
+FF A5                                             # arbitrary trailing bytes

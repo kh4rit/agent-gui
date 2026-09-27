@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#86-container-items
+# provenance: PV-0716, PV-0441, PV-0462
+# kind: appl-fields
+# description: VARINFO CONTAINER_LOOP: two lines per loop row.
+# derivation: One u16 BE (PV-0716).
+# expect.id: 0x0C
+# expect.sid: 0x0C
+# expect.field.lines_per_loop_row: 2
+# expect.error: none
+hex:
+00 02                                             # value

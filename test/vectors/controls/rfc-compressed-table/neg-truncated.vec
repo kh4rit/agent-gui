@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#5-compressed-table-content
+# provenance: PV-0916, PV-0917, PV-0918, PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068
+# kind: rfc-compressed-table
+# description: Only 12 bytes: the content ends inside the compression header.
+# derivation: Offset 8 + 8 header bytes are needed (PV-0916, PV-0060); 4 header bytes present (IMPL-CT-4: truncated).
+# expect.error: truncated
+hex:
+5A 5A 5A 5A                                       # bytes 0-3: ODG's unexplained tag (arbitrary 'ZZZZ' here)
+00 00 00 0E                                       # length field L = 14, u32 BE (PV-0917; its extent is #82, reported only)
+64 00 00 00                                       # compression header at offset 8 (PV-0916, PV-0918; v1 layout)

@@ -1,0 +1,10 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#reading-a-byte-stream
+# provenance: PV-0001, PV-0002, PV-0003
+# kind: ni-stream
+# description: No bytes at all before the peer closes: zero frames and a clean end.
+# derivation: The reading rules end cleanly when the buffer is empty at end of stream; no byte is involved.
+# expect.frames: 0
+# expect.error: none
+# expect.trailing: 0
+hex:

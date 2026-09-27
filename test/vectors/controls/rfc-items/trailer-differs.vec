@@ -1,0 +1,24 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#31-item-ids-wireshark-names
+# provenance: PV-0910, PV-0911, PV-0919
+# kind: rfc-items
+# description: An item whose trailing pair is not its id: the walk reports it and goes on (IMPL-CT-2); the encoder writes the id there, so the input does not come back.
+# derivation: Item 02 01 of length 1 with the invented value 5A and the trailing pair 02 02 instead of 02 01 (PV-0919 states the repetition; IMPL-CT-2 does not reject); then FF FF 00 00 FF FF (PV-0911).
+# expect.error: none
+# expect.items: 2
+# expect.item.1.id: 02 01
+# expect.item.1.length: 1
+# expect.item.1.value: 5A
+# expect.item.1.trailer: differs
+# expect.item.2.id: FF FF
+# expect.item.2.length: 0
+# expect.item.2.value: none
+# expect.item.2.trailer: matches
+# expect.end: yes
+# expect.reencodes: no
+hex:
+02 01 00 01                           # item 02 01, length 1, invented value
+5A                                                 # value
+02 02                                              # trailing pair (not the id)
+FF FF 00 00                           # item FF FF, length 0, the end item
+FF FF                                              # trailing pair repeating the id (PV-0919)

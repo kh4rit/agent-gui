@@ -1,0 +1,19 @@
+# source: spec
+# spec: docs/protocol/compression-lzc.md#clear-code
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0080, PV-0350, PV-0310, PV-0312, PV-0384, PV-0385, PV-0386, PV-0388, PV-0389, PV-0394, PV-0395, PV-0314
+# kind: decompress
+# description: A clear code, then the skip to a new chunk; the skipped bytes are arbitrary.
+# derivation: Header: length 2, byte 7 0x90. Chunk 1 is 9 bytes at width 9 (PV-0389): bits 0-8 code 0x041 (A), bits 9-17 code 256 = clear (PV-0386, PV-0394), so bytes 0-1 are 41 00 and byte 2 has bit 0x01 = 0 and bit 0x02 = 1; the rest of chunk 1 (byte 2 bits 0x04-0x80 and bytes 3-8) is arbitrary filler, here byte 2 = 0xAA and DE AD BE EF 5A A5. Chunk 2 starts at byte 9: code 0x042 (B), the first code after the clear, so no entry; bytes 42 00.
+# expect.error: none
+# expect.algorithm: lzc
+# expect.uncompressed_length: 2
+# expect.block_mode: 1
+# expect.output_length: 2
+# expect.output: 41 42
+hex:
+02 00 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+90                                                # byte 7
+41 00 AA DE AD BE EF 5A A5                        # chunk 1: code 0x041, clear 256, arbitrary filler from bit 18
+42 00                                             # chunk 2: code 0x042

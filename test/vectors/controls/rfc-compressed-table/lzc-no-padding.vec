@@ -1,0 +1,20 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#5-compressed-table-content
+# provenance: PV-0916, PV-0917, PV-0918, PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0310, PV-0312
+# kind: rfc-compressed-table
+# description: Compressed table content with an LZC header (maxbits 12, block mode) and no padding.
+# derivation: u32 BE L = 12 at offset 4 (PV-0917, reported only), header at 8 (PV-0916): u32 LE 40, 0x11 LZC (PV-0065), 1F 9D, byte 7 = 0x8C = maxbits 12 | block mode (PV-0069, PV-0310, PV-0312); data = the 4 bytes after the header (IMPL-CT-4).
+# expect.length_field: 12
+# expect.uncompressed_length: 40
+# expect.algorithm: lzc
+# expect.version: 1
+# expect.maxbits: 12
+# expect.block_mode: 1
+# expect.data_offset: 16
+# expect.data_length: 4
+# expect.error: none
+hex:
+5A 5A 5A 5A                                       # bytes 0-3: ODG's unexplained tag (arbitrary 'ZZZZ' here)
+00 00 00 0C                                       # length field L = 12, u32 BE (PV-0917; its extent is #82, reported only)
+28 00 00 00 11 1F 9D 8C                           # compression header at offset 8 (PV-0916, PV-0918; v1 layout)
+11 22 33 44                                       # compressed data, 4 bytes (arbitrary: this kind does not decompress)

@@ -1,0 +1,22 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#7-screen-identity-a-decoder-reads
+# provenance: PV-0535, PV-0435, PV-0455
+# kind: stringz-fields
+# description: KERNEL_VERSION with two bytes after the third string.
+# derivation: Three zero-terminated strings (PV-0535); the two bytes after them are reported as trailing (IMPL-SS-3, #39).
+# expect.id: 0x06
+# expect.sid: 0x29
+# expect.strings: 3
+# expect.string.1.offset: 0
+# expect.string.1.length: 9
+# expect.string.2.offset: 10
+# expect.string.2.length: 4
+# expect.string.3.offset: 15
+# expect.string.3.length: 2
+# expect.trailing: 2
+# expect.error: none
+hex:
+51 55 41 43 4B 44 42 20 39 00                     # string 1 'QUACKDB 9' + 00
+34 32 34 32 00                                    # string 2 '4242' + 00
+31 37 00                                          # string 3 '17' + 00
+20 20                                             # trailing bytes

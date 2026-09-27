@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/items.md#sba
+# provenance: PV-0100, PV-0412, PV-0116, PV-0422
+# kind: simple-item-fields
+# description: SBA fields: y first, then x.
+# derivation: Type 0x0B (PV-0412), 2-byte value (PV-0116) split per PV-0422 into y = 5 (offset 0) and x = 7 (offset 1); swapping them fails.
+# expect.type: sba
+# expect.field.y: 5
+# expect.field.x: 7
+# expect.error: none
+hex:
+0B                                                # type SBA
+05 07                                             # y, x

@@ -1,0 +1,8 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#52-internal-mode-uuids
+# provenance: PV-0710
+# kind: imode-uuids
+# description: Empty value: no count byte.
+# derivation: PV-0710 starts with a u8 count; zero bytes given (truncated).
+# expect.error: truncated
+hex:

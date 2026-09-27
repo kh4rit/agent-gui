@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/controls/alv-grid.md#31-plain-packet
+# provenance: PV-0940, PV-0941
+# kind: alv-rows
+# description: A plain row packet with zero rows.
+# derivation: Marker and header per PV-0940 with count 0; width 16 matches the catalog (PV-0941); no row bytes.
+# expect.column_lengths: 10,6
+# expect.marker_offset: 0
+# expect.row_count: 0
+# expect.row_width: 16
+# expect.error: none
+hex:
+FF FF FF FF 01                                    # marker
+00 00 00 00                                       # row count 0
+10 00 00 00                                       # row width 16

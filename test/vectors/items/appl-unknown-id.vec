@@ -1,0 +1,25 @@
+# source: spec
+# spec: docs/protocol/items.md#dispatch-on-id-and-sid
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402, PV-0413, PV-0117, PV-0404
+# kind: items
+# description: An APPL item with the unnamed id 0x0D is stepped over by its length; the EOM after it is still read.
+# derivation: id 0x0D has no name in the id registry (PV-0430..PV-0446), but APPL's header is fixed (PV-0400..PV-0402), so the walker steps over the 2 value bytes (IMPL-IT-1) and then reads EOM 0x0C (PV-0413) with no value (PV-0117, PV-0404).
+# expect.items: 2
+# expect.item.1.type: appl
+# expect.item.1.id: 0x0D
+# expect.item.1.sid: 0x01
+# expect.item.1.id_name: unknown
+# expect.item.1.sid_name: unknown
+# expect.item.1.offset: 5
+# expect.item.1.length: 2
+# expect.item.2.type: eom
+# expect.item.2.offset: 8
+# expect.item.2.length: 0
+# expect.error: none
+hex:
+10                                                # type APPL
+0D                                                # id 0x0D (unnamed)
+01                                                # sid 0x01
+00 02                                             # length 2, u16 BE
+01 02                                             # value (opaque)
+0C                                                # type EOM

@@ -1,0 +1,41 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#72-the-verbs-stream
+# provenance: PV-0922, PV-0923
+# kind: cfw-verbs
+# description: A decompressed VERBS stream of four 53-byte records (two creating verbs, a set, an invented get verb).
+# derivation: Records per PV-0922 (object id right-aligned in 0-8, byte 9 not described (a space here), name in 10-51, flag at 52); flags C, S, G per PV-0923; verb names CreateObject, CreateControl, SetProperty are ODG's vocabulary, ZZ_CountTheSprinkles is invented.
+# expect.verbs: 4
+# expect.verb.1.object_id: 1
+# expect.verb.1.name: CreateObject
+# expect.verb.1.flag: call
+# expect.verb.1.flag_byte: 0x43
+# expect.verb.2.object_id: 2
+# expect.verb.2.name: CreateControl
+# expect.verb.2.flag: call
+# expect.verb.2.flag_byte: 0x43
+# expect.verb.3.object_id: 2
+# expect.verb.3.name: SetProperty
+# expect.verb.3.flag: set
+# expect.verb.3.flag_byte: 0x53
+# expect.verb.4.object_id: 2
+# expect.verb.4.name: ZZ_CountTheSprinkles
+# expect.verb.4.flag: get
+# expect.verb.4.flag_byte: 0x47
+# expect.error: none
+hex:
+20 20 20 20 20 20 20 20 31 20 43 72 65 61 74 65   # record 1: object id '1' (bytes 0-8, right-aligned), byte 9 space, verb 'CreateObject' (10-51), flag 'C' (52)
+4F 62 6A 65 63 74 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 43
+20 20 20 20 20 20 20 20 32 20 43 72 65 61 74 65   # record 2: object id '2' (bytes 0-8, right-aligned), byte 9 space, verb 'CreateControl' (10-51), flag 'C' (52)
+43 6F 6E 74 72 6F 6C 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 43
+20 20 20 20 20 20 20 20 32 20 53 65 74 50 72 6F   # record 3: object id '2' (bytes 0-8, right-aligned), byte 9 space, verb 'SetProperty' (10-51), flag 'S' (52)
+70 65 72 74 79 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 53
+20 20 20 20 20 20 20 20 32 20 5A 5A 5F 43 6F 75   # record 4: object id '2' (bytes 0-8, right-aligned), byte 9 space, verb 'ZZ_CountTheSprinkles' (10-51), flag 'G' (52)
+6E 74 54 68 65 53 70 72 69 6E 6B 6C 65 73 20 20
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 47

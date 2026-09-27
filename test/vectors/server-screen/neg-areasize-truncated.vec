@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#83-window-and-area-size
+# provenance: PV-0704
+# kind: appl-fields
+# description: AREASIZE value one byte short.
+# derivation: PV-0704 needs 16 bytes; 15 given, so the value ends inside area_width (truncated).
+# expect.id: 0x0C
+# expect.sid: 0x07
+# expect.error: truncated
+hex:
+00 00 00 18 00 00 00 50 00 00 00 15 00 00 00      # 15 bytes

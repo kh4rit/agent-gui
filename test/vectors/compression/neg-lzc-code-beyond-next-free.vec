@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/compression-lzc.md#decoding-a-code
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0350, PV-0310, PV-0312, PV-0384, PV-0385, PV-0386, PV-0388, PV-0391, PV-0393
+# kind: decompress
+# description: A code larger than next free.
+# derivation: Header: length 3, byte 7 0x90. Codes 0x041 (A; first code, so next free stays 257) and 258 = 0x102, 9 bits each LSB first, giving 41 04 02. 258 > 257, so decoding fails with bad-code (PV-0393). The declared length only has to exceed 1 so that the second code is read.
+# expect.error: bad-code
+# expect.algorithm: lzc
+# expect.uncompressed_length: 3
+# expect.block_mode: 1
+hex:
+03 00 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+90                                                # byte 7
+41 04 02                                          # codes 0x041, 0x102 (9 bits each)

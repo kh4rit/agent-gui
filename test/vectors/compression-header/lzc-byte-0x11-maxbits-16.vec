@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#algorithm-byte
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0080, PV-0310, PV-0311, PV-0312
+# kind: compression-header
+# description: LZC header: algorithm byte 0x11 is LZC (the dissectors' 0x10 label is wrong); byte 7 = maxbits 16 with the block-mode bit 0x80.
+# derivation: 256 as u32 LE = 00 01 00 00 (PV-0061, PV-0062); 0x11 = version 1, algorithm 1 = LZC (PV-0063, PV-0065); magic (PV-0067); byte 7 = 0x90: maxbits = 0x90 & 0x1F = 16 (PV-0069, PV-0310, reading R-CH-5 as corrected in v1; 16 within PV-0080, PV-0311), block mode 1 (PV-0312), unused bits 0x00.
+# expect.error: none
+# expect.uncompressed_length: 256
+# expect.algorithm: lzc
+# expect.version: 1
+# expect.maxbits: 16
+# expect.block_mode: 1
+# expect.unused_bits: 0x00
+hex:
+00 01 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+90                                                # byte 7

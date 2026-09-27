@@ -1,0 +1,17 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#lzc-maxbits-and-block-mode
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0310, PV-0311, PV-0312
+# kind: compression-header
+# description: LZC header with the block-mode flag clear and maxbits 16: valid, block_mode 0.
+# derivation: 256 as u32 LE (PV-0061, PV-0062); 0x11 = LZC (PV-0065, PV-0066); magic (PV-0067); byte 7 = 0x10: maxbits = 0x10 & 0x1F = 16 (PV-0310, in range PV-0311), bit 0x80 clear so block_mode 0 (PV-0312); reading R-CH-5.
+# expect.error: none
+# expect.uncompressed_length: 256
+# expect.algorithm: lzc
+# expect.version: 1
+# expect.maxbits: 16
+# expect.block_mode: 0
+hex:
+00 01 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+10                                                # byte 7

@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/items.md#graph-0x02
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402, PV-0431, PV-0451
+# kind: items
+# description: A sid name with a space (GRAPH RELEASE 3) appears in vectors with the space written as an underscore.
+# derivation: Type 0x10, id 0x02 GRAPH (PV-0431), sid 0x03 GRAPH RELEASE 3 (PV-0451), u16 BE length 1 (PV-0102), value arbitrary; the name token rule is in KINDS.md.
+# expect.items: 1
+# expect.item.1.type: appl
+# expect.item.1.id: 0x02
+# expect.item.1.sid: 0x03
+# expect.item.1.id_name: GRAPH
+# expect.item.1.sid_name: GRAPH_RELEASE_3
+# expect.item.1.offset: 5
+# expect.item.1.length: 1
+# expect.error: none
+hex:
+10                                                # type APPL
+02                                                # id 0x02 GRAPH
+03                                                # sid 0x03 GRAPH RELEASE 3
+00 01                                             # length 1, u16 BE
+00                                                # value (opaque)

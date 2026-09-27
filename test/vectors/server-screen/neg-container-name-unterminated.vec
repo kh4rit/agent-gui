@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#86-container-items
+# provenance: PV-0713
+# kind: stringz-fields
+# description: CONTAINER NAME whose third string has no zero byte.
+# derivation: PV-0713 needs three zero-terminated strings; the value ends inside the third (truncated, #39).
+# expect.id: 0x0A
+# expect.sid: 0x06
+# expect.error: truncated
+hex:
+5A 5A 50 4F 4E 44 5F 53 55 42 00                  # string 1
+4C 49 4C 59 50 41 44 00                           # string 2
+30 30 34 32                                       # string 3 without its zero byte

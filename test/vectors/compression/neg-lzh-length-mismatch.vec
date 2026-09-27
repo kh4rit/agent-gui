@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/compression-lzh.md#uncompressed-length
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068, PV-0350, PV-0351, PV-0352, PV-0354, PV-0355, PV-0363, PV-0365, PV-0374, PV-0314
+# kind: decompress
+# description: Valid data that decodes to 1 byte under a header that declares 2.
+# derivation: Header: length 2. Data exactly as in lzh-fixed-literal-no-noise, which decodes to the single byte 0x41; 1 differs from the declared 2, so decoding fails with length-mismatch (PV-0314, IMPL-LZH-4).
+# expect.error: length-mismatch
+# expect.algorithm: lzh
+# expect.uncompressed_length: 2
+hex:
+02 00 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7
+CC 11 00                                          # as lzh-fixed-literal-no-noise

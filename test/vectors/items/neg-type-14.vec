@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/items.md#unknown-item-types
+# provenance: PV-0100, PV-0414, PV-0415, PV-0417
+# kind: items
+# description: Type 0x14 lies between SLC (0x13) and SBA2 (0x15) but is not an item type.
+# derivation: The complete type set (PV-0417) contains 0x13 and 0x15 but not 0x14, so the walker stops with unknown-simple-type (IMPL-IT-2).
+# expect.items: 0
+# expect.error: unknown-simple-type
+# expect.error.item: 1
+# expect.error.type: 0x14
+hex:
+14                                                # type 0x14 (unknown)
+00 00                                             # bytes that are never read

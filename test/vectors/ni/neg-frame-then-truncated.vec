@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#reading-a-byte-stream
+# provenance: PV-0001, PV-0002, PV-0003
+# kind: ni-stream
+# description: One complete frame, then a second frame cut off inside its payload.
+# derivation: Frame 1 is length 2 (u32 BE, PV-0001, PV-0002) plus 2 payload bytes (PV-0003); frame 2 announces 4 bytes but only 1 follows.
+# expect.frames: 1
+# expect.frame.1.offset: 4
+# expect.frame.1.length: 2
+# expect.error: truncated
+# expect.trailing: 5
+hex:
+00 00 00 02                                       # frame 1: length 2
+AA BB                                             # frame 1: payload
+00 00 00 04                                       # frame 2: length 4
+CC                                                # frame 2: 1 of 4 payload bytes

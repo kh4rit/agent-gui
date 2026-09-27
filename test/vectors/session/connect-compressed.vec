@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/session.md#3-st_user-connect-payload
+# provenance: PV-0504, PV-0505, PV-0506, PV-0120, PV-0131, PV-0122
+# kind: connect
+# description: CONNECT value selecting a compressed session, code page 1100, ws_type Java.
+# derivation: Three u32 BE fields (PV-0505, PV-0506) totalling 12 bytes (PV-0504): protocol_version 100200 = 0x00018768 (PV-0120), code_page 1100 = 0x0000044C (PV-0131), ws_type 5001 = 0x00001389 (PV-0122).
+# expect.error: none
+# expect.protocol_version: 100200
+# expect.code_page: 1100
+# expect.ws_type: 5001
+hex:
+00 01 87 68            # protocol_version 100200, u32 BE
+00 00 04 4C            # code_page 1100, u32 BE
+00 00 13 89            # ws_type 5001, u32 BE

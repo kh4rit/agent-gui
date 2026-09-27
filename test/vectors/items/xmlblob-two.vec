@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0105, PV-0106, PV-0107
+# kind: items
+# description: Two XMLBLOBs back to back; the second starts right after the first value.
+# derivation: Each item is 0x11 (PV-0105), u32 BE length (PV-0106) of the value only (PV-0107); the sequence runs to the end of the input (reading R-IT-1); values arbitrary.
+# expect.items: 2
+# expect.item.1.type: xmlblob
+# expect.item.1.offset: 5
+# expect.item.1.length: 2
+# expect.item.2.type: xmlblob
+# expect.item.2.offset: 12
+# expect.item.2.length: 3
+# expect.error: none
+hex:
+11                                                # item 1: type
+00 00 00 02                                       # item 1: length 2
+01 02                                             # item 1: value
+11                                                # item 2: type
+00 00 00 03                                       # item 2: length 3
+03 04 05                                          # item 2: value

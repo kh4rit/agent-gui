@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/session.md#3-st_user-connect-payload
+# provenance: PV-0504, PV-0505, PV-0506, PV-0121, PV-0131, PV-0123
+# kind: connect
+# description: CONNECT value selecting an uncompressed session, code page 1100, ws_type Windows.
+# derivation: Three u32 BE fields (PV-0505, PV-0506) totalling 12 bytes (PV-0504): protocol_version 200 = 0x000000C8 (PV-0121), code_page 1100 = 0x0000044C (PV-0131), ws_type 3000 = 0x00000BB8 (PV-0123).
+# expect.error: none
+# expect.protocol_version: 200
+# expect.code_page: 1100
+# expect.ws_type: 3000
+hex:
+00 00 00 C8            # protocol_version 200, u32 BE
+00 00 04 4C            # code_page 1100, u32 BE
+00 00 0B B8            # ws_type 3000, u32 BE

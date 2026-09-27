@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/compression-header.md#lzc-maxbits-and-block-mode
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0310, PV-0311, PV-0312, PV-0313
+# kind: compression-header
+# description: LZC header whose byte 7 has the unused bits 0x20 and 0x40 set: they are ignored, and maxbits is 13.
+# derivation: 256 as u32 LE (PV-0061, PV-0062); 0x11 = LZC (PV-0065, PV-0066); magic (PV-0067); byte 7 = 0xED = 0x80 | 0x40 | 0x20 | 0x0D: maxbits = 0xED & 0x1F = 13 (PV-0310, PV-0311), block_mode 1 (PV-0312), unused bits 0x60 ignored (PV-0313, IMPL-CH-9); reading R-CH-5.
+# expect.error: none
+# expect.uncompressed_length: 256
+# expect.algorithm: lzc
+# expect.version: 1
+# expect.maxbits: 13
+# expect.block_mode: 1
+# expect.unused_bits: 0x60
+hex:
+00 01 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+ED                                                # byte 7

@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/compression-lzh.md#matches-and-the-window
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068, PV-0350, PV-0351, PV-0352, PV-0354, PV-0355, PV-0358, PV-0359, PV-0361, PV-0363, PV-0364, PV-0365, PV-0373, PV-0374, PV-0314
+# kind: decompress
+# description: Five 0x41 bytes as one literal plus an overlapping match (length 4, distance 1); noise count 1.
+# derivation: Header: length 5. Bits: 0-1 count 1 = 1,0; 2 noise 0 (PV-0352); 3 final 1; 4-5 type 1 = 1,0; 6-13 literal 0x41 = 01110001; 14-20 length symbol 258 (length 4, no extra bits; PV-0359) = fixed code 2 = 0000010 (PV-0365); 21-25 distance symbol 0 (distance 1, no extra bits; PV-0361) = 00000; 26-32 end of block; 33-39 zero fill. Bytes 0x99 0x23 0x08 0x00 0x00. The match copies byte by byte and re-reads what it has just written, giving four more 0x41 (PV-0373).
+# expect.error: none
+# expect.algorithm: lzh
+# expect.uncompressed_length: 5
+# expect.output_length: 5
+# expect.output: 41 41 41 41 41
+hex:
+05 00 00 00                                       # uncompressed length, u32 LE
+12                                                # algorithm byte
+1F 9D                                             # magic
+02                                                # byte 7
+99                                                # bits 0-7: count 1 (1,0), noise 0, final 1, type 1 (1,0), 2 bits of literal
+23                                                # bits 8-15: rest of literal 0x41, 2 bits of symbol 258
+08                                                # bits 16-23: rest of symbol 258 (0000010), 3 bits of distance symbol 0
+00                                                # bits 24-31: rest of distance symbol 0, 6 bits of end of block
+00                                                # bit 32: last bit of end of block; 33-39 zero fill

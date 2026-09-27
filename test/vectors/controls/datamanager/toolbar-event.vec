@@ -1,0 +1,31 @@
+# source: spec
+# spec: docs/protocol/controls/datamanager.md#32-events-block
+# provenance: PV-0931
+# kind: datamanager
+# description: A client document with one toolbar event carrying an invented function code.
+# derivation: Declaration with encoding sap* (PV-0931); EVENTS > EVENT (SHELLID, EVENTID) > PARAM (PID, VALUE) as datamanager.md 3.2; EVENTID 14 is the toolbar event of R-CT-15 (unconfirmed; the vector checks parsing only).
+# expect.root: DATAMANAGER
+# expect.encoding: sap*
+# expect.children: EVENTS
+# expect.events: 1
+# expect.event.1.shellid: 42
+# expect.event.1.eventid: 14
+# expect.event.1.shellevent: none
+# expect.event.1.params: 1
+# expect.event.1.param.1.pid: 0
+# expect.event.1.param.1.value: 5A 5A 5F 54 49 43 4B 4C 45
+# expect.controls: 0
+# expect.datachanges: 0
+# expect.datarequests: 0
+# expect.error: none
+hex:
+3C 3F 78 6D 6C 20 76 65 72 73 69 6F 6E 3D 22 31   # document text (ASCII)
+2E 30 22 20 65 6E 63 6F 64 69 6E 67 3D 22 73 61
+70 2A 22 3F 3E 3C 44 41 54 41 4D 41 4E 41 47 45
+52 3E 3C 45 56 45 4E 54 53 3E 3C 45 56 45 4E 54
+20 53 48 45 4C 4C 49 44 3D 22 34 32 22 20 45 56
+45 4E 54 49 44 3D 22 31 34 22 3E 3C 50 41 52 41
+4D 20 50 49 44 3D 22 30 22 20 56 41 4C 55 45 3D
+22 5A 5A 5F 54 49 43 4B 4C 45 22 2F 3E 3C 2F 45
+56 45 4E 54 3E 3C 2F 45 56 45 4E 54 53 3E 3C 2F
+44 41 54 41 4D 41 4E 41 47 45 52 3E

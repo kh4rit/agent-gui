@@ -1,0 +1,21 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#86-container-items
+# provenance: PV-0713, PV-0439, PV-0460
+# kind: stringz-fields
+# description: CONTAINER NAME: subscreen name, container name, subdynpro name (invented).
+# derivation: Three zero-terminated strings in the order of PV-0713.
+# expect.id: 0x0A
+# expect.sid: 0x06
+# expect.strings: 3
+# expect.string.1.offset: 0
+# expect.string.1.length: 10
+# expect.string.2.offset: 11
+# expect.string.2.length: 7
+# expect.string.3.offset: 19
+# expect.string.3.length: 4
+# expect.trailing: 0
+# expect.error: none
+hex:
+5A 5A 50 4F 4E 44 5F 53 55 42 00                  # string 1 'ZZPOND_SUB' + 00
+4C 49 4C 59 50 41 44 00                           # string 2 'LILYPAD' + 00
+30 30 34 32 00                                    # string 3 '0042' + 00

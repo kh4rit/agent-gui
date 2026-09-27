@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+.scratch/
+agent-gui.json
+systems.json
+.env
+*.secret

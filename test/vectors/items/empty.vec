@@ -1,0 +1,9 @@
+# source: spec
+# spec: docs/protocol/items.md#item-sequence
+# provenance: PV-0100
+# kind: items
+# description: An empty item sequence: the walker stops at once with no items and no error.
+# derivation: The sequence runs to the end of the message (reading R-IT-1); with no bytes there is no type byte (PV-0100) to read.
+# expect.items: 0
+# expect.error: none
+hex:

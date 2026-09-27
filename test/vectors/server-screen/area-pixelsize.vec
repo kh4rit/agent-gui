@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#83-window-and-area-size
+# provenance: PV-0706, PV-0441, PV-0462
+# kind: appl-fields
+# description: VARINFO AREA_PIXELSIZE in pixels.
+# derivation: Four u32 BE, same order as AREASIZE (PV-0706).
+# expect.id: 0x0C
+# expect.sid: 0x08
+# expect.field.window_height: 768
+# expect.field.window_width: 1366
+# expect.field.area_height: 700
+# expect.field.area_width: 1350
+# expect.error: none
+hex:
+00 00 03 00 00 00 05 56 00 00 02 BC 00 00 05 46   # value

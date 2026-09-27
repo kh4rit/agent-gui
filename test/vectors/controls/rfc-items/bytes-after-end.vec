@@ -1,0 +1,18 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#3-rfc-item-framing-the-rfc-protocol
+# provenance: PV-0911, PV-0919, PV-0920
+# kind: rfc-items
+# description: The end item and one byte after it: the walk stops at the end item, and the encoder writes nothing after it.
+# derivation: FF FF, length 0 and its trailing pair end the stream (PV-0911); a stream Swooey writes has nothing after it (PV-0920); the byte 51 is invented.
+# expect.error: none
+# expect.items: 1
+# expect.item.1.id: FF FF
+# expect.item.1.length: 0
+# expect.item.1.value: none
+# expect.item.1.trailer: matches
+# expect.end: yes
+# expect.reencodes: no
+hex:
+FF FF 00 00                           # item FF FF, length 0, the end item
+FF FF                                              # trailing pair repeating the id (PV-0919)
+51                                                 # a byte after the end item: not walked (IMPL-CT-2), not written (PV-0920)

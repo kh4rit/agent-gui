@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#72-the-verbs-stream
+# provenance: PV-0922
+# kind: cfw-verbs
+# description: A VERBS stream of one record plus 10 extra bytes: not a whole number of 53-byte records.
+# derivation: 53-byte records per PV-0922; 63 bytes is not a multiple of 53 (IMPL-CT-6: bad-record-length).
+# expect.error: bad-record-length
+hex:
+20 20 20 20 20 20 20 20 31 20 46 72 65 65 4F 62   # record 1
+6A 65 63 74 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 43
+5A 5A 5F 4C 45 46 54 4F 56 52                     # 10 stray bytes (defect)

@@ -1,0 +1,45 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#73-the-svars-descriptor-stream
+# provenance: PV-0924, PV-0925
+# kind: cfw-descriptors
+# description: A decompressed SVARS descriptor stream of four 44-byte records: two inputs of verb 1, its _RESULT slot, one input of verb 2.
+# derivation: 44-byte records with four space-separated columns group, type, name, pointer (PV-0924); type 12 string, 3 integer (PV-0925); column positions inside the record are not described, so the columns start at byte 0 with single spaces here.
+# expect.slots: 4
+# expect.slot.1.group: 1
+# expect.slot.1.type: 12
+# expect.slot.1.type_name: string
+# expect.slot.1.name: #1
+# expect.slot.1.result: no
+# expect.slot.1.pointer: 1
+# expect.slot.2.group: 1
+# expect.slot.2.type: 3
+# expect.slot.2.type_name: integer
+# expect.slot.2.name: #2
+# expect.slot.2.result: no
+# expect.slot.2.pointer: 2
+# expect.slot.3.group: 1
+# expect.slot.3.type: 12
+# expect.slot.3.type_name: string
+# expect.slot.3.name: _RESULT
+# expect.slot.3.result: yes
+# expect.slot.3.pointer: 3
+# expect.slot.4.group: 2
+# expect.slot.4.type: 12
+# expect.slot.4.type_name: string
+# expect.slot.4.name: #1
+# expect.slot.4.result: no
+# expect.slot.4.pointer: 4
+# expect.error: none
+hex:
+31 20 31 32 20 23 31 20 31 20 20 20 20 20 20 20   # record 1: '1 12 #1 1' padded to 44 bytes
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20 20 20 20 20
+31 20 33 20 23 32 20 32 20 20 20 20 20 20 20 20   # record 2: '1 3 #2 2' padded to 44 bytes
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20 20 20 20 20
+31 20 31 32 20 5F 52 45 53 55 4C 54 20 33 20 20   # record 3: '1 12 _RESULT 3' padded to 44 bytes
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20 20 20 20 20
+32 20 31 32 20 23 31 20 34 20 20 20 20 20 20 20   # record 4: '2 12 #1 4' padded to 44 bytes
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20 20 20 20 20

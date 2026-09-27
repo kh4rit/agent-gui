@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0105, PV-0106, PV-0107
+# kind: items
+# description: The input ends right after an XMLBLOB type byte.
+# derivation: After 0x11 (PV-0105) a 4-byte length must follow (PV-0106); none does, so the walk stops with truncated at item 1.
+# expect.items: 0
+# expect.error: truncated
+# expect.error.item: 1
+hex:
+11                                                # type XMLBLOB; length missing

@@ -1,0 +1,38 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#4-table-content-split-into-rows
+# provenance: PV-0910, PV-0912, PV-0913, PV-0914, PV-0915, PV-0919
+# kind: rfc-table-content
+# description: A 250-byte row followed by a 1-byte row, the row sizes ODG observed.
+# derivation: Rows of at most 250 bytes, the last shorter (PV-0915), framed per PV-0910 and concatenated (PV-0913); row text invented ('ZZ_CHUNKY_ROW_' repeated, then '!').
+# expect.rows: 2
+# expect.row.1.offset: 4
+# expect.row.1.length: 250
+# expect.row.2.offset: 260
+# expect.row.2.length: 1
+# expect.content_length: 251
+# expect.end_length: 0
+# expect.trailing: 0
+# expect.error: none
+hex:
+03 05 00 FA                                       # item 03 05 (table content), length 250
+5A 5A 5F 43 48 55 4E 4B 59 5F 52 4F 57 5F 5A 5A   # value of row 1
+5F 43 48 55 4E 4B 59 5F 52 4F 57 5F 5A 5A 5F 43
+48 55 4E 4B 59 5F 52 4F 57 5F 5A 5A 5F 43 48 55
+4E 4B 59 5F 52 4F 57 5F 5A 5A 5F 43 48 55 4E 4B
+59 5F 52 4F 57 5F 5A 5A 5F 43 48 55 4E 4B 59 5F
+52 4F 57 5F 5A 5A 5F 43 48 55 4E 4B 59 5F 52 4F
+57 5F 5A 5A 5F 43 48 55 4E 4B 59 5F 52 4F 57 5F
+5A 5A 5F 43 48 55 4E 4B 59 5F 52 4F 57 5F 5A 5A
+5F 43 48 55 4E 4B 59 5F 52 4F 57 5F 5A 5A 5F 43
+48 55 4E 4B 59 5F 52 4F 57 5F 5A 5A 5F 43 48 55
+4E 4B 59 5F 52 4F 57 5F 5A 5A 5F 43 48 55 4E 4B
+59 5F 52 4F 57 5F 5A 5A 5F 43 48 55 4E 4B 59 5F
+52 4F 57 5F 5A 5A 5F 43 48 55 4E 4B 59 5F 52 4F
+57 5F 5A 5A 5F 43 48 55 4E 4B 59 5F 52 4F 57 5F
+5A 5A 5F 43 48 55 4E 4B 59 5F 52 4F 57 5F 5A 5A
+5F 43 48 55 4E 4B 59 5F 52 4F
+03 05                                             # trailing id pair 03 05 (PV-0919)
+03 05 00 01                                       # item 03 05 (table content), length 1
+21                                                # value of row 2
+03 05                                             # trailing id pair 03 05 (PV-0919)
+03 06 00 00                                       # item 03 06 (table content end), length 0

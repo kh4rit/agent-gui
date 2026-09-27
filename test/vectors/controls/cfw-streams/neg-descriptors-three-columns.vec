@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#73-the-svars-descriptor-stream
+# provenance: PV-0924
+# kind: cfw-descriptors
+# description: A descriptor record with only three columns.
+# derivation: 44-byte record per PV-0924 but holding 'group type name' without a pointer (IMPL-CT-6: bad-descriptor).
+# expect.error: bad-descriptor
+# expect.error.slot: 1
+hex:
+31 20 31 32 20 23 31 20 20 20 20 20 20 20 20 20   # record 1: '1 12 #1' (pointer missing, defect)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20 20 20 20 20

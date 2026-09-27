@@ -1,0 +1,444 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#41-the-login-screen-of-pysaps-example-server
+# provenance: PV-0124, PV-0537, PV-0100, PV-0101, PV-0102, PV-0103, PV-0104, PV-0107, PV-0400, PV-0401, PV-0402, PV-0403, PV-0404, PV-0405, PV-0110, PV-0435, PV-0438, PV-0440, PV-0441, PV-0455, PV-0458, PV-0461, PV-0462, PV-0703, PV-0722, PV-0723, PV-0724
+# kind: items
+# description: A complete invented logon-style server screen in the item order of pysap's example server (21 items, no step item, no EOM), on a layout of its own.
+# derivation: Item order PV-0703 with the D15 texts of this file; carriers per R-SS-3 (PV-0722: MNUENTRY and DYNT_ATOM as APPL4, the rest APPL, SES by type); each header per items.md (PV-0402/PV-0403/PV-0404); the SUPPORTDATA mask is 32 zero bytes because the server mask value is gap #52; SES screen_flag 0x21 as in PV-0723; the atoms share only PV-0724's field structure (etypes, attributes, input mlen/maxnrchars 3/3, 12/12, 12/40, 2/2, FNAME/XMLPROP children), and their layout is invented (IMPL-SS-1): block 3, rows 31/34/37/40 and 43, labels at col 36 and 16 wide (the closing label 11), inputs at col 55, on a 46 x 96 SES and AREASIZE; values are opaque to this kind.
+# expect.items: 21
+# expect.item.1.type: appl
+# expect.item.1.id: 0x06
+# expect.item.1.sid: 0x11
+# expect.item.1.id_name: ST_R3INFO
+# expect.item.1.sid_name: SUPPORTDATA
+# expect.item.1.offset: 5
+# expect.item.1.length: 32
+# expect.item.2.type: appl
+# expect.item.2.id: 0x06
+# expect.item.2.sid: 0x21
+# expect.item.2.id_name: ST_R3INFO
+# expect.item.2.sid_name: CONTEXTID
+# expect.item.2.offset: 42
+# expect.item.2.length: 32
+# expect.item.3.type: appl
+# expect.item.3.id: 0x06
+# expect.item.3.sid: 0x1F
+# expect.item.3.id_name: ST_R3INFO
+# expect.item.3.sid_name: IMODEUUIDS2
+# expect.item.3.offset: 79
+# expect.item.3.length: 18
+# expect.item.4.type: appl
+# expect.item.4.id: 0x06
+# expect.item.4.sid: 0x02
+# expect.item.4.id_name: ST_R3INFO
+# expect.item.4.sid_name: DBNAME
+# expect.item.4.offset: 102
+# expect.item.4.length: 3
+# expect.item.5.type: appl
+# expect.item.5.id: 0x06
+# expect.item.5.sid: 0x0C
+# expect.item.5.id_name: ST_R3INFO
+# expect.item.5.sid_name: CLIENT
+# expect.item.5.offset: 110
+# expect.item.5.length: 3
+# expect.item.6.type: appl
+# expect.item.6.id: 0x06
+# expect.item.6.sid: 0x03
+# expect.item.6.id_name: ST_R3INFO
+# expect.item.6.sid_name: CPUNAME
+# expect.item.6.offset: 118
+# expect.item.6.length: 7
+# expect.item.7.type: appl
+# expect.item.7.id: 0x06
+# expect.item.7.sid: 0x25
+# expect.item.7.id_name: ST_R3INFO
+# expect.item.7.sid_name: GUI_THEME
+# expect.item.7.offset: 130
+# expect.item.7.length: 8
+# expect.item.8.type: appl
+# expect.item.8.id: 0x06
+# expect.item.8.sid: 0x29
+# expect.item.8.id_name: ST_R3INFO
+# expect.item.8.sid_name: KERNEL_VERSION
+# expect.item.8.offset: 143
+# expect.item.8.length: 18
+# expect.item.9.type: appl
+# expect.item.9.id: 0x06
+# expect.item.9.sid: 0x07
+# expect.item.9.id_name: ST_R3INFO
+# expect.item.9.sid_name: TCODE
+# expect.item.9.offset: 166
+# expect.item.9.length: 20
+# expect.item.10.type: ses
+# expect.item.10.offset: 187
+# expect.item.10.length: 16
+# expect.item.11.type: appl
+# expect.item.11.id: 0x0C
+# expect.item.11.sid: 0x07
+# expect.item.11.id_name: VARINFO
+# expect.item.11.sid_name: AREASIZE
+# expect.item.11.offset: 208
+# expect.item.11.length: 16
+# expect.item.12.type: appl
+# expect.item.12.id: 0x0C
+# expect.item.12.sid: 0x0A
+# expect.item.12.id_name: VARINFO
+# expect.item.12.sid_name: SESSION_ICON
+# expect.item.12.offset: 229
+# expect.item.12.length: 20
+# expect.item.13.type: appl
+# expect.item.13.id: 0x06
+# expect.item.13.sid: 0x0F
+# expect.item.13.id_name: ST_R3INFO
+# expect.item.13.sid_name: CUANAME
+# expect.item.13.offset: 254
+# expect.item.13.length: 20
+# expect.item.14.type: appl
+# expect.item.14.id: 0x06
+# expect.item.14.sid: 0x0D
+# expect.item.14.id_name: ST_R3INFO
+# expect.item.14.sid_name: DYNPRONAME
+# expect.item.14.offset: 279
+# expect.item.14.length: 20
+# expect.item.15.type: appl
+# expect.item.15.id: 0x06
+# expect.item.15.sid: 0x10
+# expect.item.15.id_name: ST_R3INFO
+# expect.item.15.sid_name: CUASTATUS
+# expect.item.15.offset: 304
+# expect.item.15.length: 20
+# expect.item.16.type: appl
+# expect.item.16.id: 0x06
+# expect.item.16.sid: 0x0E
+# expect.item.16.id_name: ST_R3INFO
+# expect.item.16.sid_name: DYNPRONUMBER
+# expect.item.16.offset: 329
+# expect.item.16.length: 4
+# expect.item.17.type: appl4
+# expect.item.17.id: 0x0B
+# expect.item.17.sid: 0x01
+# expect.item.17.id_name: MNUENTRY
+# expect.item.17.sid_name: MENU_ACT
+# expect.item.17.offset: 340
+# expect.item.17.length: 35
+# expect.item.18.type: appl4
+# expect.item.18.id: 0x0B
+# expect.item.18.sid: 0x03
+# expect.item.18.id_name: MNUENTRY
+# expect.item.18.sid_name: MENU_PFK
+# expect.item.18.offset: 382
+# expect.item.18.length: 61
+# expect.item.19.type: appl4
+# expect.item.19.id: 0x0B
+# expect.item.19.sid: 0x04
+# expect.item.19.id_name: MNUENTRY
+# expect.item.19.sid_name: MENU_KYB
+# expect.item.19.offset: 450
+# expect.item.19.length: 83
+# expect.item.20.type: appl
+# expect.item.20.id: 0x0C
+# expect.item.20.sid: 0x09
+# expect.item.20.id_name: VARINFO
+# expect.item.20.sid_name: SESSION_TITLE
+# expect.item.20.offset: 538
+# expect.item.20.length: 11
+# expect.item.21.type: appl4
+# expect.item.21.id: 0x09
+# expect.item.21.sid: 0x02
+# expect.item.21.id_name: DYNT
+# expect.item.21.sid_name: DYNT_ATOM
+# expect.item.21.offset: 556
+# expect.item.21.length: 800
+# expect.error: none
+hex:
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+11                                                # sid 0x11 SUPPORTDATA
+00 20                                             # length 32, u16 BE
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   # 32-byte mask, all zero (value arbitrary here: gap #52)
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   # 32-byte mask, all zero (value arbitrary here: gap #52) (cont.)
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+21                                                # sid 0x21 CONTEXTID
+00 20                                             # length 32, u16 BE
+43 30 46 46 45 45 30 46 46 31 43 45 42 45 45 46   # CONTEXTID: 32 invented characters
+43 30 46 46 45 45 30 46 46 31 43 45 42 45 45 46   # CONTEXTID: 32 invented characters (cont.)
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+1F                                                # sid 0x1F IMODEUUIDS2
+00 12                                             # length 18, u16 BE
+01                                                # count 1
+DE AD BE EF CA FE F0 0D BA AD F0 0D DE CA FB AD   # UUID (16 invented bytes)
+01                                                # active context 1
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+02                                                # sid 0x02 DBNAME
+00 03                                             # length 3, u16 BE
+51 41 4B                                          # DBNAME 'QAK'
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0C                                                # sid 0x0C CLIENT
+00 03                                             # length 3, u16 BE
+30 34 32                                          # CLIENT '042'
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+03                                                # sid 0x03 CPUNAME
+00 07                                             # length 7, u16 BE
+70 6F 6E 64 2D 30 37                              # CPUNAME 'pond-07'
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+25                                                # sid 0x25 GUI_THEME
+00 08                                             # length 8, u16 BE
+5A 5A 50 4C 41 49 44 00                           # GUI_THEME 'ZZPLAID' + one zero byte
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+29                                                # sid 0x29 KERNEL_VERSION
+00 12                                             # length 18, u16 BE
+51 55 41 43 4B 44 42 20 39 00 34 32 34 32 00 31   # KERNEL_VERSION: three zero-terminated strings
+37 00                                             # KERNEL_VERSION: three zero-terminated strings (cont.)
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+07                                                # sid 0x07 TCODE
+00 14                                             # length 20, u16 BE
+5A 5A 44 4F 4F 52 42 45 4C 4C 20 20 20 20 20 20   # TCODE 'ZZDOORBELL' + 10 spaces
+20 20 20 20                                       # TCODE 'ZZDOORBELL' + 10 spaces (cont.)
+01                                                # type SES (value 16 bytes)
+00 00 00 00 00 00 21 00 00 00 00 00 00 00 2E 60   # SES: screen_flag 0x21, dim_row 46, dim_col 96, rest 0
+10                                                # type APPL
+0C                                                # id 0x0C VARINFO
+07                                                # sid 0x07 AREASIZE
+00 10                                             # length 16, u16 BE
+00 00 00 2E 00 00 00 60 00 00 00 2E 00 00 00 60   # window_height 46, window_width 96, area_height 46, area_width 96 (u32 BE each)
+10                                                # type APPL
+0C                                                # id 0x0C VARINFO
+0A                                                # sid 0x0A SESSION_ICON
+00 14                                             # length 20, u16 BE
+44 75 63 6B 20 50 6F 6E 64 20 28 31 29 20 51 41   # SESSION_ICON + 3 spaces
+4B 20 20 20                                       # SESSION_ICON + 3 spaces (cont.)
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0F                                                # sid 0x0F CUANAME
+00 14                                             # length 20, u16 BE
+53 41 50 4D 53 59 53 54 20 20 20 20 20 20 20 20   # CUANAME 'SAPMSYST' + 12 spaces
+20 20 20 20                                       # CUANAME 'SAPMSYST' + 12 spaces (cont.)
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0D                                                # sid 0x0D DYNPRONAME
+00 14                                             # length 20, u16 BE
+53 41 50 4D 53 59 53 54 20 20 20 20 20 20 20 20   # DYNPRONAME 'SAPMSYST' + 12 spaces
+20 20 20 20                                       # DYNPRONAME 'SAPMSYST' + 12 spaces (cont.)
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+10                                                # sid 0x10 CUASTATUS
+00 14                                             # length 20, u16 BE
+5A 5A 4B 4E 4F 43 4B 20 20 20 20 20 20 20 20 20   # CUASTATUS 'ZZKNOCK' + 13 spaces
+20 20 20 20                                       # CUASTATUS 'ZZKNOCK' + 13 spaces (cont.)
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0E                                                # sid 0x0E DYNPRONUMBER
+00 04                                             # length 4, u16 BE
+31 33 33 37                                       # DYNPRONUMBER '1337'
+12                                                # type APPL4
+0B                                                # id 0x0B MNUENTRY
+01                                                # sid 0x01 MENU_ACT
+00 00 00 23                                       # length 35, u32 BE
+00 23                                             # entry length 35 (Knock Knock)
+01 00 00 00                                       # position_1..4
+12 00                                             # flags 0x12, virtual_key 0
+01 00 00 00 00 00                                 # return codes 1..6
+00 00 00 00 00 00                                 # function codes 1..6
+4B 6E 6F 63 6B 20 4B 6E 6F 63 6B 00               # text 'Knock Knock' + 00
+4B 00                                             # accelerator 'K' + 00
+00                                                # info '' + 00
+12                                                # type APPL4
+0B                                                # id 0x0B MNUENTRY
+03                                                # sid 0x03 MENU_PFK
+00 00 00 3D                                       # length 61, u32 BE
+00 3D                                             # entry length 61 (Forgot Secret Quack)
+00 00 00 00                                       # position_1..4
+02 05                                             # flags 0x02, virtual_key 5
+05 00 00 00 00 00                                 # return codes 1..6
+00 00 00 00 00 00                                 # function codes 1..6
+46 6F 72 67 6F 74 20 53 65 63 72 65 74 20 51 75   # text 'Forgot Secret Quack' + 00
+61 63 6B 00                                       # text 'Forgot Secret Quack' + 00 (cont.)
+00                                                # accelerator '' + 00
+46 6F 72 67 6F 74 20 53 65 63 72 65 74 20 51 75   # info 'Forgot Secret Quack' + 00
+61 63 6B 00                                       # info 'Forgot Secret Quack' + 00 (cont.)
+12                                                # type APPL4
+0B                                                # id 0x0B MNUENTRY
+04                                                # sid 0x04 MENU_KYB
+00 00 00 53                                       # length 83, u32 BE
+00 2A                                             # entry length 42 (Forgot Secret Quack)
+01 00 00 00                                       # position_1..4
+02 05                                             # flags 0x02, virtual_key 5
+00 00 00 00 00 00                                 # return codes 1..6
+00 00 00 00 00 00                                 # function codes 1..6
+46 6F 72 67 6F 74 20 53 65 63 72 65 74 20 51 75   # text 'Forgot Secret Quack' + 00
+61 63 6B 00                                       # text 'Forgot Secret Quack' + 00 (cont.)
+00                                                # accelerator '' + 00
+00                                                # info '' + 00
+00 29                                             # entry length 41 (Run Away Screaming)
+02 00 00 00                                       # position_1..4
+02 0F                                             # flags 0x02, virtual_key 15
+01 00 00 00 00 00                                 # return codes 1..6
+00 00 00 00 00 00                                 # function codes 1..6
+52 75 6E 20 41 77 61 79 20 53 63 72 65 61 6D 69   # text 'Run Away Screaming' + 00
+6E 67 00                                          # text 'Run Away Screaming' + 00 (cont.)
+00                                                # accelerator '' + 00
+00                                                # info '' + 00
+10                                                # type APPL
+0C                                                # id 0x0C VARINFO
+09                                                # sid 0x09 SESSION_TITLE
+00 0B                                             # length 11, u16 BE
+4B 6E 6F 63 6B 20 4B 6E 6F 63 6B                  # SESSION_TITLE 'Knock Knock'
+12                                                # type APPL4
+09                                                # id 0x09 DYNT
+02                                                # sid 0x02 DYNT_ATOM
+00 00 03 20                                       # length 800, u32 BE
+00 23                                             # atom_length 35 (label, pond number)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+84 00 03 00                                       # etype 132, area 0, block 3, group 0
+00 1F 00 24                                       # row 31, col 36
+21                                                # attribute PROTECTED|PROPFONT
+00 00 10 10 00 10 50 6F 6E 64 20 4E 75 6D 62 65   # payload
+72 20 20 20 20 20                                 # payload (cont.)
+00 18                                             # atom_length 24 (FNAME ZZGATE-POND)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 1F 00 24                                       # row 31, col 36
+21                                                # attribute PROTECTED|PROPFONT
+5A 5A 47 41 54 45 2D 50 4F 4E 44                  # payload
+00 16                                             # atom_length 22 (input, pond number)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 03 00                                       # etype 130, area 0, block 3, group 0
+00 1F 00 37                                       # row 31, col 55
+40                                                # attribute YES3D
+00 00 03 03 00 03 30 34 32                        # payload
+00 18                                             # atom_length 24 (FNAME ZZGATE-POND)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 1F 00 37                                       # row 31, col 55
+40                                                # attribute YES3D
+5A 5A 47 41 54 45 2D 50 4F 4E 44                  # payload
+00 54                                             # atom_length 84 (XMLPROP)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+78 00 03 00                                       # etype 120, area 0, block 3, group 0
+00 1F 00 37                                       # row 31, col 55
+40                                                # attribute YES3D
+3C 50 72 6F 70 65 72 74 79 62 61 67 3E 3C 44 65   # payload
+66 61 75 6C 74 54 6F 6F 6C 74 69 70 3E 57 68 69   # payload (cont.)
+63 68 20 70 6F 6E 64 3F 3C 2F 44 65 66 61 75 6C   # payload (cont.)
+74 54 6F 6F 6C 74 69 70 3E 3C 2F 50 72 6F 70 65   # payload (cont.)
+72 74 79 62 61 67 3E                              # payload (cont.)
+00 23                                             # atom_length 35 (label, who goes there)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+84 00 03 00                                       # etype 132, area 0, block 3, group 0
+00 22 00 24                                       # row 34, col 36
+21                                                # attribute PROTECTED|PROPFONT
+00 00 10 10 00 10 57 68 6F 20 47 6F 65 73 20 54   # payload
+68 65 72 65 20 20                                 # payload (cont.)
+00 17                                             # atom_length 23 (FNAME ZZGATE-WHO)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 22 00 24                                       # row 34, col 36
+21                                                # attribute PROTECTED|PROPFONT
+5A 5A 47 41 54 45 2D 57 48 4F                     # payload
+00 1F                                             # atom_length 31 (input, who goes there)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 03 00                                       # etype 130, area 0, block 3, group 0
+00 22 00 37                                       # row 34, col 55
+40                                                # attribute YES3D
+00 00 0C 0C 00 0C 20 20 20 20 20 20 20 20 20 20   # payload
+20 20                                             # payload (cont.)
+00 17                                             # atom_length 23 (FNAME ZZGATE-WHO)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 22 00 37                                       # row 34, col 55
+40                                                # attribute YES3D
+5A 5A 47 41 54 45 2D 57 48 4F                     # payload
+00 57                                             # atom_length 87 (XMLPROP)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+78 00 03 00                                       # etype 120, area 0, block 3, group 0
+00 22 00 37                                       # row 34, col 55
+40                                                # attribute YES3D
+3C 50 72 6F 70 65 72 74 79 62 61 67 3E 3C 44 65   # payload
+66 61 75 6C 74 54 6F 6F 6C 74 69 70 3E 59 6F 75   # payload (cont.)
+72 20 64 75 63 6B 20 6E 61 6D 65 3C 2F 44 65 66   # payload (cont.)
+61 75 6C 74 54 6F 6F 6C 74 69 70 3E 3C 2F 50 72   # payload (cont.)
+6F 70 65 72 74 79 62 61 67 3E                     # payload (cont.)
+00 23                                             # atom_length 35 (label, secret quack)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+84 00 03 00                                       # etype 132, area 0, block 3, group 0
+00 25 00 24                                       # row 37, col 36
+21                                                # attribute PROTECTED|PROPFONT
+00 00 10 10 00 10 53 65 63 72 65 74 20 51 75 61   # payload
+63 6B 20 20 20 20                                 # payload (cont.)
+00 19                                             # atom_length 25 (FNAME ZZGATE-QUACK)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 25 00 24                                       # row 37, col 36
+21                                                # attribute PROTECTED|PROPFONT
+5A 5A 47 41 54 45 2D 51 55 41 43 4B               # payload
+00 13                                             # atom_length 19 (input, secret quack, empty)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 03 00                                       # etype 130, area 0, block 3, group 0
+00 25 00 37                                       # row 37, col 55
+42                                                # attribute INVISIBLE|YES3D
+00 00 00 0C 00 28                                 # payload
+00 19                                             # atom_length 25 (FNAME ZZGATE-QUACK)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 25 00 37                                       # row 37, col 55
+42                                                # attribute INVISIBLE|YES3D
+5A 5A 47 41 54 45 2D 51 55 41 43 4B               # payload
+00 53                                             # atom_length 83 (XMLPROP)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+78 00 03 00                                       # etype 120, area 0, block 3, group 0
+00 25 00 37                                       # row 37, col 55
+42                                                # attribute INVISIBLE|YES3D
+3C 50 72 6F 70 65 72 74 79 62 61 67 3E 3C 44 65   # payload
+66 61 75 6C 74 54 6F 6F 6C 74 69 70 3E 57 68 69   # payload (cont.)
+73 70 65 72 20 69 74 3C 2F 44 65 66 61 75 6C 74   # payload (cont.)
+54 6F 6F 6C 74 69 70 3E 3C 2F 50 72 6F 70 65 72   # payload (cont.)
+74 79 62 61 67 3E                                 # payload (cont.)
+00 23                                             # atom_length 35 (label, mother tongue)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+84 00 03 00                                       # etype 132, area 0, block 3, group 0
+00 28 00 24                                       # row 40, col 36
+21                                                # attribute PROTECTED|PROPFONT
+00 00 10 10 00 10 4D 6F 74 68 65 72 20 54 6F 6E   # payload
+67 75 65 20 20 20                                 # payload (cont.)
+00 1A                                             # atom_length 26 (FNAME ZZGATE-TONGUE)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 28 00 24                                       # row 40, col 36
+21                                                # attribute PROTECTED|PROPFONT
+5A 5A 47 41 54 45 2D 54 4F 4E 47 55 45            # payload
+00 15                                             # atom_length 21 (input, mother tongue)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 03 00                                       # etype 130, area 0, block 3, group 0
+00 28 00 37                                       # row 40, col 55
+40                                                # attribute YES3D
+00 00 02 02 00 02 20 20                           # payload
+00 1A                                             # atom_length 26 (FNAME ZZGATE-TONGUE)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+72 00 03 00                                       # etype 114, area 0, block 3, group 0
+00 28 00 37                                       # row 40, col 55
+40                                                # attribute YES3D
+5A 5A 47 41 54 45 2D 54 4F 4E 47 55 45            # payload
+00 57                                             # atom_length 87 (XMLPROP)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+78 00 03 00                                       # etype 120, area 0, block 3, group 0
+00 28 00 37                                       # row 40, col 55
+40                                                # attribute YES3D
+3C 50 72 6F 70 65 72 74 79 62 61 67 3E 3C 44 65   # payload
+66 61 75 6C 74 54 6F 6F 6C 74 69 70 3E 51 75 61   # payload (cont.)
+63 6B 20 6F 72 20 68 6F 6E 6B 3F 3C 2F 44 65 66   # payload (cont.)
+61 75 6C 74 54 6F 6F 6C 74 69 70 3E 3C 2F 50 72   # payload (cont.)
+6F 70 65 72 74 79 62 61 67 3E                     # payload (cont.)
+00 1E                                             # atom_length 30 (label, closing line)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+84 00 03 00                                       # etype 132, area 0, block 3, group 0
+00 2B 00 24                                       # row 43, col 36
+21                                                # attribute PROTECTED|PROPFONT
+00 00 0B 0B 00 0B 4B 6E 6F 63 6B 20 4B 6E 6F 63   # payload
+6B                                                # payload (cont.)

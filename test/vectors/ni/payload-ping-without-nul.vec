@@ -1,0 +1,11 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#payload-classification
+# provenance: PV-0004, PV-0202
+# kind: ni-payload
+# description: NI_PING without its trailing zero byte (7 bytes) is not the keep-alive literal: recognition needs an exact 8-byte match.
+# derivation: Rule 2 requires the payload to be exactly the 8 bytes of PV-0004 with length 8 (PV-0202); these are its first 7 bytes, so rule 5 applies.
+# expect.class: diag
+# expect.reply: none
+# expect.reply.frame: none
+hex:
+4E 49 5F 50 49 4E 47                              # N I _ P I N G, no zero byte

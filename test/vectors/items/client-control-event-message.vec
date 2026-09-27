@@ -1,0 +1,44 @@
+# source: spec
+# spec: docs/protocol/controls/events.md#1-events-in-the-datamanager-document
+# provenance: PV-0100, PV-0101, PV-0102, PV-0105, PV-0106, PV-0107, PV-0125, PV-0400, PV-0401, PV-0402, PV-0413, PV-0433, PV-0443, PV-0453, PV-0464, PV-0931
+# kind: items
+# description: Walker test for a client message carrying a DATAMANAGER event and a UI_EVENT_SOURCE item (both invented; the combination only exercises the walker).
+# derivation: Step number APPL (PV-0125), XMLBLOB with a u32 BE length (PV-0105, PV-0106) whose document declares sap* (PV-0931), UI_EVENT_SOURCE as APPL id 0x0F sid 0x01 (PV-0443, PV-0464) with a 16-byte value whose internal layout is #56 (opaque here), EOM.
+# expect.items: 4
+# expect.item.1.type: appl
+# expect.item.1.id: 0x04
+# expect.item.1.sid: 0x26
+# expect.item.1.id_name: ST_USER
+# expect.item.1.sid_name: DIALOG_STEP_NUMBER
+# expect.item.1.offset: 5
+# expect.item.1.length: 4
+# expect.item.2.type: xmlblob
+# expect.item.2.offset: 14
+# expect.item.2.length: 156
+# expect.item.3.type: appl
+# expect.item.3.id: 0x0F
+# expect.item.3.sid: 0x01
+# expect.item.3.id_name: UI_EVENT
+# expect.item.3.sid_name: UI_EVENT_SOURCE
+# expect.item.3.offset: 175
+# expect.item.3.length: 16
+# expect.item.4.type: eom
+# expect.item.4.offset: 192
+# expect.item.4.length: 0
+# expect.error: none
+hex:
+10 04 26 00 04 00 00 00 04                        # APPL ST_USER DIALOG_STEP_NUMBER = 4
+11 00 00 00 9C 3C 3F 78 6D 6C 20 76 65 72 73 69   # XMLBLOB: client DATAMANAGER with one toolbar event (invented function code ZZ_TICKLE)
+6F 6E 3D 22 31 2E 30 22 20 65 6E 63 6F 64 69 6E
+67 3D 22 73 61 70 2A 22 3F 3E 3C 44 41 54 41 4D
+41 4E 41 47 45 52 3E 3C 45 56 45 4E 54 53 3E 3C
+45 56 45 4E 54 20 53 48 45 4C 4C 49 44 3D 22 34
+32 22 20 45 56 45 4E 54 49 44 3D 22 31 34 22 3E
+3C 50 41 52 41 4D 20 50 49 44 3D 22 30 22 20 56
+41 4C 55 45 3D 22 5A 5A 5F 54 49 43 4B 4C 45 22
+2F 3E 3C 2F 45 56 45 4E 54 3E 3C 2F 45 56 45 4E
+54 53 3E 3C 2F 44 41 54 41 4D 41 4E 41 47 45 52
+3E
+10 0F 01 00 10 0A 00 07 00 01 05 00 00 00 00 03   # APPL UI_EVENT UI_EVENT_SOURCE, 16-byte value (opaque to the walker)
+00 0C 00 01 00
+0C                                                # EOM

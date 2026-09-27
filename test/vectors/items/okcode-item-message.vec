@@ -1,0 +1,37 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402, PV-0413, PV-0117, PV-0404, PV-0433, PV-0453, PV-0441, PV-0462, PV-0125, PV-0524, PV-0708
+# kind: items
+# description: A later client message with a VARINFO OKCODE item between DIALOG_STEP_NUMBER and EOM (walk only; not a claim that a real server acts on it, #55).
+# derivation: Order: step first, EOM last (PV-0524). VARINFO OKCODE is id 0x0c sid 0x04 (PV-0441/PV-0462), carried as APPL, the carrier under which Wireshark decodes it (the send carrier is #31); its value is a text string of the item length (PV-0708, client-input.md §7.1), here the invented transaction code ZZDUCK (D15, ASCII 5A 5A 44 55 43 4B), 6 bytes, opaque at the walk level (character set #18/#33). APPL header 5 (PV-0402), EOM 1+0 (PV-0117).
+# expect.items: 3
+# expect.item.1.type: appl
+# expect.item.1.id: 0x04
+# expect.item.1.sid: 0x26
+# expect.item.1.id_name: ST_USER
+# expect.item.1.sid_name: DIALOG_STEP_NUMBER
+# expect.item.1.offset: 5
+# expect.item.1.length: 4
+# expect.item.2.type: appl
+# expect.item.2.id: 0x0C
+# expect.item.2.sid: 0x04
+# expect.item.2.id_name: VARINFO
+# expect.item.2.sid_name: OKCODE
+# expect.item.2.offset: 14
+# expect.item.2.length: 6
+# expect.item.3.type: eom
+# expect.item.3.offset: 21
+# expect.item.3.length: 0
+# expect.error: none
+hex:
+10                     # type APPL
+04                     # id 0x04 ST_USER
+26                     # sid 0x26 DIALOG_STEP_NUMBER
+00 04                  # length 4, u16 BE
+00 00 00 02            # step 2 (value)
+10                     # type APPL
+0C                     # id 0x0C VARINFO
+04                     # sid 0x04 OKCODE
+00 06                  # length 6, u16 BE
+5A 5A 44 55 43 4B      # command "ZZDUCK" (invented transaction code, D15; opaque at walk level)
+0C                     # type EOM

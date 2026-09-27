@@ -1,0 +1,26 @@
+# source: spec
+# spec: docs/protocol/controls/alv-grid.md#31-plain-packet
+# provenance: PV-0940, PV-0941
+# kind: alv-rows
+# description: A plain row packet of two rows of two invented columns (lengths 10 and 6), two bytes after the start of its stream.
+# derivation: Marker FF FF FF FF 01, u32 LE count and width, rows from marker + 13 (PV-0940); width 16 = 10 + 6 and cells in catalog order, space-padded (PV-0941).
+# expect.column_lengths: 10,6
+# expect.marker_offset: 2
+# expect.row_count: 2
+# expect.row_width: 16
+# expect.row.1.cell.1.text_offset: 15
+# expect.row.1.cell.1.text_length: 9
+# expect.row.1.cell.2.text_offset: 25
+# expect.row.1.cell.2.text_length: 3
+# expect.row.2.cell.1.text_offset: 31
+# expect.row.2.cell.1.text_length: 10
+# expect.row.2.cell.2.text_offset: 41
+# expect.row.2.cell.2.text_length: 2
+# expect.error: none
+hex:
+00 00                                             # 2 bytes before the marker (arbitrary)
+FF FF FF FF 01                                    # marker (PV-0940)
+02 00 00 00                                       # row count 2, u32 LE
+10 00 00 00                                       # row width 16, u32 LE
+5A 5A 5F 57 41 46 46 4C 45 20 31 32 30 20 20 20   # row 1: 'ZZ_WAFFLE' (10) + '120' (6), space-padded
+5A 5A 5F 50 52 45 54 5A 45 4C 37 35 20 20 20 20   # row 2: 'ZZ_PRETZEL' (10) + '75' (6)

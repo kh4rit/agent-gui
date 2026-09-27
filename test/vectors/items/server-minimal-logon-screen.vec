@@ -1,0 +1,56 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#62-what-a-client-needs-from-a-logon-style-screen
+# provenance: PV-0100, PV-0101, PV-0102, PV-0103, PV-0104, PV-0402, PV-0403, PV-0435, PV-0438, PV-0455, PV-0458
+# kind: items
+# description: The minimal logon-style screen as an item sequence: two APPL text items and one APPL4 DYNT_ATOM item.
+# derivation: APPL headers 5 bytes, APPL4 header 7 bytes (PV-0402/PV-0403); values opaque to this kind (the bytes of server-screen/minimal-logon-screen.vec, inputs at invented positions, IMPL-SS-1).
+# expect.items: 3
+# expect.item.1.type: appl
+# expect.item.1.id: 0x06
+# expect.item.1.sid: 0x0D
+# expect.item.1.id_name: ST_R3INFO
+# expect.item.1.sid_name: DYNPRONAME
+# expect.item.1.offset: 5
+# expect.item.1.length: 8
+# expect.item.2.type: appl
+# expect.item.2.id: 0x06
+# expect.item.2.sid: 0x0E
+# expect.item.2.id_name: ST_R3INFO
+# expect.item.2.sid_name: DYNPRONUMBER
+# expect.item.2.offset: 18
+# expect.item.2.length: 4
+# expect.item.3.type: appl4
+# expect.item.3.id: 0x09
+# expect.item.3.sid: 0x02
+# expect.item.3.id_name: DYNT
+# expect.item.3.sid_name: DYNT_ATOM
+# expect.item.3.offset: 29
+# expect.item.3.length: 38
+# expect.error: none
+hex:
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0D                                                # sid 0x0D DYNPRONAME
+00 08                                             # length 8, u16 BE
+53 41 50 4D 53 59 53 54                           # DYNPRONAME 'SAPMSYST', no padding
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0E                                                # sid 0x0E DYNPRONUMBER
+00 04                                             # length 4, u16 BE
+31 33 33 37                                       # DYNPRONUMBER '1337'
+12                                                # type APPL4
+09                                                # id 0x09 DYNT
+02                                                # sid 0x02 DYNT_ATOM
+00 00 00 26                                       # length 38, u32 BE
+00 13                                             # atom_length 19 (input, who goes there)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 02 00                                       # etype 130, area 0, block 2, group 0
+00 30 00 3E                                       # row 48, col 62
+40                                                # attribute YES3D
+00 00 00 0C 00 0C                                 # payload
+00 13                                             # atom_length 19 (input, secret quack)
+00 00                                             # dlg_flag_1, dlg_flag_2 (carried verbatim, #34)
+82 00 02 00                                       # etype 130, area 0, block 2, group 0
+00 33 00 3E                                       # row 51, col 62
+42                                                # attribute INVISIBLE|YES3D
+00 00 00 0C 00 28                                 # payload

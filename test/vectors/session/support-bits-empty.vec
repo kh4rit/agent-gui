@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/session.md#51-size-and-bit-numbering
+# provenance: PV-0124, PV-0509
+# kind: support-bits
+# description: A well-formed 32-byte mask with no bits set.
+# derivation: 32 zero bytes: a full-length value (PV-0124) in which no bit (PV-0509) is set.
+# expect.error: none
+# expect.length: 32
+# expect.set_bits: none
+hex:
+00 00 00 00 00 00 00 00 # bytes 0-7
+00 00 00 00 00 00 00 00 # bytes 8-15
+00 00 00 00 00 00 00 00 # bytes 16-23
+00 00 00 00 00 00 00 00 # bytes 24-31

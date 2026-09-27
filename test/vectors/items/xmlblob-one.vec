@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/items.md#xmlblob
+# provenance: PV-0100, PV-0105, PV-0106, PV-0107
+# kind: items
+# description: A single XMLBLOB with a 4-byte value.
+# derivation: Type byte 0x11 (PV-0100, PV-0105), u32 BE length 4 right after it with no id/sid (PV-0106) counting only the value (PV-0107, reading R-IT-3); value bytes are arbitrary (opaque, gap #20).
+# expect.items: 1
+# expect.item.1.type: xmlblob
+# expect.item.1.offset: 5
+# expect.item.1.length: 4
+# expect.error: none
+hex:
+11                                                # type XMLBLOB
+00 00 00 04                                       # length 4, u32 BE
+A1 B2 C3 D4                                       # value (opaque)

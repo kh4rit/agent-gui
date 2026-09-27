@@ -1,0 +1,22 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#on-the-wire
+# provenance: PV-0001, PV-0002, PV-0003, PV-0004, PV-0200
+# kind: ni-stream
+# description: A ping frame between two other frames (as when the server pings mid-step): the framer yields it as the second of three ordinary frames.
+# derivation: Each frame is a u32 BE length of its payload only (PV-0001..PV-0003); frame 2 is the framed ping of PV-0200 (literal PV-0004); frames 1 and 3 carry arbitrary opaque payloads of 8 and 3 bytes.
+# expect.frames: 3
+# expect.frame.1.offset: 4
+# expect.frame.1.length: 8
+# expect.frame.2.offset: 16
+# expect.frame.2.length: 8
+# expect.frame.3.offset: 28
+# expect.frame.3.length: 3
+# expect.error: none
+# expect.trailing: 0
+hex:
+00 00 00 08                                       # frame 1: length 8
+11 22 33 44 55 66 77 88                           # frame 1: payload (opaque)
+00 00 00 08                                       # frame 2: length 8
+4E 49 5F 50 49 4E 47 00                           # frame 2: N I _ P I N G \0
+00 00 00 03                                       # frame 3: length 3
+AA BB CC                                          # frame 3: payload (opaque)

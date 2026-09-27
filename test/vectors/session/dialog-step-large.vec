@@ -1,0 +1,10 @@
+# source: spec
+# spec: docs/protocol/session.md#41-dialog_step_number-payload
+# provenance: PV-0125
+# kind: dialog-step
+# description: DIALOG_STEP_NUMBER with a value whose bytes are distinct, to fix byte order.
+# derivation: One u32 BE (PV-0125, PV-0125). 0x01020304 = 16909060 sent most-significant byte first confirms big-endian ordering.
+# expect.error: none
+# expect.step: 16909060
+hex:
+01 02 03 04            # step 0x01020304, u32 BE

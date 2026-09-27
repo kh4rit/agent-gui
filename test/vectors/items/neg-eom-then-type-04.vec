@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/items.md#unknown-item-types
+# provenance: PV-0100, PV-0413, PV-0117, PV-0404, PV-0417, PV-0433
+# kind: items
+# description: EOM, then 0x04: 0x04 is the APPL id ST_USER but not an item type, so the walk stops at item 2.
+# derivation: Item 1 is EOM 0x0C (PV-0413), 1 byte (PV-0117, PV-0404); walking does not stop at EOM (reading R-IT-1); item 2's type 0x04 is outside the type set (PV-0417) even though 0x04 is an id (PV-0433), so unknown-simple-type (IMPL-IT-2).
+# expect.items: 1
+# expect.item.1.type: eom
+# expect.item.1.offset: 1
+# expect.item.1.length: 0
+# expect.error: unknown-simple-type
+# expect.error.item: 2
+# expect.error.type: 0x04
+hex:
+0C                                                # type EOM
+04                                                # type 0x04 (unknown as a type)

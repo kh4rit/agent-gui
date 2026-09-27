@@ -1,0 +1,9 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#body-classification
+# provenance: PV-0038, PV-0050, PV-0051, PV-0052, PV-0053
+# kind: diag-header
+# description: compress = 4 is not a defined value, so the message is rejected (project policy IMPL-DH-2).
+# derivation: compress at offset 7 (PV-0038) is 4, outside the defined values 0-3 (PV-0050..PV-0053); IMPL-DH-2 rejects it as unknown-compress.
+# expect.error: unknown-compress
+hex:
+00 00 00 00 00 00 00 04                           # mode com_flag mode_stat err_no msg_type msg_info msg_rc compress

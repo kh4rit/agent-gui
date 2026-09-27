@@ -1,0 +1,20 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#client-message-headers
+# provenance: PV-0030, PV-0031, PV-0032, PV-0033, PV-0034, PV-0035, PV-0036, PV-0037, PV-0038, PV-0051, PV-0054, PV-0301, PV-0317
+# kind: diag-header
+# description: DIAG header of a later client message on a connection that chose compression: every byte 0 except compress 1.
+# derivation: Pattern PV-0301 with compress 1 (PV-0051, PV-0317); err_no 0, so a compression header and compressed items follow. Used only when the compressing encoder is enabled (IMPL-DH-4).
+# expect.error: none
+# expect.mode: 0x00
+# expect.com_flag: 0x00
+# expect.mode_stat: 0x00
+# expect.err_no: 0x00
+# expect.msg_type: 0x00
+# expect.msg_info: 0x00
+# expect.msg_rc: 0x00
+# expect.compress: 0x01
+# expect.com_flag.names: none
+# expect.body: compressed
+# expect.client_message: later
+hex:
+00 00 00 00 00 00 00 01                           # mode com_flag mode_stat err_no msg_type msg_info msg_rc compress

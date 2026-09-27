@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/controls/transport.md#31-layout
+# provenance: PV-0935, PV-0936
+# kind: control-properties
+# description: A single CONTROL_ID entry naming an invented tree shell.
+# derivation: One entry: u16 BE 0x0002 (CONTROL_ID, PV-0936), text, 00 (PV-0935).
+# expect.entries: 1
+# expect.entry.1.id: 2
+# expect.entry.1.id_name: CONTROL_ID
+# expect.entry.1.value_offset: 2
+# expect.entry.1.value_length: 11
+# expect.error: none
+hex:
+00 02 5A 5A 5F 54 45 41 5F 54 52 45 45 00         # id 0x0002 CONTROL_ID, text 'ZZ_TEA_TREE' + 00

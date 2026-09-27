@@ -1,0 +1,66 @@
+# source: spec
+# spec: docs/protocol/controls/transport.md#6-order-of-items-when-a-control-opens
+# provenance: PV-0100, PV-0101, PV-0102, PV-0105, PV-0106, PV-0107, PV-0400, PV-0401, PV-0402, PV-0404, PV-0413, PV-0438, PV-0439, PV-0442, PV-0458, PV-0460, PV-0463, PV-0930, PV-0935, PV-0709
+# kind: items
+# description: A server message that opens a grid control: CONTAINER RESET, CONTAINER CONTROL, CONTAINER NAME, CONTROL_PROPERTIES, DYNT_CONTROL_FOCUS, the bare DATAMANAGER XMLBLOB, EOM (invented content).
+# derivation: Order from ODG's control-opening message (transport.md 6, R-CT-5 informative); every item is APPL (PV-0101, PV-0102) except the XMLBLOB (PV-0105, PV-0106) and EOM (PV-0413); values: CONTAINER values opaque here, CONTROL_PROPERTIES entries per PV-0935, DYNT_CONTROL_FOCUS text per PV-0709, XMLBLOB text per PV-0930.
+# expect.items: 7
+# expect.item.1.type: appl
+# expect.item.1.id: 0x0A
+# expect.item.1.sid: 0x01
+# expect.item.1.id_name: CONTAINER
+# expect.item.1.sid_name: RESET
+# expect.item.1.offset: 5
+# expect.item.1.length: 9
+# expect.item.2.type: appl
+# expect.item.2.id: 0x0A
+# expect.item.2.sid: 0x0A
+# expect.item.2.id_name: CONTAINER
+# expect.item.2.sid_name: CONTROL
+# expect.item.2.offset: 19
+# expect.item.2.length: 9
+# expect.item.3.type: appl
+# expect.item.3.id: 0x0A
+# expect.item.3.sid: 0x06
+# expect.item.3.id_name: CONTAINER
+# expect.item.3.sid_name: NAME
+# expect.item.3.offset: 33
+# expect.item.3.length: 41
+# expect.item.4.type: appl
+# expect.item.4.id: 0x0E
+# expect.item.4.sid: 0x01
+# expect.item.4.id_name: CONTROL
+# expect.item.4.sid_name: CONTROL_PROPERTIES
+# expect.item.4.offset: 79
+# expect.item.4.length: 61
+# expect.item.5.type: appl
+# expect.item.5.id: 0x09
+# expect.item.5.sid: 0x12
+# expect.item.5.id_name: DYNT
+# expect.item.5.sid_name: DYNT_CONTROL_FOCUS
+# expect.item.5.offset: 145
+# expect.item.5.length: 2
+# expect.item.6.type: xmlblob
+# expect.item.6.offset: 152
+# expect.item.6.length: 53
+# expect.item.7.type: eom
+# expect.item.7.offset: 206
+# expect.item.7.length: 0
+# expect.error: none
+hex:
+10 0A 01 00 09 07 00 02 00 01 00 4E 00 14         # APPL CONTAINER RESET, 9-byte area value (opaque to the walker)
+10 0A 0A 00 09 07 00 02 00 01 00 4E 00 14         # APPL CONTAINER CONTROL, 9-byte value (opaque)
+10 0A 06 00 29 5A 5A 5F 47 52 49 44 5F 4F 46 5F   # APPL CONTAINER NAME: three zero-terminated strings (invented)
+47 49 47 47 4C 45 53 00 5A 5A 5F 53 4E 41 43 4B
+5F 54 52 41 43 4B 45 52 00 30 30 34 32 00
+10 0E 01 00 3D 00 01 31 00 00 02 5A 5A 5F 47 52   # APPL CONTROL CONTROL_PROPERTIES: seven entries (invented values)
+49 44 5F 4F 46 5F 47 49 47 47 4C 45 53 20 20 20
+20 20 20 20 20 20 20 20 20 20 20 00 00 03 31 00
+00 04 30 00 00 05 30 00 00 06 32 30 00 00 07 37
+38 00
+10 09 12 00 02 34 32                              # APPL DYNT DYNT_CONTROL_FOCUS: shell id '42' as text
+11 00 00 00 35 3C 3F 78 6D 6C 20 76 65 72 73 69   # XMLBLOB: the server's bare 53-byte DATAMANAGER document
+6F 6E 3D 22 31 2E 30 22 20 65 6E 63 6F 64 69 6E
+67 3D 22 75 74 66 2D 31 36 22 3F 3E 3C 44 41 54
+41 4D 41 4E 41 47 45 52 2F 3E
+0C                                                # EOM

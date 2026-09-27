@@ -1,0 +1,39 @@
+# source: spec
+# spec: docs/protocol/dp-header.md#size
+# provenance: PV-0020
+# kind: dp-header
+# description: Only 199 bytes: one byte short of a DP header, so the first message is truncated.
+# derivation: A DP header is exactly 200 bytes (PV-0020); the input is the first 199 bytes of the testhost template (length 8), so IMPL-DP-3 reports truncated.
+# expect.error: truncated
+hex:
+FF FF FF FF                                       # request_id (offset 0)
+0A                                                # retcode (offset 4)
+00                                                # sender_id (offset 5)
+00                                                # action_type (offset 6)
+00 00 00 00                                       # req_info (offset 7)
+FF FF FF FF                                       # tid (offset 11)
+FF FF                                             # uid (offset 15)
+FF                                                # mode (offset 17)
+FF FF FF FF                                       # wp_id (offset 18)
+FF FF FF FF                                       # wp_ca_blk (offset 22)
+FF FF FF FF                                       # appc_ca_blk (offset 26)
+08 00 00 00                                       # length = 8, u32 LE
+00                                                # new_stat (offset 34)
+FF FF FF FF                                       # unused1 (offset 35)
+FF FF                                             # rq_id (offset 39)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20   # unused2 (offset 41)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 20 20 20 20 20 20
+74 65 73 74 68 6F 73 74 00 00 00 00 00 00 00      # terminal: 'testhost' + 7 x 00
+00 00 00 00 00 00 00 00 00 00                     # unused3 (offset 96)
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20   # unused4 (offset 106)
+20 20 20 20
+00 00 00 00                                       # unused5 (offset 126)
+00 00 00 00                                       # unused6 (offset 130)
+FF FF FF FF                                       # unused7 (offset 134)
+00 00 00 00                                       # unused8 (offset 138)
+01                                                # unused9 (offset 142)
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   # unused10 (offset 143), 56 of 57 bytes
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00

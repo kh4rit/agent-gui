@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#5-compressed-table-content
+# provenance: PV-0916, PV-0917, PV-0918, PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068
+# kind: rfc-compressed-table
+# description: The header at offset 8 has magic 1F 9E instead of 1F 9D.
+# derivation: L = 14 (PV-0917, reported only); header at 8 (PV-0916) fails the v1 magic check (PV-0067, IMPL-CH-4: bad-magic).
+# expect.error: bad-magic
+hex:
+5A 5A 5A 5A                                       # bytes 0-3: ODG's unexplained tag (arbitrary 'ZZZZ' here)
+00 00 00 0E                                       # length field L = 14, u32 BE (PV-0917; its extent is #82, reported only)
+64 00 00 00 12 1F 9E 02                           # compression header at offset 8 (PV-0916, PV-0918; v1 layout)
+A5 5A 3C C3 0F F0                                 # compressed data, 6 bytes (arbitrary: this kind does not decompress)

@@ -1,0 +1,20 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#4-table-content-split-into-rows
+# provenance: PV-0910, PV-0912, PV-0913, PV-0914, PV-0919
+# kind: rfc-table-content
+# description: One row, then the end item followed by its own trailing pair, which is not table content.
+# derivation: Row per PV-0910/PV-0913; the reassembler stops after the 03 06 item's length (IMPL-CT-3), so its trailing pair is reported as 2 trailing bytes.
+# expect.rows: 1
+# expect.row.1.offset: 4
+# expect.row.1.length: 10
+# expect.content_length: 10
+# expect.content: 5A 5A 5F 42 49 53 43 55 49 54
+# expect.end_length: 0
+# expect.trailing: 2
+# expect.error: none
+hex:
+03 05 00 0A                                       # item 03 05 (table content), length 10
+5A 5A 5F 42 49 53 43 55 49 54                     # value of row 1
+03 05                                             # trailing id pair 03 05 (PV-0919)
+03 06 00 00                                       # item 03 06 (table content end), length 0
+03 06                                             # trailing id pair 03 06 (after the table: reported as trailing)

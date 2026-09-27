@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#dispatcher-frames
+# provenance: PV-0001, PV-0002, PV-0003, PV-0006, PV-0203
+# kind: ni-stream
+# description: A **DPTMMSG** dispatcher frame is an ordinary NI frame of length 14: the 12-byte literal plus 2 further bytes.
+# derivation: u32 BE length 14 (PV-0001..PV-0003, PV-0203), then the literal of PV-0006 and 2 bytes whose content is unknown (gap #3), here arbitrary.
+# expect.frames: 1
+# expect.frame.1.offset: 4
+# expect.frame.1.length: 14
+# expect.error: none
+# expect.trailing: 0
+hex:
+00 00 00 0E                                       # length 14, u32 BE
+2A 2A 44 50 54 4D 4D 53 47 2A 2A 00               # * * D P T M M S G * * \0
+A1 A2                                             # 2 trailing bytes (content unknown, #3; arbitrary)

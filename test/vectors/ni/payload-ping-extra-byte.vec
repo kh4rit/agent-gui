@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/ni-framing.md#on-the-wire
+# provenance: PV-0004, PV-0202
+# kind: ni-payload
+# description: NI_PING\0 followed by one more byte (9 bytes) is not a keep-alive: recognition needs a length of exactly 8.
+# derivation: PV-0202 requires the frame length to be exactly 8; this payload is the 8 bytes of PV-0004 plus an arbitrary byte, so rules 1-4 do not match and rule 5 applies.
+# expect.class: diag
+# expect.reply: none
+# expect.reply.frame: none
+hex:
+4E 49 5F 50 49 4E 47 00                           # N I _ P I N G \0
+00                                                # one extra byte (arbitrary)

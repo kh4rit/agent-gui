@@ -1,0 +1,15 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0103, PV-0104, PV-0107, PV-0400, PV-0401, PV-0403
+# kind: items
+# description: An APPL4 item announces 5 value bytes but only 2 follow.
+# derivation: u32 BE length 5 (PV-0104) counts the value only (PV-0107); the value starts at offset 7 (PV-0403) and 2 bytes remain, so truncated at item 1 (IMPL-IT-5).
+# expect.items: 0
+# expect.error: truncated
+# expect.error.item: 1
+hex:
+12                                                # type APPL4
+09                                                # id 0x09
+02                                                # sid 0x02
+00 00 00 05                                       # length 5
+01 02                                             # 2 of 5 value bytes

@@ -1,0 +1,46 @@
+# source: spec
+# spec: docs/protocol/controls/transport.md#31-layout
+# provenance: PV-0935, PV-0936
+# kind: control-properties
+# description: CONTROL_PROPERTIES of an invented grid shell: all seven named ids, the name space-padded to 32 characters.
+# derivation: Each entry is a u16 BE id then text then 00 (PV-0935); ids 1-7 named per PV-0936; values invented in the shapes ODG saw (ASCII numbers, a padded name).
+# expect.entries: 7
+# expect.entry.1.id: 1
+# expect.entry.1.id_name: CONTROL_AREA
+# expect.entry.1.value_offset: 2
+# expect.entry.1.value_length: 1
+# expect.entry.2.id: 2
+# expect.entry.2.id_name: CONTROL_ID
+# expect.entry.2.value_offset: 6
+# expect.entry.2.value_length: 32
+# expect.entry.3.id: 3
+# expect.entry.3.id_name: CONTROL_VISIBLE
+# expect.entry.3.value_offset: 41
+# expect.entry.3.value_length: 1
+# expect.entry.4.id: 4
+# expect.entry.4.id_name: CONTROL_ROW
+# expect.entry.4.value_offset: 45
+# expect.entry.4.value_length: 1
+# expect.entry.5.id: 5
+# expect.entry.5.id_name: CONTROL_COLUMN
+# expect.entry.5.value_offset: 49
+# expect.entry.5.value_length: 1
+# expect.entry.6.id: 6
+# expect.entry.6.id_name: CONTROL_ROWS
+# expect.entry.6.value_offset: 53
+# expect.entry.6.value_length: 2
+# expect.entry.7.id: 7
+# expect.entry.7.id_name: CONTROL_COLUMNS
+# expect.entry.7.value_offset: 58
+# expect.entry.7.value_length: 2
+# expect.error: none
+hex:
+00 01 31 00                                       # id 0x0001 CONTROL_AREA, text '1' + 00
+00 02 5A 5A 5F 47 52 49 44 5F 4F 46 5F 47 49 47   # id 0x0002 CONTROL_ID, text 'ZZ_GRID_OF_GIGGLES' space-padded to 32 + 00
+47 4C 45 53 20 20 20 20 20 20 20 20 20 20 20 20
+20 20 00
+00 03 31 00                                       # id 0x0003 CONTROL_VISIBLE, text '1' + 00
+00 04 30 00                                       # id 0x0004 CONTROL_ROW, text '0' + 00
+00 05 30 00                                       # id 0x0005 CONTROL_COLUMN, text '0' + 00
+00 06 32 30 00                                    # id 0x0006 CONTROL_ROWS, text '20' + 00
+00 07 37 38 00                                    # id 0x0007 CONTROL_COLUMNS, text '78' + 00

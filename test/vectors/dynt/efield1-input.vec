@@ -1,0 +1,42 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#field-_1-variants-121-122-123
+# provenance: PV-0140, PV-0602, PV-0603, PV-0606, PV-0610, PV-0611, PV-0612, PV-0626, PV-0630, PV-0653
+# kind: dynt-atoms
+# description: An older-form editable field EFIELD_1 (121) whose flag1 is one byte, value X.
+# derivation: atom_length 19 (PV-0602/0603); header (PV-0140) etype 0x79=121 (PV-0606/0630), row 4 col 20 (PV-0610/0611), attr 0x40 YES3D (PV-0612/0626). Payload (PV-0653): flag1 ONE byte = 0, dlen 1, mlen 1, maxnrchars u16 BE = 1, then dlen=1 text byte "X" (0x58). content_length = 6; text at payload offset 5 = input offset 18. This is the only structural difference from the _2 variants: flag1 is 1 byte here, 2 bytes in 130-132.
+# expect.atoms: 1
+# expect.atom.1.etype: 121
+# expect.atom.1.length: 19
+# expect.atom.1.dlg_flag_1: 0x00
+# expect.atom.1.dlg_flag_2: 0x00
+# expect.atom.1.area: 0
+# expect.atom.1.block: 1
+# expect.atom.1.group: 0
+# expect.atom.1.row: 4
+# expect.atom.1.col: 20
+# expect.atom.1.attr: 0x40
+# expect.atom.1.attr.names: YES3D
+# expect.atom.1.content_offset: 13
+# expect.atom.1.content_length: 6
+# expect.atom.1.field.dlen: 1
+# expect.atom.1.field.mlen: 1
+# expect.atom.1.field.maxnrchars: 1
+# expect.atom.1.text_offset: 18
+# expect.atom.1.text_length: 1
+# expect.error: none
+hex:
+00 13                  # atom_length 19
+00                     # dlg_flag_1
+00                     # dlg_flag_2
+79                     # etype 121 (EFIELD_1)
+00                     # area
+01                     # block
+00                     # group
+00 04                  # row 4
+00 14                  # col 20
+40                     # attribute YES3D
+00                     # field1_flag1 (ONE byte)
+01                     # field1_dlen 1
+01                     # field1_mlen 1
+00 01                  # field1_maxnrchars 1 (u16 BE)
+58                     # text "X"

@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0105, PV-0106, PV-0107
+# kind: items
+# description: An XMLBLOB announcing 8 value bytes, of which only 3 are present.
+# derivation: 0x11 (PV-0105), length 8 as u32 BE (PV-0106) counting the value (PV-0107); 3 value bytes remain, so the walk stops with truncated at item 1 (IMPL-IT-5).
+# expect.items: 0
+# expect.error: truncated
+# expect.error.item: 1
+hex:
+11                                                # type XMLBLOB
+00 00 00 08                                       # length 8
+01 02 03                                          # 3 of 8 value bytes

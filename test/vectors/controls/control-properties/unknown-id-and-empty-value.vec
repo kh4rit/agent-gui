@@ -1,0 +1,20 @@
+# source: spec
+# spec: docs/protocol/controls/transport.md#31-layout
+# provenance: PV-0935, PV-0936
+# kind: control-properties
+# description: An entry with an id Wireshark does not name, then a CONTROL_VISIBLE entry with an empty text.
+# derivation: Entries per PV-0935; id 0x0042 has no name in PV-0936 (reported unknown); an empty value is just its 00 byte.
+# expect.entries: 2
+# expect.entry.1.id: 66
+# expect.entry.1.id_name: unknown
+# expect.entry.1.value_offset: 2
+# expect.entry.1.value_length: 15
+# expect.entry.2.id: 3
+# expect.entry.2.id_name: CONTROL_VISIBLE
+# expect.entry.2.value_offset: 20
+# expect.entry.2.value_length: 0
+# expect.error: none
+hex:
+00 42 5A 5A 5F 4D 59 53 54 45 52 59 5F 4B 4E 4F   # id 0x0042 unknown id, text 'ZZ_MYSTERY_KNOB' + 00
+42 00
+00 03 00                                          # id 0x0003 CONTROL_VISIBLE, text '' + 00

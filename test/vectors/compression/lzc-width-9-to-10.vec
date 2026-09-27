@@ -1,0 +1,34 @@
+# source: spec
+# spec: docs/protocol/compression-lzc.md#code-width
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0069, PV-0080, PV-0350, PV-0310, PV-0312, PV-0384, PV-0385, PV-0386, PV-0388, PV-0389, PV-0390, PV-0391, PV-0392, PV-0395, PV-0314
+# kind: decompress
+# description: Codes 0-255 at 9 bits, then the first 10-bit code (512, equal to next free), in block mode.
+# derivation: Header: length 258 = 02 01 00 00, byte 7 0x90. Bytes 0-287: codes 0x000 to 0x0FF in order, each a literal (the first adds no entry, each later one adds an entry, 257 to 511), 9 bits each, LSB first, filling 32 whole 9-byte chunks (PV-0385, PV-0388, PV-0389, PV-0391). Before code 257 next free is 512 > 2^9 - 1, so the width becomes 10 (PV-0390, R-LZC-3). Code 512 equals next free, so its string is FF + FF (PV-0392). Bytes 288-289: 512 in 10 bits = 00 02. Output: 0x00 to 0xFF, then FF FF.
+# expect.error: none
+# expect.algorithm: lzc
+# expect.uncompressed_length: 258
+# expect.block_mode: 1
+# expect.output_length: 258
+# expect.output: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F 20 21 22 23 24 25 26 27 28 29 2A 2B 2C 2D 2E 2F 30 31 32 33 34 35 36 37 38 39 3A 3B 3C 3D 3E 3F 40 41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F 50 51 52 53 54 55 56 57 58 59 5A 5B 5C 5D 5E 5F 60 61 62 63 64 65 66 67 68 69 6A 6B 6C 6D 6E 6F 70 71 72 73 74 75 76 77 78 79 7A 7B 7C 7D 7E 7F 80 81 82 83 84 85 86 87 88 89 8A 8B 8C 8D 8E 8F 90 91 92 93 94 95 96 97 98 99 9A 9B 9C 9D 9E 9F A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 AA AB AC AD AE AF B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 BA BB BC BD BE BF C0 C1 C2 C3 C4 C5 C6 C7 C8 C9 CA CB CC CD CE CF D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 DA DB DC DD DE DF E0 E1 E2 E3 E4 E5 E6 E7 E8 E9 EA EB EC ED EE EF F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 FA FB FC FD FE FF FF FF
+hex:
+02 01 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+90                                                # byte 7
+00 02 08 18 40 A0 80 81 03 08 12 28 58 C0 A0 81 83 07  # codes 0-15
+10 22 48 98 40 A1 82 85 0B 18 32 68 D8 C0 A1 83 87 0F  # codes 16-31
+20 42 88 18 41 A2 84 89 13 28 52 A8 58 C1 A2 85 8B 17  # codes 32-47
+30 62 C8 98 41 A3 86 8D 1B 38 72 E8 D8 C1 A3 87 8F 1F  # codes 48-63
+40 82 08 19 42 A4 88 91 23 48 92 28 59 C2 A4 89 93 27  # codes 64-79
+50 A2 48 99 42 A5 8A 95 2B 58 B2 68 D9 C2 A5 8B 97 2F  # codes 80-95
+60 C2 88 19 43 A6 8C 99 33 68 D2 A8 59 C3 A6 8D 9B 37  # codes 96-111
+70 E2 C8 99 43 A7 8E 9D 3B 78 F2 E8 D9 C3 A7 8F 9F 3F  # codes 112-127
+80 02 09 1A 44 A8 90 A1 43 88 12 29 5A C4 A8 91 A3 47  # codes 128-143
+90 22 49 9A 44 A9 92 A5 4B 98 32 69 DA C4 A9 93 A7 4F  # codes 144-159
+A0 42 89 1A 45 AA 94 A9 53 A8 52 A9 5A C5 AA 95 AB 57  # codes 160-175
+B0 62 C9 9A 45 AB 96 AD 5B B8 72 E9 DA C5 AB 97 AF 5F  # codes 176-191
+C0 82 09 1B 46 AC 98 B1 63 C8 92 29 5B C6 AC 99 B3 67  # codes 192-207
+D0 A2 49 9B 46 AD 9A B5 6B D8 B2 69 DB C6 AD 9B B7 6F  # codes 208-223
+E0 C2 89 1B 47 AE 9C B9 73 E8 D2 A9 5B C7 AE 9D BB 77  # codes 224-239
+F0 E2 C9 9B 47 AF 9E BD 7B F8 F2 E9 DB C7 AF 9F BF 7F  # codes 240-255
+00 02                                             # code 512 in 10 bits

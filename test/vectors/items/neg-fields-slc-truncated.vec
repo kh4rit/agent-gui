@@ -1,0 +1,10 @@
+# source: spec
+# spec: docs/protocol/items.md#slc
+# provenance: PV-0100, PV-0414, PV-0118, PV-0423
+# kind: simple-item-fields
+# description: An SLC item with 1 of its 2 value bytes.
+# derivation: Type 0x13 (PV-0414) needs a 2-byte value (PV-0118); only 1 byte is present, so truncated.
+# expect.error: truncated
+hex:
+13                                                # type SLC
+01                                                # 1 of 2 value bytes

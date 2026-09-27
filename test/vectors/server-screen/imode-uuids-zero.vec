@@ -1,0 +1,10 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#52-internal-mode-uuids
+# provenance: PV-0710, PV-0435, PV-0455
+# kind: imode-uuids
+# description: Count 0: a one-byte value.
+# derivation: u8 count n, then n x (16-byte UUID, u8 active context); length 1 + 17n (PV-0710).
+# expect.count: 0
+# expect.error: none
+hex:
+00                                                # count 0

@@ -1,0 +1,13 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#31-item-ids-wireshark-names
+# provenance: PV-0910, PV-0912
+# kind: rfc-items
+# description: An item whose value is cut short: truncated in item 1 (IMPL-CT-2).
+# derivation: Id 01 02 (PV-0912) and the length 14 (PV-0910), then only the 3 bytes 'OLE'; the walk stops with truncated in item 1.
+# expect.error: truncated
+# expect.error.item: 1
+# expect.items: 0
+# expect.end: no
+hex:
+01 02 00 0E                                      # item 01 02 (function name), length 14
+4F 4C 45                                           # only 3 value bytes: the input ends inside the value

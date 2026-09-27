@@ -1,0 +1,9 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#81-menu-entries-mnuentry
+# provenance: PV-0720
+# kind: menu-entries
+# description: An empty MNUENTRY value: no entries.
+# derivation: PV-0720: entries run to the end of the value; an empty value holds none.
+# expect.entries: 0
+# expect.error: none
+hex:

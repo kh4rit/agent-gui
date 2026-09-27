@@ -1,0 +1,29 @@
+# source: spec
+# spec: docs/protocol/controls/datamanager.md#31-metrics-block
+# provenance: PV-0931
+# kind: datamanager
+# description: A metrics block (COPY > GUI > METRICS, DIMENSIONS) with invented numbers; no events, controls or tables.
+# derivation: Element and attribute names as datamanager.md 3.1 (pysap's METRICS attributes, ODG's DIMENSIONS X0/Y0); the decoder reports only the child names here.
+# expect.root: DATAMANAGER
+# expect.encoding: sap*
+# expect.children: COPY
+# expect.events: 0
+# expect.controls: 0
+# expect.datachanges: 0
+# expect.datarequests: 0
+# expect.error: none
+hex:
+3C 3F 78 6D 6C 20 76 65 72 73 69 6F 6E 3D 22 31   # document text (ASCII)
+2E 30 22 20 65 6E 63 6F 64 69 6E 67 3D 22 73 61
+70 2A 22 3F 3E 3C 44 41 54 41 4D 41 4E 41 47 45
+52 3E 3C 43 4F 50 59 20 69 64 3D 22 31 22 3E 3C
+47 55 49 20 69 64 3D 22 31 22 3E 3C 4D 45 54 52
+49 43 53 20 69 64 3D 22 31 22 20 58 30 3D 22 37
+22 20 58 31 3D 22 38 22 20 58 32 3D 22 39 22 20
+58 33 3D 22 31 30 22 20 59 30 3D 22 31 34 22 20
+59 31 3D 22 31 35 22 20 59 32 3D 22 31 36 22 20
+59 33 3D 22 31 37 22 2F 3E 3C 44 49 4D 45 4E 53
+49 4F 4E 53 20 58 30 3D 22 31 33 32 22 20 59 30
+3D 22 34 32 22 2F 3E 3C 2F 47 55 49 3E 3C 2F 43
+4F 50 59 3E 3C 2F 44 41 54 41 4D 41 4E 41 47 45
+52 3E

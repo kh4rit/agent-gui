@@ -1,0 +1,36 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#78-swooeys-answer-2026-09-25
+# provenance: PV-0910, PV-0919, PV-0924, PV-0934
+# kind: rfc-items
+# description: Three rows of a 44-wide descriptor table as raw rows (Reading R-CT-31): one 03 04 item per row, a blank row as one space, the others whole at the row width, no 03 06.
+# derivation: Each row is an RFC item (PV-0910, PV-0919) with id 03 04: a blank row as the one byte 20, every other row whole, 44 bytes with its trailing spaces, as every non-blank raw row seen was full width (PV-0934); the rows are four-column descriptors (PV-0924) with invented numbers.
+# expect.error: none
+# expect.items: 3
+# expect.item.1.id: 03 04
+# expect.item.1.length: 1
+# expect.item.1.value: 20
+# expect.item.1.trailer: matches
+# expect.item.2.id: 03 04
+# expect.item.2.length: 44
+# expect.item.2.value: 31 20 31 32 20 5F 52 45 53 55 4C 54 20 33 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+# expect.item.2.trailer: matches
+# expect.item.3.id: 03 04
+# expect.item.3.length: 44
+# expect.item.3.value: 32 20 33 20 23 31 20 34 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20
+# expect.item.3.trailer: matches
+# expect.end: no
+# expect.reencodes: yes
+hex:
+03 04 00 01                           # item 03 04, length 1, a blank row as one space
+20                                                 # value
+03 04                                              # trailing pair repeating the id (PV-0919)
+03 04 00 2C                           # item 03 04, length 44, a result-slot row, whole
+31 20 31 32 20 5F 52 45 53 55 4C 54 20 33 20 20    # value
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value, continued
+20 20 20 20 20 20 20 20 20 20 20 20                # value, continued
+03 04                                              # trailing pair repeating the id (PV-0919)
+03 04 00 2C                           # item 03 04, length 44, an input row, whole
+32 20 33 20 23 31 20 34 20 20 20 20 20 20 20 20    # value
+20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20    # value, continued
+20 20 20 20 20 20 20 20 20 20 20 20                # value, continued
+03 04                                              # trailing pair repeating the id (PV-0919)

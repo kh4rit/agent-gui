@@ -1,0 +1,61 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0101, PV-0102, PV-0107, PV-0400, PV-0401, PV-0402, PV-0103, PV-0104, PV-0403, PV-0105, PV-0106, PV-0405, PV-0110, PV-0413, PV-0117, PV-0404, PV-0433, PV-0453, PV-0434, PV-0454, PV-0438, PV-0458, PV-0125, PV-0524, PV-0760
+# kind: items
+# description: A client input step, shaped like the reference client's logon return: DIALOG_STEP_NUMBER, SES, DYNN CHL, DYNT_ATOM (APPL4), XMLBLOB, EOM.
+# derivation: Order per client-input.md §1.1 (PV-0760): interact() wraps SES, DYNN CHL, DYNT_ATOM, XMLBLOB with DIALOG_STEP_NUMBER first (PV-0524) and EOM last. Each item follows its type's layout: APPL header 5 (PV-0402), APPL4 header 7 (PV-0403), XMLBLOB header 5 (PV-0106), SES 1+16 (PV-0404/PV-0110), EOM 1+0 (PV-0117). Carriers per R-IT-10 (DYNN CHL APPL, DYNT_ATOM APPL4). Only the walk is checked; every value is opaque here (the DYNT_ATOM content is covered by returned-edited-fields.vec; the XMLBLOB value is arbitrary, #20; an encoder sends no XMLBLOB until #20, IMPL-IT-10).
+# expect.items: 6
+# expect.item.1.type: appl
+# expect.item.1.id: 0x04
+# expect.item.1.sid: 0x26
+# expect.item.1.id_name: ST_USER
+# expect.item.1.sid_name: DIALOG_STEP_NUMBER
+# expect.item.1.offset: 5
+# expect.item.1.length: 4
+# expect.item.2.type: ses
+# expect.item.2.offset: 10
+# expect.item.2.length: 16
+# expect.item.3.type: appl
+# expect.item.3.id: 0x05
+# expect.item.3.sid: 0x01
+# expect.item.3.id_name: DYNN
+# expect.item.3.sid_name: CHL
+# expect.item.3.offset: 31
+# expect.item.3.length: 22
+# expect.item.4.type: appl4
+# expect.item.4.id: 0x09
+# expect.item.4.sid: 0x02
+# expect.item.4.id_name: DYNT
+# expect.item.4.sid_name: DYNT_ATOM
+# expect.item.4.offset: 60
+# expect.item.4.length: 6
+# expect.item.5.type: xmlblob
+# expect.item.5.offset: 71
+# expect.item.5.length: 4
+# expect.item.6.type: eom
+# expect.item.6.offset: 76
+# expect.item.6.length: 0
+# expect.error: none
+hex:
+10                                                # type APPL
+04                                                # id 0x04 ST_USER
+26                                                # sid 0x26 DIALOG_STEP_NUMBER
+00 04                                             # length 4, u16 BE
+00 00 00 01                                       # step 1 (value, decoded by the dialog-step kind)
+01                                                # type SES
+01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   # SES value, event_array=1 rest 0 (layout PV-0420)
+10                                                # type APPL
+05                                                # id 0x05 DYNN
+01                                                # sid 0x01 CHL
+00 16                                             # length 22, u16 BE
+01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10   # DYNN CHL control state, 22 bytes (opaque, #32)
+11 12 13 14 15 16
+12                                                # type APPL4
+09                                                # id 0x09 DYNT
+02                                                # sid 0x02 DYNT_ATOM
+00 00 00 06                                       # length 6, u32 BE
+40 41 42 43 44 45                                 # DYNT_ATOM value (opaque here; atoms in returned-edited-fields.vec)
+11                                                # type XMLBLOB
+00 00 00 04                                       # length 4, u32 BE
+3C 61 2F 3E                                       # XMLBLOB value (opaque, #20)
+0C                                                # type EOM

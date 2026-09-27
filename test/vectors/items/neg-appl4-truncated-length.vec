@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0103, PV-0104, PV-0107, PV-0400, PV-0401, PV-0403
+# kind: items
+# description: The input ends inside the APPL4 length field (3 of 4 bytes).
+# derivation: APPL4 needs a 4-byte length at offset 3 (PV-0104); only 3 bytes are present, so truncated at item 1 (IMPL-IT-5).
+# expect.items: 0
+# expect.error: truncated
+# expect.error.item: 1
+hex:
+12                                                # type APPL4
+09                                                # id 0x09
+02                                                # sid 0x02
+00 00 00                                          # 3 of 4 length bytes

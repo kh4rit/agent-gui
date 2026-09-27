@@ -1,0 +1,14 @@
+# source: spec
+# spec: docs/protocol/controls/alv-grid.md#31-plain-packet
+# provenance: PV-0940, PV-0941
+# kind: alv-rows
+# description: A plain row packet that declares 3 rows but holds 2.
+# derivation: Count 3 (PV-0940) needs 48 row bytes; 32 are present (IMPL-CT-9: truncated).
+# expect.column_lengths: 10,6
+# expect.error: truncated
+hex:
+FF FF FF FF 01                                    # marker
+03 00 00 00                                       # row count 3 (defect: only 2 rows follow)
+10 00 00 00                                       # row width 16
+5A 5A 5F 57 41 46 46 4C 45 20 31 32 30 20 20 20   # row 1
+5A 5A 5F 50 52 45 54 5A 45 4C 37 35 20 20 20 20   # row 2

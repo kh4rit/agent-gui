@@ -1,0 +1,51 @@
+# source: spec
+# spec: docs/protocol/server-screen.md#7-screen-identity-a-decoder-reads
+# provenance: PV-0534, PV-0707, PV-0708, PV-0726
+# kind: screen-identity
+# description: Identity items in an order unlike pysap's example, one padded with zero bytes and one with spaces; a non-logon program name.
+# derivation: R-SS-4 trims trailing 0x20 and 0x00 (PV-0726); R-SS-7 makes the order irrelevant; no DYNT item, so no atoms.
+# expect.dbname: QAK
+# expect.client: 042
+# expect.cpuname: none
+# expect.tcode: none
+# expect.dynproname: ZZDUCKPOND
+# expect.dynpronumber: 0042
+# expect.cuaname: none
+# expect.cuastatus: none
+# expect.session_title: Consult the Rubber Duck
+# expect.session_icon: none
+# expect.gui_theme: none
+# expect.area: none
+# expect.atoms: 0
+# expect.efields: 0
+# expect.efields.invisible: 0
+# expect.menus: 0
+# expect.menu_entries: 0
+# expect.error: none
+hex:
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0E                                                # sid 0x0E DYNPRONUMBER
+00 04                                             # length 4, u16 BE
+30 30 34 32                                       # DYNPRONUMBER '0042'
+10                                                # type APPL
+0C                                                # id 0x0C VARINFO
+09                                                # sid 0x09 SESSION_TITLE
+00 17                                             # length 23, u16 BE
+43 6F 6E 73 75 6C 74 20 74 68 65 20 52 75 62 62   # SESSION_TITLE
+65 72 20 44 75 63 6B                              # SESSION_TITLE (cont.)
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0C                                                # sid 0x0C CLIENT
+00 05                                             # length 5, u16 BE
+30 34 32 00 00                                    # CLIENT '042' + two zero bytes
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+0D                                                # sid 0x0D DYNPRONAME
+00 0C                                             # length 12, u16 BE
+5A 5A 44 55 43 4B 50 4F 4E 44 20 20               # DYNPRONAME 'ZZDUCKPOND' + 2 spaces
+10                                                # type APPL
+06                                                # id 0x06 ST_R3INFO
+02                                                # sid 0x02 DBNAME
+00 03                                             # length 3, u16 BE
+51 41 4B                                          # DBNAME 'QAK'

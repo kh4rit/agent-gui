@@ -1,0 +1,19 @@
+# source: spec
+# spec: docs/protocol/items.md#walking-an-item-sequence
+# provenance: PV-0100, PV-0105, PV-0106, PV-0107
+# kind: items
+# description: A complete XMLBLOB followed by one whose value is cut off.
+# derivation: Item 1 is 0x11, length 1 (u32 BE), 1 value byte (PV-0105..PV-0107); item 2 announces 5 bytes but 1 remains, so the walk stops with truncated at item 2.
+# expect.items: 1
+# expect.item.1.type: xmlblob
+# expect.item.1.offset: 5
+# expect.item.1.length: 1
+# expect.error: truncated
+# expect.error.item: 2
+hex:
+11                                                # item 1: type
+00 00 00 01                                       # item 1: length 1
+FF                                                # item 1: value
+11                                                # item 2: type
+00 00 00 05                                       # item 2: length 5
+01                                                # item 2: 1 of 5 value bytes

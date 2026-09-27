@@ -1,0 +1,37 @@
+# source: spec
+# spec: docs/protocol/dynt-atoms.md#frame-127
+# provenance: PV-0140, PV-0602, PV-0603, PV-0606, PV-0610, PV-0611, PV-0612, PV-0630, PV-0654
+# kind: dynt-atoms
+# description: A FRAME_1 (127) atom of 2 rows by 40 columns with caption Fr.
+# derivation: atom_length 19 (PV-0602/0603); header (PV-0140) etype 0x7F=127 (PV-0606/0630), row 0 col 0 (PV-0610/0611), attr 0x00 (PV-0612). Payload (PV-0654): drows u16 BE = 2, dcols u16 BE = 40, then text of atom_length-17 = 2 bytes "Fr" (0x46 0x72). content_length = 6; text at payload offset 4 = input offset 17.
+# expect.atoms: 1
+# expect.atom.1.etype: 127
+# expect.atom.1.length: 19
+# expect.atom.1.dlg_flag_1: 0x00
+# expect.atom.1.dlg_flag_2: 0x00
+# expect.atom.1.area: 0
+# expect.atom.1.block: 1
+# expect.atom.1.group: 0
+# expect.atom.1.row: 0
+# expect.atom.1.col: 0
+# expect.atom.1.attr: 0x00
+# expect.atom.1.attr.names: none
+# expect.atom.1.content_offset: 13
+# expect.atom.1.content_length: 6
+# expect.atom.1.text_offset: 17
+# expect.atom.1.text_length: 2
+# expect.error: none
+hex:
+00 13                  # atom_length 19
+00                     # dlg_flag_1
+00                     # dlg_flag_2
+7F                     # etype 127 (FRAME_1)
+00                     # area
+01                     # block
+00                     # group
+00 00                  # row 0
+00 00                  # col 0
+00                     # attribute
+00 02                  # drows 2 (u16 BE)
+00 28                  # dcols 40 (u16 BE)
+46 72                  # text "Fr"

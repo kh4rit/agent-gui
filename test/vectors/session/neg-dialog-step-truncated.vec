@@ -1,0 +1,9 @@
+# source: spec
+# spec: docs/protocol/session.md#41-dialog_step_number-payload
+# provenance: PV-0125
+# kind: dialog-step
+# description: A DIALOG_STEP_NUMBER value one byte short of the required 4 bytes.
+# derivation: The value is exactly 4 bytes, u32 BE (PV-0125, PV-0125); 3 bytes end inside the integer, so the decode is truncated.
+# expect.error: truncated
+hex:
+00 00 01               # 3 of 4 bytes

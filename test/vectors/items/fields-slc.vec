@@ -1,0 +1,12 @@
+# source: spec
+# spec: docs/protocol/items.md#slc
+# provenance: PV-0100, PV-0414, PV-0118, PV-0423
+# kind: simple-item-fields
+# description: SLC field_length is big-endian: bytes 01 02 are 258, not 513.
+# derivation: Type 0x13 (PV-0414), 2-byte value (PV-0118) read as one u16 BE (PV-0423): 0x0102 = 258.
+# expect.type: slc
+# expect.field.field_length: 258
+# expect.error: none
+hex:
+13                                                # type SLC
+01 02                                             # field_length, u16 BE

@@ -1,0 +1,44 @@
+# source: spec
+# spec: docs/protocol/controls/datamanager.md#34-tables-block
+# provenance: PV-0931
+# kind: datamanager
+# description: A tables block with a two-column change batch and a paging request (invented numbers).
+# derivation: TABLES > DATACHANGES (HANDLE) > IT (IDX, OP, C1, C2) and DATAREQUEST (HANDLE, NLINES, FIRSTLINE) as datamanager.md 3.4; meanings of C1/C2 and the request's direction are #83, so only parsing is checked.
+# expect.root: DATAMANAGER
+# expect.encoding: sap*
+# expect.children: TABLES
+# expect.events: 0
+# expect.controls: 0
+# expect.datachanges: 1
+# expect.datachange.1.handle: 1
+# expect.datachange.1.items: 2
+# expect.datachange.1.item.1.idx: 1
+# expect.datachange.1.item.1.op: I
+# expect.datachange.1.item.1.c1: 1
+# expect.datachange.1.item.1.c2: 10
+# expect.datachange.1.item.2.idx: 2
+# expect.datachange.1.item.2.op: I
+# expect.datachange.1.item.2.c1: 11
+# expect.datachange.1.item.2.c2: 6
+# expect.datarequests: 1
+# expect.datarequest.1.handle: 3
+# expect.datarequest.1.nlines: 100
+# expect.datarequest.1.firstline: 1
+# expect.error: none
+hex:
+3C 3F 78 6D 6C 20 76 65 72 73 69 6F 6E 3D 22 31   # document text (ASCII)
+2E 30 22 20 65 6E 63 6F 64 69 6E 67 3D 22 73 61
+70 2A 22 3F 3E 3C 44 41 54 41 4D 41 4E 41 47 45
+52 3E 3C 54 41 42 4C 45 53 3E 3C 44 41 54 41 43
+48 41 4E 47 45 53 20 48 41 4E 44 4C 45 3D 22 31
+22 3E 3C 49 54 20 49 44 58 3D 22 31 22 20 4F 50
+3D 22 49 22 20 43 31 3D 22 31 22 20 43 32 3D 22
+31 30 22 2F 3E 3C 49 54 20 49 44 58 3D 22 32 22
+20 4F 50 3D 22 49 22 20 43 31 3D 22 31 31 22 20
+43 32 3D 22 36 22 2F 3E 3C 2F 44 41 54 41 43 48
+41 4E 47 45 53 3E 3C 44 41 54 41 52 45 51 55 45
+53 54 20 48 41 4E 44 4C 45 3D 22 33 22 20 4E 4C
+49 4E 45 53 3D 22 31 30 30 22 20 46 49 52 53 54
+4C 49 4E 45 3D 22 31 22 2F 3E 3C 2F 54 41 42 4C
+45 53 3E 3C 2F 44 41 54 41 4D 41 4E 41 47 45 52
+3E

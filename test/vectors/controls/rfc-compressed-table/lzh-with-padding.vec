@@ -1,0 +1,20 @@
+# source: spec
+# spec: docs/protocol/controls/rfc-tr.md#5-compressed-table-content
+# provenance: PV-0916, PV-0917, PV-0918, PV-0060, PV-0061, PV-0062, PV-0063, PV-0064, PV-0066, PV-0067, PV-0068
+# kind: rfc-compressed-table
+# description: Compressed table content with an LZH header, 6 data bytes and 3 zero padding bytes; L = 14 fits ODG's reading.
+# derivation: Bytes 0-3 arbitrary (ODG's tag), u32 BE L = 14 at offset 4 (PV-0917, reported, not checked: IMPL-CT-4), header at 8 (PV-0916): u32 LE 100, 0x12 LZH, 1F 9D, level 2 (PV-0918, PV-0060-PV-0068); every byte after the header (6 data + 3 padding) is the data handed to the v1 decoder (IMPL-CT-4).
+# expect.length_field: 14
+# expect.uncompressed_length: 100
+# expect.algorithm: lzh
+# expect.version: 1
+# expect.level: 2
+# expect.data_offset: 16
+# expect.data_length: 9
+# expect.error: none
+hex:
+5A 5A 5A 5A                                       # bytes 0-3: ODG's unexplained tag (arbitrary 'ZZZZ' here)
+00 00 00 0E                                       # length field L = 14, u32 BE (PV-0917; its extent is #82, reported only)
+64 00 00 00 12 1F 9D 02                           # compression header at offset 8 (PV-0916, PV-0918; v1 layout)
+A5 5A 3C C3 0F F0                                 # compressed data, 6 bytes (arbitrary: this kind does not decompress)
+00 00 00                                          # zero padding (ODG's reading; passed on with the data)

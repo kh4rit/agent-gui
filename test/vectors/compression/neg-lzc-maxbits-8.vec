@@ -1,0 +1,16 @@
+# source: spec
+# spec: docs/protocol/compression-lzc.md#position-and-parameters
+# provenance: PV-0060, PV-0061, PV-0062, PV-0063, PV-0065, PV-0066, PV-0067, PV-0080, PV-0310, PV-0312, PV-0311
+# kind: decompress
+# description: Byte 7 gives maxbits 8, below the allowed range.
+# derivation: Header: length 1, byte 7 = 8 | 0x80 = 0x88, so maxbits = 0x88 & 0x1F = 8 (PV-0310), outside 9-16 (PV-0080, PV-0311): bad-maxbits before any code is read (IMPL-LZC-4). The data 41 00 is a valid single literal and is never read.
+# expect.error: bad-maxbits
+# expect.algorithm: lzc
+# expect.uncompressed_length: 1
+# expect.block_mode: 1
+hex:
+01 00 00 00                                       # uncompressed length, u32 LE
+11                                                # algorithm byte
+1F 9D                                             # magic
+88                                                # byte 7
+41 00                                             # never read

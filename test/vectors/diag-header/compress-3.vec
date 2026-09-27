@@ -1,0 +1,19 @@
+# source: spec
+# spec: docs/protocol/diag-header.md#compress-values
+# provenance: PV-0030, PV-0031, PV-0032, PV-0033, PV-0034, PV-0035, PV-0036, PV-0037, PV-0038, PV-0053, PV-0054
+# kind: diag-header
+# description: compress = 3 with err_no 0: the body is an SNC frame (unsupported, D4).
+# derivation: compress at offset 7 (PV-0038) = 3, which PV-0053 defines; err_no 0 (PV-0054); mode 1 is an arbitrary value.
+# expect.error: none
+# expect.mode: 0x01
+# expect.com_flag: 0x00
+# expect.mode_stat: 0x00
+# expect.err_no: 0x00
+# expect.msg_type: 0x00
+# expect.msg_info: 0x00
+# expect.msg_rc: 0x00
+# expect.compress: 0x03
+# expect.com_flag.names: none
+# expect.body: snc
+hex:
+01 00 00 00 00 00 00 03                           # mode com_flag mode_stat err_no msg_type msg_info msg_rc compress
