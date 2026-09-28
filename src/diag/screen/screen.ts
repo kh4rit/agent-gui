@@ -1181,12 +1181,14 @@ export class ScreenDecoder {
       this.diagnostics.codec.undecodableValues += 1
       return
     }
-    // A container inside a tabstrip or its page counts from it (Reading R-SS-15, issue #155).
+    // A container counts from its enclosing tabstrip/page (R-SS-15). The opt-in
+    // subscreen reading extends that chain to nested subscreens (issue #188).
+    // provenance: PV-1032
     let origin = new GridPoint(geometry.row, geometry.col)
     let parent: number | undefined
     for (let position = this.group.length - 1; position >= 0; position--) {
       const candidate = this.containers[this.group[position]].kind
-      if (candidate === "tabstrip" || candidate === "tabstripPage") {
+      if (candidate === "tabstrip" || candidate === "tabstripPage" || (this.readings.nestedSubscreens && candidate === "subscreen")) {
         parent = this.group[position]
         break
       }
@@ -1493,6 +1495,7 @@ export class ScreenDecoder {
     }
     let caption = this.textOf(atom, value)
     let isChecked: boolean | undefined
+    let nativeRadioCaption: Uint8Array | undefined
     let firesFunction: string | undefined
     let decodedOpaque = false
     if (kind.kind === "checkbox" || kind.kind === "radioButton") {
@@ -1502,6 +1505,7 @@ export class ScreenDecoder {
         isChecked = toggle.isChecked
         decodedOpaque = payload.kind === "opaque"
         if (!atom.isPasswordField) {
+          if (toggle.usesNumericState) nativeRadioCaption = toggle.captionRange.of(value).slice()
           caption = ScreenTextDecoding.trimmingPadding(this.text.decode(toggle.captionRange.of(value)))
           const code = toggle.functionCodeRange(value)
           if (code !== undefined) firesFunction = ScreenTextDecoding.trimmingTrailingSpaces(this.text.decode(code.of(value)))
@@ -1539,6 +1543,7 @@ export class ScreenDecoder {
       firesFunction,
       holdsRequiredMarker
     })
+    element.nativeRadioCaption = nativeRadioCaption
     element.functionCode = this.functionCodeOf(atom, value)
     if (decodedOpaque) this.diagnostics.codec.atoms.opaquePayloads -= 1
     if (DyntCombobox.isCombobox(atom.etype) && this.readings.dropdown !== "specGap") {

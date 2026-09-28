@@ -128,6 +128,51 @@ describe("Client input: the reference envelope", () => {
   /** The bare DATAMANAGER document: 51 ASCII bytes. */
   const dataManager = ascii('<?xml version="1.0" encoding="sap*"?><DATAMANAGER/>')
 
+  /** Reference input header is opt-in and changes no body bytes (bug #148) */
+  test("referenceHeaderComparison", () => {
+    const baseline = Self.fields(false, InputEnvelope.chlStage)
+    const comparison = baseline.clone()
+    comparison.envelope |= InputEnvelope.referenceHeader
+    const original = ClientInput.inputMessage(Self.encoder(), baseline, 0, Self.echo())
+    const candidate = ClientInput.inputMessage(Self.encoder(), comparison, 0, Self.echo())
+    assert.ok(original[5] === 0 && candidate[5] === 1)
+    assert.deepEqual(original.subarray(0, 5), candidate.subarray(0, 5))
+    assert.deepEqual(original.subarray(6), candidate.subarray(6))
+    assert.ok(InputEnvelope.name(comparison.envelope).includes("reference header"))
+    assert.ok(!InputEnvelope.stages.some(stage => InputEnvelope.contains(stage, InputEnvelope.referenceHeader)))
+    assert.ok(!InputEnvelope.contains(InputEnvelope.controlReply(comparison.envelope), InputEnvelope.referenceHeader))
+  })
+
+  /** Native logon SES comparison preserves every other byte and stays opt-in (bug #148) */
+  test("nativeLogonSessionComparison", () => {
+    const echo = Self.echo()
+    // source: fake — distinct invented bytes expose accidental geometry or filler changes.
+    const received = bytes(0, 2, 3, 4, 5, 6, 17, 1, 9, 8, 2, 3, 91, 92, 19, 61)
+    echo.ses = received.slice()
+    const ordinary = new ClientInputStep({ envelope: InputEnvelope.chlStage })
+    const candidate = ordinary.clone()
+    candidate.nativeLogonSession = true
+    const message = (step: ClientInputStep, state: ServerEcho): Uint8Array => ClientInput.inputMessage(Self.encoder(), step, 0, state)
+    const baseline = message(ordinary, echo)
+    const changed = message(candidate, echo)
+    // Header and step item precede the simple SES type byte.
+    const start = DiagHeader.size + 9 + 1
+    const expected = baseline.slice()
+    expected[start] = 1
+    expected[start + 6] = 0
+    assert.deepEqual(changed, expected)
+    assert.deepEqual(baseline.slice(start, start + 16), received)
+    assert.deepEqual(message(candidate, new ServerEcho()), message(ordinary, new ServerEcho()))
+    candidate.envelope = InputEnvelope.minimal
+    assert.deepEqual(message(candidate, echo), message(new ClientInputStep(), echo))
+    candidate.envelope = InputEnvelope.chlStage
+    echo.ses = bytes(1, 2, 3)
+    throwsInfo(() => message(candidate, echo), ClientMessageError, {
+      kind: "item",
+      error: { kind: "wrongValueSize", type: "ses", expected: 16, actual: 3 }
+    })
+  })
+
   // MARK: The logon step
 
   /**

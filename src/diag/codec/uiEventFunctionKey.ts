@@ -8,10 +8,11 @@
 // width (PV-0771), so Reading R-CI-9 takes it, switchable to pysap's. Every source puts the function
 // number at offset 5 (PV-0772), so reading the number needs no choice.
 //
-// Swift's `extension UIEventSource` of this file (`functionKeyFlags`, `firedFunctionNumber(in:)`,
-// `appendFunctionKey(...)` and the field sizes) is statics of `UIEventFunctionKey`: a TypeScript
-// class cannot be extended from another module, and uiEventSource.ts cannot import this file
-// without an import cycle. `extension UIControlType` (`field`, `dynpro`) is in uiEventSource.ts.
+// Swift's `extension UIEventSource` of this file (`functionKeyFlags`, `multipleLogonEnter`,
+// `firedFunctionNumber(in:)`, `appendFunctionKey(...)` and the field sizes) is statics of
+// `UIEventFunctionKey`: a TypeScript class cannot be extended from another module, and
+// uiEventSource.ts cannot import this file without an import cycle. `extension UIControlType`
+// (`field`, `dynpro`) is in uiEventSource.ts.
 
 import { WireBytes, type ByteWriter } from "../wire/index.js"
 import { ByteRange, ItemPayloadError } from "./diagCodec.js"
@@ -65,6 +66,16 @@ export class UIEventFunctionKey {
   static readonly controlPositionSize = UIEventFunctionKey.controlFieldSize * 2 // provenance: PV-0765
   /** The container count, u16 BE (PV-0770). (Swift `UIEventSource.containerCountSize`.) */
   static readonly containerCountSize = 2 // provenance: PV-0770
+
+  /**
+   * The observed multiple-logon confirmation: FUNCTIONKEY_DATA, FUNCTIONKEY, DYNPRO, function 0,
+   * zero coordinates/count and one trailing zero (PV-1028). Only this witnessed form is used; the
+   * final byte's general meaning is unknown. A fresh copy on every read. (Swift
+   * `UIEventSource.multipleLogonEnter`.)
+   */
+  static get multipleLogonEnter(): Uint8Array {
+    return Uint8Array.of(0x08, 0x00, 0x07, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00) // provenance: PV-1028
+  }
   /**
    * The valid flags of a function-key event as a GUI sends it: FUNCTIONKEY_DATA and CONTROL_POS
    * (PV-0771). (Swift `UIEventSource.functionKeyFlags`.)

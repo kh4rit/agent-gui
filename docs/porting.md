@@ -2,7 +2,9 @@
 
 `src/diag` is a faithful TypeScript port of Swooey's portable Swift modules, and `src/engine` of
 the session loop Swooey keeps in its app. The Swift sources are at `../swooey` (Swooey revision
-`7c3ca4b`, 2026-09-27). This document holds the rules every port follows, so that the modules fit
+`d89e12f`, 2026-09-28; first ported at `7c3ca4b`). To sync, port `git diff <last>..<new>` of the
+mapped folders from committed revisions only (`git show`, `git diff`; never the working tree), and
+update the revision here. This document holds the rules every port follows, so that the modules fit
 together and stay easy to compare with their Swift originals.
 
 ## Mapping
@@ -14,13 +16,15 @@ together and stay easy to compare with their Swift originals.
 | `Sources/DiagCodec` | `src/diag/codec` |
 | `Sources/DiagSession` | `src/diag/session` |
 | `Sources/ScreenModel` | `src/diag/screen` |
-| `Sources/SwooeyApp`: SessionRunner, ModeRouter, ScreenBridge, TableData, logon gate, multiple logon, control clicks | `src/engine` |
+| `Sources/SwooeyApp`: SessionRunner, ModeRouter, ScreenBridge, TableData, ListData, logon gate, multiple logon, control clicks | `src/engine` |
 | `Tests/<Module>Tests/*.swift` | `src/test/diag/<module>/*.test.ts` |
 | `Tests/VectorSupport` | `src/test/vectors` |
 | `Tests/Vectors` | `test/vectors` (copied; ADT vectors left out: agent-adt covers ADT) |
 
 Not ported: DiagSignposts (no-op), CodeService, CodeText, FakeCodeService, Landscape,
-TransactionField, ToolSupport, ToolTransport, FakeScenarios, the app's views.
+TransactionField, ToolSupport, ToolTransport, FakeScenarios, the app's views, and the app's
+developer toggles for experiments (the native-logon comparisons, GUI blob screens, grid column
+reports): the engine keeps their readings at Swooey's defaults.
 
 ## Files
 

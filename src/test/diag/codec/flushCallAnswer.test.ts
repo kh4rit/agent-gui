@@ -121,7 +121,7 @@ describe("The answer to an OLE_FLUSH_CALL (R-CT-28 to R-CT-35)", () => {
 
   // MARK: Rows and records
 
-  /** Descriptor rows: inputs and S verbs' rows blank, every other row the call's (R-CT-32). */
+  /** descriptor rows: inputs blank, object result types corrected, other rows kept (R-CT-32) */
   test("descriptorRows", () => {
     const answer = answerTo(Call.pond())
     const table = decodeAnswer(answer.value).table("ZZ_DUCK_SLOTS")
@@ -129,9 +129,22 @@ describe("The answer to an OLE_FLUSH_CALL (R-CT-28 to R-CT-35)", () => {
     const blank = new Set([1, 3, 4, 6, 9, 11, 13, 14, 16, 18])
     Call.pondDescriptors.forEach((call, index) => {
       const row = table.rows.slice(index * 44, (index + 1) * 44)
-      assert.deepEqual(row, blank.has(index + 1) ? spaces(44) : call, `row ${index + 1}`)
+      let expected: Uint8Array
+      switch (index + 1) {
+        case 2:
+          expected = Call.descriptor("1  9 _RESULT 3")
+          break
+        case 5:
+          expected = Call.descriptor("2  9 _RESULT 6")
+          break
+        default:
+          expected = blank.has(index + 1) ? spaces(44) : call
+      }
+      assert.deepEqual(row, expected, `row ${index + 1}`)
     })
-    assert.ok(answer.summary.descriptorRowsBlanked === 10 && answer.summary.descriptorRowsKept === 9)
+    assert.ok(
+      answer.summary.descriptorRowsBlanked === 10 && answer.summary.descriptorRowsKept === 7 && answer.summary.objectDescriptorsRewritten === 2
+    )
   })
 
   /** Value records: references kept, inputs blank, outputs with a handle, an integer, empty or not written (R-CT-33, R-CT-34). */
@@ -201,11 +214,11 @@ describe("The answer to an OLE_FLUSH_CALL (R-CT-28 to R-CT-35)", () => {
     const slots = decoded.table("ZZ_DUCK_SLOTS")
     assert.ok(slots !== undefined)
     assert.ok(slots.raw)
-    assert.deepEqual(slots.rows, concatBytes(spaces(44), Call.descriptor("1 12 _RESULT 3")))
+    assert.deepEqual(slots.rows, concatBytes(spaces(44), Call.descriptor("1  9 _RESULT 3")))
     const first = decoded.ids.indexOf(0x0304)
     assert.ok(first >= 0)
     assert.deepEqual(decoded.values[first], Uint8Array.of(0x20))
-    assert.deepEqual(decoded.values[first + 1], Call.descriptor("1 12 _RESULT 3"))
+    assert.deepEqual(decoded.values[first + 1], Call.descriptor("1  9 _RESULT 3"))
     assert.ok(!decoded.ids.includes(0x0306) || decoded.ids.filter(id => id === 0x0306).length === 1, "only VARS ends with 03 06")
     const values = decoded.table("VARS")
     assert.ok(values !== undefined)
@@ -295,9 +308,11 @@ describe("The answer to an OLE_FLUSH_CALL (R-CT-28 to R-CT-35)", () => {
   test("summary", () => {
     const answer = answerTo(Call.pond())
     const text = answer.summary.description
-    assert.ok(text.includes("descriptor rows: 9 kept, 10 blank"))
+    assert.ok(text.includes("descriptor rows: 7 kept, 10 blank"))
     assert.ok(
-      text.includes("value records: 3 kept, 7 blank, 3 with a handle, 2 with an integer, 1 empty, 1 not written, 1 result(s) without an output record")
+      text.includes(
+        "value records: 3 kept, 7 blank, 3 with a handle, 2 with an integer, 0 with a string, 1 empty, 1 not written, 1 result(s) without an output record"
+      )
     )
     assert.ok(text.includes("handles O1 to O3"))
     assert.ok(text.includes("tables the 44-wide descriptor table 19 × 44, compressed in "))

@@ -65,10 +65,46 @@ export class DataManagerControl {
   }
 }
 
+/** One column of a column-position snapshot (Swift `DataManagerReport.ColumnPositions.Column`). */
+export interface DataManagerColumn {
+  readonly position: number
+  readonly width: number
+}
+
+/**
+ * A complete column-position snapshot, addressed by the on-demand object's explicit Handle
+ * property, never the automation result handle (PV-1024). (Swift `DataManagerReport.ColumnPositions`.)
+ */
+export class DataManagerColumnPositions {
+  static readonly maxColumns = 4096 // not-protocol: bounded report size
+
+  private constructor(
+    readonly handle: number,
+    readonly columns: readonly DataManagerColumn[]
+  ) {}
+
+  /**
+   * The snapshot (Swift's failable `init?(handle:columns:)`), or undefined for a handle below 1,
+   * more than `maxColumns` columns, a position or width below 1, or a position that repeats.
+   */
+  static of(handle: number, columns: readonly DataManagerColumn[]): DataManagerColumnPositions | undefined {
+    if (
+      !(
+        handle > 0 &&
+        columns.length <= DataManagerColumnPositions.maxColumns &&
+        columns.every(column => column.position > 0 && column.width > 0) &&
+        new Set(columns.map(column => column.position)).size === columns.length
+      )
+    )
+      return undefined
+    return new DataManagerColumnPositions(handle, columns.map(column => ({ position: column.position, width: column.width })))
+  }
+}
+
 /** The most parameters an event read back keeps. */
 const MAX_PARAMETERS = 64 // not-protocol: a reader's limit
 
-/** A client DATAMANAGER document's events and control state. */
+/** A client DATAMANAGER document's events, control state and column positions. */
 export class DataManagerReport {
   /**
    * The first word of the OK-code that has the server process a control event: `%_GC`, then the
@@ -80,14 +116,18 @@ export class DataManagerReport {
 
   events: DataManagerEvent[]
   controls: DataManagerControl[]
+  columnPositions: DataManagerColumnPositions[]
 
-  constructor(options: { events?: DataManagerEvent[]; controls?: DataManagerControl[] } = {}) {
+  constructor(
+    options: { events?: DataManagerEvent[]; controls?: DataManagerControl[]; columnPositions?: DataManagerColumnPositions[] } = {}
+  ) {
     this.events = options.events ?? []
     this.controls = options.controls ?? []
+    this.columnPositions = options.columnPositions ?? []
   }
 
   get isEmpty(): boolean {
-    return this.events.length === 0 && this.controls.length === 0
+    return this.events.length === 0 && this.controls.length === 0 && this.columnPositions.length === 0
   }
 
   // MARK: Writing
@@ -123,6 +163,17 @@ export class DataManagerReport {
         text += "</CONTROL>"
       }
       text += "</CONTROLS>"
+    }
+    if (this.columnPositions.length > 0) {
+      text += "<TABLES>" // provenance: PV-1015, PV-1024
+      for (const table of this.columnPositions) {
+        text += `<DATACHANGES HANDLE="${table.handle}"><IT OP="C" IDX="0"/>`
+        table.columns.forEach((column, index) => {
+          text += `<IT OP="I" IDX="${index + 1}" C1="${column.position}" C2="${column.width}"/>`
+        })
+        text += "</DATACHANGES>"
+      }
+      text += "</TABLES>"
     }
     text += "</DATAMANAGER>"
     return ascii(text)
@@ -162,15 +213,16 @@ export class DataManagerReport {
   // MARK: Reading
 
   /**
-   * The report a document holds (Swift `init?(reading:)`): its events and controls, attributes found
-   * by name whatever their order; undefined when its root is not `DATAMANAGER`. Character and
-   * entity references in values are resolved; elements it does not know are left out.
+   * The report a document holds (Swift `init?(reading:)`): events, controls and column positions,
+   * attributes found by name whatever their order; undefined when its root is not `DATAMANAGER`.
+   * Character and entity references in values are resolved; elements it does not know are left out.
    */
   static read(document: MarkupDocument): DataManagerReport | undefined {
     const root = document.root
     if (root === undefined || !isName(root.name, "DATAMANAGER")) return undefined
     const events: DataManagerEvent[] = []
     const controls: DataManagerControl[] = []
+    const columnPositions: DataManagerColumnPositions[] = []
     for (const block of DataManagerReport.elements(root.children)) {
       switch (decodeUTF8Repairing(block.name)) {
         case "EVENTS":
@@ -211,11 +263,47 @@ export class DataManagerReport {
             controls.push(control)
           }
           break
+        case "TABLES":
+          for (const element of DataManagerReport.elements(block.children)) {
+            if (!isName(element.name, "DATACHANGES")) continue
+            const table = DataManagerReport.columnPositions(element)
+            if (table !== undefined) columnPositions.push(table)
+          }
+          break
         default:
           break
       }
     }
-    return new DataManagerReport({ events, controls })
+    return new DataManagerReport({ events, controls, columnPositions })
+  }
+
+  /** Only the observed full replacement form; unknown operations are not partial reports. */
+  static columnPositions(element: MarkupElement): DataManagerColumnPositions | undefined {
+    const R = DataManagerReport
+    const handle = R.number(element.attribute("HANDLE"))
+    if (handle === undefined) return undefined
+    const rows = R.elements(element.children)
+    const clear = rows[0]
+    if (
+      !(
+        rows.length <= DataManagerColumnPositions.maxColumns + 1 &&
+        clear !== undefined &&
+        isName(clear.name, "IT") &&
+        R.text(clear.attribute("OP")) === "C" &&
+        R.number(clear.attribute("IDX")) === 0
+      )
+    )
+      return undefined
+    const columns: DataManagerColumn[] = []
+    for (let index = 0; index < rows.length - 1; index++) {
+      const row = rows[index + 1]
+      if (!(isName(row.name, "IT") && R.text(row.attribute("OP")) === "I" && R.number(row.attribute("IDX")) === index + 1)) return undefined
+      const position = R.number(row.attribute("C1"))
+      const width = R.number(row.attribute("C2"))
+      if (position === undefined || width === undefined) return undefined
+      columns.push({ position, width })
+    }
+    return DataManagerColumnPositions.of(handle, columns)
   }
 
   static elements(nodes: readonly MarkupNode[]): MarkupElement[] {

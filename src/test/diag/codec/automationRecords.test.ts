@@ -94,7 +94,7 @@ describe("Automation records: verbs, descriptors, value kinds, results and handl
     for (const name of ["AddControl", "SetGrid", "SetColumnWidth", "PublishUrl"])
       assert.deepEqual(result(name, AutomationVerbFlag.call), AutomationResult.integer(0), name)
     assert.deepEqual(result("GetContainer", AutomationVerbFlag.call), AutomationResult.integer(1))
-    assert.deepEqual(result("GetGuiFeatures", AutomationVerbFlag.call), AutomationResult.integer(1))
+    assert.deepEqual(result("GetGuiFeatures", AutomationVerbFlag.call), AutomationResult.guiFeatures)
     assert.deepEqual(result("GetRegValueEx", AutomationVerbFlag.call), AutomationResult.empty)
     assert.deepEqual(result("PaddleInCircles", AutomationVerbFlag.call), AutomationResult.integer(0), "Swooey's default for another method")
     assert.deepEqual(result("FreeObject", AutomationVerbFlag.call), AutomationResult.integer(0))

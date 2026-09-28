@@ -199,7 +199,7 @@ export function registerTools(server: McpServer, gui: GuiService) {
           .array(z.object({ table: z.string(), row: z.number().int().min(1), marked: z.boolean() }))
           .optional()
           .describe("Row marks of table controls (select rows for Copy As, Delete, Details …)."),
-        cursor: z.string().optional().describe("Field reference to put the cursor on."),
+        cursor: z.string().optional().describe('Field reference to put the cursor on, or a list line "line:N" ("line:N:COLUMN") for functions that act on the line under the cursor.'),
         key: z.string().optional().describe("Function key, e.g. F8, Shift+F2, Ctrl+F11, PageDown."),
         function: z.string().optional().describe("Function to fire: k-reference, function code, or its visible text."),
         okcode: z.string().optional().describe("Raw command-field text, e.g. =ZZASK or /n."),

@@ -1,6 +1,6 @@
 {
   "name": "agent-gui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SAP GUI transactions for AI agents: an MCP server that speaks the DIAG protocol directly (log on, start transactions, read screens, fill fields, table controls, trees, save to transport requests) for Copilot, Claude Code and other MCP clients",
   "main": "dist/index.js",
   "scripts": {

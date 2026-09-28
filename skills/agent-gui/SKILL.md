@@ -44,7 +44,9 @@ the [GitHub Copilot CLI guide](../../docs/github-copilot-cli.md).
     `t1:ROW:COLUMN`, for example `choose: "t1:3:Spot"`.
   - Rows must be on the visible page: page with `key: "PageDown"`, or use the screen's position function.
 - **list:** classic list output (reports, SE16 standard list), read further with
-  `gui_table table: "list"`. A line is chosen with `choose` (F2).
+  `gui_table table: "list"`. A line is chosen with `chooseLine` (F2). Functions that act on the line
+  under the cursor (Display, Delete, Expand …) take `cursor: "line:N"`; without it the cursor is on
+  the page's first line.
 - **controls** `c…`: trees (SPRO, Easy Access, transport organizer) and ALV grids. Use
   `gui_tree` / `gui_grid`.
 

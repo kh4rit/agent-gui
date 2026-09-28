@@ -16,7 +16,7 @@
 // what RFCValueDescription allows of the answer's head.
 
 import { CompressedDataError, LZHEncoder, type CompressedDataErrorInfo } from "../compression/index.js"
-import { ascii, ByteWriter, WireBytes } from "../wire/index.js"
+import { ascii, ByteWriter, bytesEqual, WireBytes } from "../wire/index.js"
 import {
   AutomationDescriptor,
   AutomationRecordLayout,
@@ -29,6 +29,7 @@ import {
 import { TextEncoding } from "./codePageText.js"
 import { CompressionHeaderDecodingError, Decompressor } from "./compressionHeader.js"
 import { ByteRange, INT_MAX } from "./diagCodec.js"
+import { xmlEscaped } from "./dyntElements.js"
 import { RFCItemEncoder, RFCItemEncodingError, RFCTableContentEncoder, RFCTableEncodingError } from "./rfcEncoding.js"
 import { RFCHead, type RFCHeadItem } from "./rfcHead.js"
 import {
@@ -290,15 +291,19 @@ export class FlushAnswerSummary {
   /** Descriptor rows returned unchanged, and rows returned blank (Reading R-CT-32). */
   descriptorRowsKept = 0
   descriptorRowsBlanked = 0
+  /** Object results rewritten from variant type 12 to dispatch type 9 (PV-1033). */
+  objectDescriptorsRewritten = 0
   /** Value records kept byte for byte, and blanked (Reading R-CT-33). */
   recordsKept = 0
   recordsBlanked = 0
   /**
-   * Output records filled with a handle, an integer or the zeros alone, and output records no verb
-   * wrote (the zeros alone too).
+   * Output records filled with a handle, an integer, a string or the zeros alone, and output records
+   * no verb wrote (the zeros alone too).
    */
   recordsWithHandle = 0
   recordsWithInteger = 0
+  /** Output records containing an index into the SVARS string table (PV-1023). */
+  recordsWithString = 0
   recordsEmpty = 0
   recordsNotWritten = 0
   /** Results whose slot is no output record of the call, and so have no place in the answer. */
@@ -357,9 +362,13 @@ export class FlushAnswerSummary {
           .join("; ")
     )
     parts.push(`descriptor rows: ${this.descriptorRowsKept} kept, ${this.descriptorRowsBlanked} blank`)
+    if (this.objectDescriptorsRewritten > 0) {
+      parts.push(`object result descriptors: ${this.objectDescriptorsRewritten} rewritten to type 9`)
+    }
     let records =
       `value records: ${this.recordsKept} kept, ${this.recordsBlanked} blank, ${this.recordsWithHandle} with a handle, ` +
-      `${this.recordsWithInteger} with an integer, ${this.recordsEmpty} empty, ${this.recordsNotWritten} not written`
+      `${this.recordsWithInteger} with an integer, ${this.recordsWithString} with a string, ${this.recordsEmpty} empty, ` +
+      `${this.recordsNotWritten} not written`
     if (this.unplacedResults > 0) records += `, ${this.unplacedResults} result(s) without an output record`
     parts.push(records)
     parts.push(`results: ${this.resultsByName} by the verb's name, ${this.resultsByRecord} by the call's record`)
@@ -484,8 +493,26 @@ class TextWriter {
   }
 }
 
-/** What a verb wrote to an output record (Swift's local `enum Written`). */
-type Written = { readonly kind: "handle"; readonly text: Uint8Array } | { readonly kind: "integer"; readonly value: number } | { readonly kind: "empty" }
+/** What a verb wrote to an output record (Swift's local `enum Written`); `string` is an SVARS index. */
+type Written =
+  | { readonly kind: "string"; readonly value: number }
+  | { readonly kind: "handle"; readonly text: Uint8Array }
+  | { readonly kind: "integer"; readonly value: number }
+  | { readonly kind: "empty" }
+
+/** The options of `FlushCallAnswerBuilder.answer` after `own` (Swift's defaulted labels). */
+export interface FlushCallAnswerOptions {
+  /**
+   * Whether the object-result correction rewrites variant type 12 to 9 for results that received a
+   * minted handle (PV-1033); default true.
+   */
+  readonly objectResultTypes?: boolean
+  /**
+   * URLs an experimental provider registry stored, keyed by the `SaveDataToUrl` verb's number in the
+   * call (from 1); each goes out as an indexed SVARS string (PV-1036, #192). Default none.
+   */
+  readonly registeredURLs?: ReadonlyMap<number, string>
+}
 
 /** Throws `FlushCallReadError` with `info`. */
 function fail(info: FlushCallReadErrorInfo): never {
@@ -569,8 +596,16 @@ export const FlushCallAnswerBuilder = {
    * R-CT-34, with `own`'s own values of R-CT-36) with `handles` as the connection's counter; throws
    * the first requirement that fails (R-CT-35) as `FlushCallReadError`. A pure function: the same
    * call, counter and head always give the same answer, and `handles` is not changed.
+   * `options` carries Swift's `objectResultTypes` (default true) and `registeredURLs` (default none).
    */
-  answer(call: Uint8Array, handles: ControlHandleCounter, own: FlushAnswerHead = FlushAnswerHead.echo): FlushCallAnswer {
+  answer(
+    call: Uint8Array,
+    handles: ControlHandleCounter,
+    own: FlushAnswerHead = FlushAnswerHead.echo,
+    options: FlushCallAnswerOptions = {}
+  ): FlushCallAnswer {
+    const objectResultTypes = options.objectResultTypes ?? true
+    const registeredURLs: ReadonlyMap<number, string> = options.registeredURLs ?? new Map()
     const B = FlushCallAnswerBuilder
     if (!(call.length <= B.maxCallBytes)) fail({ kind: "callTooLong", bytes: call.length })
     const items = B.walk(call)
@@ -603,8 +638,35 @@ export const FlushCallAnswerBuilder = {
     summary.textEncoding = textEncoding
     // Swift copies the counter: the caller's counter stays as it was.
     const counter = handles.clone()
-    const answerDescriptors = B.rewriteDescriptors(descriptorRows, verbRows.characters, summary)
-    const answerValues = B.fillValues(valueRows, descriptorRows.characters, verbRows.characters, counter, summary)
+    // Only an experimental provider registry may supply these results, after storing
+    // the actual data. No URL is minted or fetched by the answer encoder (PV-1036).
+    const verbList = B.verbRecords(verbRows.characters)
+    for (const [index, url] of registeredURLs) {
+      const utf8 = new TextEncoder().encode(url)
+      if (
+        !(
+          index > 0 &&
+          index <= verbList.length &&
+          verbList[index - 1].flag.kind === "call" &&
+          bytesEqual(verbList[index - 1].name, ascii("SaveDataToUrl")) &&
+          url.startsWith("sapr3://") &&
+          utf8.length <= 256 &&
+          utf8.every(byte => byte > 0x20 && byte < 0x7f)
+        )
+      )
+        fail({ kind: "encoding", value: "invalid registered provider URL result" })
+    }
+    const strings: string[] = []
+    const answerValues = B.fillValues(
+      valueRows,
+      descriptorRows.characters,
+      verbRows.characters,
+      registeredURLs,
+      strings,
+      counter,
+      summary
+    )
+    const answerDescriptors = B.rewriteDescriptors(descriptorRows, verbRows.characters, objectResultTypes, summary)
 
     const value = new ByteWriter(1024)
     encoding(() => {
@@ -619,6 +681,13 @@ export const FlushCallAnswerBuilder = {
         } else {
           RFCItemEncoder.append(id, new Uint8Array(0), value)
         }
+      }
+      // provenance: PV-1023 — indexed string results in a UTF-8 SVARS envelope.
+      // Applying the same carrier to provider URLs is experimental (#192).
+      if (summary.recordsWithString > 0) {
+        RFCItemEncoder.append(0x3c02, new Uint8Array(0), value)
+        RFCItemEncoder.append(0x3c05, new TextEncoder().encode(B.stringEnvelope(strings)), value)
+        RFCItemEncoder.append(0x3c02, new Uint8Array(0), value)
       }
       RFCItemEncoder.append(B.importParameterID, parameter.valueRange.of(call), value)
       RFCItemEncoder.append(B.parameterValueID, RFCTextEncoding.encode(textEncoding, B.parameterValue), value)
@@ -860,9 +929,10 @@ export const FlushCallAnswerBuilder = {
 
   /**
    * The answer's descriptor rows (Reading R-CT-32): an input row (`#N`) and every row of a group
-   * whose verb has the flag `S` become spaces; every other row is the call's row.
+   * whose verb has the flag `S` become spaces. The object-result correction changes type 12 to 9
+   * for minted handles (PV-1033); other rows keep the call's bytes.
    */
-  rewriteDescriptors(rows: FlushTextRows, verbs: Uint8Array, summary: FlushAnswerSummary): Uint8Array {
+  rewriteDescriptors(rows: FlushTextRows, verbs: Uint8Array, objectResultTypes: boolean, summary: FlushAnswerSummary): Uint8Array {
     const width = AutomationRecordLayout.descriptorWidth
     const flags: AutomationVerbFlag[] = FlushCallAnswerBuilder.verbRecords(verbs).map(verb => verb.flag)
     const writer = new TextWriter(rows.encoding, rows.bytes.length)
@@ -871,9 +941,20 @@ export const FlushCallAnswerBuilder = {
       const descriptor = AutomationDescriptor.decode(rows.characters.subarray(start, start + width))
       const group = descriptor.group
       const setVerb = group !== undefined && group >= 1 && group <= flags.length && flags[group - 1].kind === "set"
+      const type =
+        objectResultTypes && descriptor.role === "result" && group !== undefined && summary.handlesByVerb.has(group)
+          ? FlushCallAnswerBuilder.variantTypeRange(rows.characters, start, width)
+          : undefined
       if (descriptor.role === "input" || setVerb) {
         writer.spaces(width)
         summary.descriptorRowsBlanked += 1
+      } else if (type !== undefined) {
+        // provenance: PV-1033 — change only the type token of a result that
+        // actually received one of our handles; retain its group and pointer.
+        writer.copy(rows, start, type.lowerBound)
+        writer.text([AutomationRecordLayout.space, 0x39]) // "9"
+        writer.copy(rows, type.upperBound, start + width)
+        summary.objectDescriptorsRewritten += 1
       } else {
         writer.copy(rows, start, start + width)
         summary.descriptorRowsKept += 1
@@ -883,11 +964,40 @@ export const FlushCallAnswerBuilder = {
     return writer.bytes
   },
 
+  /**
+   * Locate the second decimal token when it is exactly variant type 12. The caller has already
+   * checked that this is a four-column result descriptor.
+   */
+  variantTypeRange(bytes: Uint8Array, start: number, width: number): ByteRange | undefined {
+    const isSeparator = AutomationDescriptor.isSeparator
+    let index = start
+    const end = start + width
+    while (index < end && isSeparator(bytes[index])) index += 1
+    while (index < end && !isSeparator(bytes[index])) index += 1
+    while (index < end && isSeparator(bytes[index])) index += 1
+    const lower = index
+    while (index < end && !isSeparator(bytes[index])) index += 1
+    if (!(index - lower === 2 && bytes[lower] === 0x31 && bytes[lower + 1] === 0x32)) return undefined // "12"
+    return new ByteRange(lower, index)
+  },
+
   verbRecords(rows: Uint8Array): AutomationVerb[] {
     const width = AutomationRecordLayout.verbWidth
     const verbs: AutomationVerb[] = []
     for (let start = 0; start < rows.length; start += width) verbs.push(AutomationVerb.decode(rows.subarray(start, start + width)))
     return verbs
+  },
+
+  // provenance: PV-1023 — UTF-8 SVARS envelope and escaped feature document.
+  // No optional feature is advertised until its behavior is implemented and validated.
+  featureString: "<AvailableFeatures></AvailableFeatures>",
+
+  stringEnvelope(strings: readonly string[]): string {
+    return (
+      '<?xml version="1.0" encoding="UTF-8"?><SVARS>' +
+      strings.map(text => "<item><VALUE>" + xmlEscaped(text) + "</VALUE></item>").join("") +
+      "</SVARS>"
+    )
   },
 
   /**
@@ -900,6 +1010,8 @@ export const FlushCallAnswerBuilder = {
     rows: FlushTextRows,
     descriptors: Uint8Array,
     verbs: Uint8Array,
+    registeredURLs: ReadonlyMap<number, string>,
+    strings: string[],
     handles: ControlHandleCounter,
     summary: FlushAnswerSummary
   ): Uint8Array {
@@ -926,6 +1038,12 @@ export const FlushCallAnswerBuilder = {
       else group.push(descriptor)
     }
     const written = new Map<number, Written>()
+    const stringIndex = (value: string): number => {
+      const existing = strings.indexOf(value)
+      if (existing >= 0) return existing + 1
+      strings.push(value)
+      return strings.length
+    }
     verbList.forEach((verb, index) => {
       const targets: number[] = []
       for (const descriptor of groups.get(index + 1) ?? []) {
@@ -957,21 +1075,29 @@ export const FlushCallAnswerBuilder = {
       if (decided.basis === "name") summary.resultsByName += 1
       else summary.resultsByRecord += 1
       let value: Written
-      switch (decided.result.kind) {
-        case "newHandle": {
-          const handle = handles.mint()
-          summary.firstHandle = summary.firstHandle ?? handle.number
-          summary.lastHandle = handle.number
-          summary.handlesByVerb.set(index + 1, handle.number)
-          value = { kind: "handle", text: handle.text }
-          break
+      const url = registeredURLs.get(index + 1)
+      if (url !== undefined) {
+        value = { kind: "string", value: stringIndex(url) }
+      } else {
+        switch (decided.result.kind) {
+          case "newHandle": {
+            const handle = handles.mint()
+            summary.firstHandle = summary.firstHandle ?? handle.number
+            summary.lastHandle = handle.number
+            summary.handlesByVerb.set(index + 1, handle.number)
+            value = { kind: "handle", text: handle.text }
+            break
+          }
+          case "guiFeatures":
+            value = { kind: "string", value: stringIndex(FlushCallAnswerBuilder.featureString) }
+            break
+          case "integer":
+            value = { kind: "integer", value: decided.result.value }
+            break
+          case "empty":
+            value = { kind: "empty" }
+            break
         }
-        case "integer":
-          value = { kind: "integer", value: decided.result.value }
-          break
-        case "empty":
-          value = { kind: "empty" }
-          break
       }
       for (const record of targets) written.set(record, value)
     })
@@ -988,11 +1114,21 @@ export const FlushCallAnswerBuilder = {
           summary.recordsBlanked += 1
           break
         case "output": {
-          writer.copy(rows, start, start + nameWidth)
-          writer.text(AutomationRecordLayout.zeros)
           const value = written.get(index)
+          if (value?.kind === "string") {
+            // provenance: PV-1023
+            const name = ascii("_SRESULT")
+            writer.text(name)
+            writer.spaces(nameWidth - name.length)
+          } else {
+            writer.copy(rows, start, start + nameWidth)
+          }
+          writer.text(AutomationRecordLayout.zeros)
           if (value === undefined) {
             summary.recordsNotWritten += 1
+          } else if (value.kind === "string") {
+            writer.text(ascii(" " + String(value.value))) // provenance: PV-1023
+            summary.recordsWithString += 1
           } else if (value.kind === "handle") {
             writer.text(value.text)
             summary.recordsWithHandle += 1

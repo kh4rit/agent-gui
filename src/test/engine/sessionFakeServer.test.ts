@@ -14,7 +14,7 @@ import { ClientIdentities, ClientInputStep, InputEnvelope, Secret } from "../../
 import { DiagSession, LogonCredentials, type ServerMessage, type SessionState } from "../../diag/session/index.js"
 import { DPTerminalName } from "../../diag/wire/index.js"
 import { NodeTransport } from "../../engine/nodeTransport.js"
-import { skipWithoutFakeServer, startFakeServer, type FakeServer } from "../support/fakeServer.js"
+import { fakeServerObjectResultTypes, skipWithoutFakeServer, startFakeServer, type FakeServer } from "../support/fakeServer.js"
 
 /** The reference identity preset, whose default envelope is `chlStage` (PV-0783). */
 const identity = () => ClientIdentities.reference
@@ -36,7 +36,9 @@ function stateOf(session: DiagSession<NodeTransport>): SessionState {
 /** A session on a fresh connection to `server`. */
 async function connect(server: FakeServer): Promise<{ session: DiagSession<NodeTransport>; transport: NodeTransport }> {
   const transport = await NodeTransport.connect(server.host, server.port)
-  return { session: new DiagSession(transport, identity(), terminal), transport }
+  const session = new DiagSession(transport, identity(), terminal)
+  session.controlReadings.objectResultTypes = fakeServerObjectResultTypes
+  return { session, transport }
 }
 
 /** The next message; fails when the session ended instead. */

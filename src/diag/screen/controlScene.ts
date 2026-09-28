@@ -23,12 +23,13 @@ interface Provider {
 }
 
 /**
- * An on-demand data object of one call: the packets inserted into it, and the grid it became
- * the data table of.
+ * An on-demand data object of one call: the packets inserted into it, the grid it became
+ * the data table of, and the explicit Handle it was given (PV-1024).
  */
 interface OnDemand {
   packets: DataObject[]
   grid: number | undefined
+  reportHandle: number | undefined
 }
 
 /** The models a shell's content holds, by kind. */
@@ -139,6 +140,7 @@ export class ControlScene {
     const meanings = new Map<number, Meaning>()
     const providers: Provider[] = []
     const onDemands: OnDemand[] = []
+    const columnBindings = new Map<number, number>()
     let latestTree: number | undefined
     let latestGrid: number | undefined
 
@@ -155,7 +157,14 @@ export class ControlScene {
     }
     const targetShell = (invocation: ControlCallInvocation): number | undefined => {
       const target = meanings.get(invocation.target)
-      return target?.kind === "shell" ? target.value : undefined
+      if (target !== undefined) return target.kind === "shell" ? target.value : undefined
+      // provenance: PV-0939, PV-1010 — later calls return the handle minted
+      // for this shell. A local provider/result meaning takes precedence (#190).
+      const value = call.record(invocation.target)?.value
+      if (value === undefined || !value.startsWith("O")) return undefined
+      const handle = parseInteger(value.slice(1))
+      if (handle === undefined || handle <= 0) return undefined
+      return this.shellByHandle(handle)?.id
     }
     // A shell argument: the result record of a creation in this call, or the number or the
     // handle Swooey's answer returned for a creation in an earlier call (`38` or `O38`, issue #167).
@@ -180,7 +189,7 @@ export class ControlScene {
             meanings.set(result, { kind: "provider", value: providers.length - 1 })
           } else if (className.includes("OnDemand")) {
             // provenance: PV-1009
-            onDemands.push({ packets: [], grid: undefined })
+            onDemands.push({ packets: [], grid: undefined, reportHandle: undefined })
             meanings.set(result, { kind: "onDemand", value: onDemands.length - 1 })
           }
           break
@@ -202,6 +211,7 @@ export class ControlScene {
           this.shells.delete(id)
           this.shells.set(id, shell)
           owned.add(id)
+          columnBindings.delete(id)
           // A handle of a shell this id named before names no shell any more.
           this.shellsByHandle = new Map(Array.from(this.shellsByHandle).filter(([, named]) => named !== id))
           const handle = handles.get(invocation.index)
@@ -269,8 +279,14 @@ export class ControlScene {
           if (result !== undefined && source !== undefined) meanings.set(result, source)
           break
         }
-        case "Handle":
+        case "Handle": {
+          const target = meanings.get(invocation.target)
+          if (target?.kind === "onDemand") {
+            const value = number(1, invocation)
+            onDemands[target.value].reportHandle = value !== undefined && value > 0 ? value : undefined // provenance: PV-1024
+          }
           break
+        }
         case "InsertPacket": {
           const target = meanings.get(invocation.target)
           if (target?.kind !== "onDemand") break
@@ -332,6 +348,18 @@ export class ControlScene {
           const property = text(4, invocation)
           const target = shellArgument(3, invocation)
           switch (property) {
+            case "ColPosIDOnDemand": {
+              // provenance: PV-1024
+              // An unresolved target must never bind the most recently created grid.
+              if (target === undefined) break
+              const grid = model(target, "grid")
+              if (grid === undefined) break
+              grid.columnPositionHandle = undefined
+              const source = meaning(1, invocation)
+              if (source?.kind === "onDemand") columnBindings.set(target, source.value)
+              else columnBindings.delete(target)
+              break
+            }
             case "InfoTable": {
               // provenance: PV-1010
               const table = dataObject(meaning(1, invocation))
@@ -367,6 +395,10 @@ export class ControlScene {
         default:
           break
       }
+    }
+    for (const [id, index] of columnBindings) {
+      const grid = model(id, "grid")
+      if (grid !== undefined) grid.columnPositionHandle = onDemands[index].reportHandle
     }
   }
 

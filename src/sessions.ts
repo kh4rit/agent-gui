@@ -13,12 +13,14 @@ import { buildAgentView, type AgentView } from "./engine/agentView.js"
 import type { AgentControl, AgentList, AgentScreen, AgentTable } from "./engine/agentScreen.js"
 import { EngineError, GuiConnection, type StepOutcome } from "./engine/connection.js"
 import { keyLabel, okCodeVirtualKey, parseKey, VirtualKeys } from "./engine/keys.js"
+import { ListData } from "./engine/listData.js"
 import {
   ControlEvents,
   FieldEdits,
   FunctionTrigger,
   ScreenFunctions,
   ScreenPick,
+  type Screen,
   type ScreenElement,
   type ScreenElementID,
   type ScreenFunction,
@@ -62,6 +64,8 @@ export interface SessionsOptions {
   /** Host name for the DP header (tests pass an invented one). */
   terminalName?: string
   now?: () => number
+  /** Control answers with object result types (default true); tests against an older fake server pass false. */
+  objectResultTypes?: boolean
 }
 
 const lower = (s: string) => s.trim().toLowerCase()
@@ -242,6 +246,7 @@ export class Sessions implements GuiService {
         port: system.port,
         identity: system.identity,
         terminalName: this.options.terminalName ?? hostname(),
+        objectResultTypes: this.options.objectResultTypes,
         connectTimeoutSeconds: system.connectTimeoutSeconds,
         trace: this.trace(system)
       })
@@ -373,12 +378,12 @@ export class Sessions implements GuiService {
       for (const edit of request.edits ?? []) this.applyEdit(edit, screen.elements, view, edits, changes)
       for (const cell of request.cells ?? []) this.applyCell(cell, screen.elements, view, edits, changes)
       for (const mark of request.marks ?? []) this.applyMark(mark, view, edits, changes)
-      const cursor = request.cursor ? this.resolveElement(request.cursor, screen.elements, view).id : undefined
-      const { trigger, label, leaves } = this.trigger(request.trigger, screen.elements, view, state.policy)
+      const { cursor, listCursor } = this.cursor(request.cursor, screen, view)
+      const { trigger, label, leaves } = this.trigger(request.trigger, screen, view, state.policy)
       state.policy.checkScreen(screen.identity.transaction?.trim(), leaves)
       let outcome: StepOutcome
       try {
-        outcome = await connection.submit(session.mode, edits, trigger, { cursor, timeoutMs: session.system.stepTimeoutSeconds * 1000 })
+        outcome = await connection.submit(session.mode, edits, trigger, { cursor, listCursor, timeoutMs: session.system.stepTimeoutSeconds * 1000 })
       } catch (e) {
         this.record(session, "gui_step", { transaction: before.transaction, program: before.program, screen: before.screenNumber, trigger: label, changes }, undefined, e)
         throw e
@@ -387,6 +392,23 @@ export class Sessions implements GuiService {
       this.record(session, "gui_step", { transaction: before.transaction, program: before.program, screen: before.screenNumber, trigger: label, changes }, result.screen)
       return result
     })
+  }
+
+  /**
+   * Where the step puts the cursor: a field (reference, name, label or cell), or a list line
+   * `line:N` or `line:N:COLUMN`. Without one, a list screen's step carries the cursor on the list's
+   * first line, as SAP GUI's does (issues #184, #186).
+   */
+  private cursor(target: string | undefined, screen: Screen, view: AgentView): { cursor?: ScreenElementID; listCursor?: ScreenPick } {
+    const line = target === undefined ? null : /^line:(\d+)(?::(\d+))?$/i.exec(target.trim())
+    if (line) {
+      const row = view.index.listRows.get(Number(line[1]))
+      const held = row === undefined ? undefined : screen.list?.lines.find(l => l.row === row)
+      if (!held) throw new EngineError(`list line ${line[1]} is not on the visible page`)
+      return { listCursor: ListData.cursor(screen.list, held, line[2] === undefined ? undefined : Number(line[2])) }
+    }
+    if (target) return { cursor: this.resolveElement(target, screen.elements, view).id }
+    return { listCursor: ListData.cursor(screen.list) }
   }
 
   /** A field reference, technical name, label, or table cell address `t1:ROW:COLUMN`. */
@@ -489,7 +511,8 @@ export class Sessions implements GuiService {
   }
 
   /** The trigger of a step, checked against the policy; `leaves` when it only leaves the screen. */
-  private trigger(input: TriggerInput, elements: readonly ScreenElement[], view: AgentView, policy: Policy): { trigger: FunctionTrigger; label: string; leaves: boolean } {
+  private trigger(input: TriggerInput, current: Screen, view: AgentView, policy: Policy): { trigger: FunctionTrigger; label: string; leaves: boolean } {
+    const elements = current.elements
     const screen = view.screen
     const saveCode = view.index.functions.get(screen.functions.find(f => f.virtualKey === SAVE_VIRTUAL_KEY)?.ref ?? "")?.code
     const leavingKeys = new Set([3, 12, 15])
@@ -530,8 +553,9 @@ export class Sessions implements GuiService {
         }
         if (input.line !== undefined) {
           const row = view.index.listRows.get(input.line)
-          if (row === undefined) throw new EngineError(`list line ${input.line} is not on the visible page`)
-          return { trigger: FunctionTrigger.choose(ScreenPick.list(row, input.column ?? 0)), label: `choose line ${input.line}`, leaves: false }
+          const held = row === undefined ? undefined : current.list?.lines.find(l => l.row === row)
+          if (!held) throw new EngineError(`list line ${input.line} is not on the visible page`)
+          return { trigger: FunctionTrigger.choose(ListData.pick(held, input.column)), label: `choose line ${input.line}`, leaves: false }
         }
         throw new EngineError("choose needs a field or a list line")
       }

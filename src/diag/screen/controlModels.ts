@@ -9,7 +9,7 @@
 // are classes with `clone()`. The control scene copies a shell before it changes it, so a model
 // read from a scene never changes under its reader; copy one with `clone()` before changing it.
 
-import { parseInteger, type DataObject } from "../codec/index.js"
+import { DataManagerColumnPositions, parseInteger, type DataObject } from "../codec/index.js"
 
 /**
  * Swift's `String.count` for the texts of this module: the Unicode scalars (as the codec counts a
@@ -246,6 +246,21 @@ export class GridModel {
   title: string | undefined = undefined
   /** The columns in position order. */
   columns: GridColumn[] = []
+  /** Explicit Handle of the object bound to ColPosIDOnDemand (PV-1024). (Swift `public internal(set)`.) */
+  columnPositionHandle: number | undefined = undefined
+
+  /**
+   * The rendered catalog's positions and widths. A missing catalog is not an empty table. (Swift
+   * `DataManagerReport.ColumnPositions`, here `DataManagerColumnPositions`.)
+   */
+  get columnPositionReport(): DataManagerColumnPositions | undefined {
+    const handle = this.columnPositionHandle
+    if (handle === undefined || this.columns.length === 0) return undefined
+    return DataManagerColumnPositions.of(
+      handle,
+      this.columns.map(column => ({ position: column.position, width: column.width }))
+    )
+  }
   /** Cell texts by row number, then by column position. */
   cells = new Map<number, Map<number, string>>()
   /**
@@ -269,6 +284,7 @@ export class GridModel {
     const copy = new GridModel()
     copy.title = this.title
     copy.columns = this.columns.slice()
+    copy.columnPositionHandle = this.columnPositionHandle
     copy.cells = new Map(Array.from(this.cells, ([row, cells]) => [row, new Map(cells)]))
     copy.rowIDs = new Map(this.rowIDs)
     return copy

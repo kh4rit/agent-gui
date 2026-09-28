@@ -572,6 +572,11 @@ describe("Screen elements: table controls", () => {
 
 // MARK: - ListDecodingTests
 
+/** Swift's `Array(first ... last)`. */
+function range(first: number, last: number): number[] {
+  return Array.from({ length: last - first + 1 }, (_, index) => first + index)
+}
+
 /** Three header lines and three body lines of a 220-line list, the page from line 21. */
 function listScreen(window = true): ElementItems {
   const items = new ElementItems()
@@ -620,11 +625,11 @@ describe("Screen elements: classic lists", () => {
     assert.ok(list.headerLines.every(line => line.index === 0))
     assert.deepEqual(
       list.lines.map(line => line.index),
-      [21, 22, 23]
+      range(21, 40)
     )
     assert.deepEqual(
       list.lines.map(line => line.row),
-      [3, 4, 5]
+      range(3, 22)
     )
     assert.deepEqual(list.scroll, new ScreenListScroll({ firstLine: 21, totalLines: 220, visibleLines: 20, width: 80 }))
     assert.deepEqual(list.frame, new GridRect(new GridPoint(0, 0), 23, 80))
@@ -688,11 +693,11 @@ describe("Screen elements: classic lists", () => {
     )
     assert.deepEqual(
       list.lines.map(line => line.index),
-      [11, 12]
+      range(11, 20)
     )
     assert.deepEqual(
       list.lines.map(line => line.row),
-      [3, 4]
+      range(3, 12)
     )
     assert.deepEqual(list.frame, new GridRect(new GridPoint(2, 1), 11, 60))
     const runsOnly = items.screen(new ScreenReadings({ list: "runsOnly" })).list

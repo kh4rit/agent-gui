@@ -337,6 +337,8 @@ export class ScreenElement {
    * with (Reading R-EL-4). Undefined for every other element. (Swift internal.)
    */
   dropdownBody: DropdownBody | undefined = undefined
+  /** Exact non-password caption bytes for the native numeric radio reply (PV-1027). (Swift internal.) */
+  nativeRadioCaption: Uint8Array | undefined = undefined
 
   constructor(fields: ScreenElementFields) {
     const holdsRequiredMarker = fields.holdsRequiredMarker ?? false

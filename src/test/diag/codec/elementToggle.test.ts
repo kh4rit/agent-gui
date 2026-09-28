@@ -5,6 +5,8 @@ import assert from "node:assert/strict"
 import { describe, test } from "node:test"
 import {
   CheckboxReading,
+  ClientInputError,
+  ClientInputStep,
   DyntAtomEncodingError,
   DyntAttributes,
   DyntButtonStrings,
@@ -16,6 +18,7 @@ import {
   RadioGroupReading,
   byteRange
 } from "../../../diag/codec/index.js"
+import { ByteWriter } from "../../../diag/wire/index.js"
 import { ascii, cat, throwsInfo } from "../../support/codecTestSupport.js"
 import { field2Content, rawAtom, walkAtoms } from "../../support/dyntTestSupport.js"
 import {
@@ -159,6 +162,50 @@ describe("Screen elements: checkboxes and radio buttons", () => {
       () => encodeToggle(elementHeader(etype("checkbutton3"), 1, 1), { checked: true, visible: 1, caption: "Q".repeat(65_530) }),
       DyntAtomEncodingError
     )
+  })
+
+  /** Native radio states are numeric and independent of the selected header flag (bug #149) */
+  test("nativeRadioStates", () => {
+    for (const state of [0, 1]) {
+      const body = toggleContent({ state: "X", visible: 9, caption: "ZZ Pond  " })
+      body[0] = state
+      const radio = rawAtom(129, { content: body, flags: [0, state === 0 ? 0x80 : 0] })
+      const decoded = decodeToggle(radio)
+      assert.ok(decoded)
+      assert.equal(decoded.isChecked, state === 1)
+      assert.equal(bytesText(radio, decoded.captionRange), "ZZ Pond  ")
+      assert.equal(decodeToggle(rawAtom(128, { content: body })), undefined)
+      assert.equal(decodeToggle(radio, "specGap"), undefined)
+    }
+  })
+
+  /** Native numeric layout rejects events, offsets, unknown states and mismatched widths (bug #149) */
+  test("nativeRadioBounds", () => {
+    const valid = toggleContent({ state: "X", visible: 5, caption: "ZZabc" })
+    valid[0] = 1
+    for (const offset of [0, 2, 3, 4, 5, 6, 7, 9]) {
+      const invalid = valid.slice()
+      invalid[offset] = 2
+      assert.equal(decodeToggle(rawAtom(129, { content: invalid })), undefined, `offset ${offset}`)
+    }
+    assert.equal(decodeToggle(rawAtom(129, { content: valid }), "odgSplit"), undefined)
+  })
+
+  /** Native radio reply preserves caption bytes and refuses wrong types and oversized bodies (bug #148) */
+  test("nativeRadioReturn", () => {
+    const caption = Uint8Array.of(0x5a, 0x5a, 0xe9, 0x20, 0x20)
+    const output = new ByteWriter()
+    const header = elementHeader(etype("radiobutton3"), 6, 4, { group: 1, flags: [0, 0x81] })
+    DyntToggleReturn.appendNativeRadio(header, true, caption, output)
+    assert.deepEqual(output.toBytes(), rawAtom(105, { content: cat([1], caption), group: 1, row: 6, col: 4 }))
+    const before = output.toBytes()
+    assert.throws(() => DyntToggleReturn.appendNativeRadio(elementHeader(etype("checkbutton3"), 1, 1), false, caption, output), DyntAtomEncodingError)
+    const oversized = new Uint8Array(65535).fill(0x20)
+    assert.throws(() => DyntToggleReturn.appendNativeRadio(header, false, oversized, output), DyntAtomEncodingError)
+    assert.deepEqual(output.toBytes(), before)
+    const step = new ClientInputStep()
+    assert.throws(() => step.appendNativeRadio(elementHeader(etype("checkbutton3"), 1, 1), false, caption), ClientInputError)
+    assert.equal(step.fieldCount, 0)
   })
 
   // MARK: Returned toggles (R-EL-4, PV-0963)

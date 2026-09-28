@@ -22,8 +22,10 @@ import { DyntAtomHeader, DyntAttributes, DyntDialogFlags, DyntElementType, type 
 import { DyntAtomEncoder, DyntAtomEncodingError, type DyntAtomEncodingErrorInfo } from "./dyntAtomEncoder.js"
 import { DyntCombobox, DyntToggleReturn } from "./dyntElements.js"
 import { ClientDataManager, InputEnvelope, InputFocus, ServerEcho } from "./inputEnvelope.js"
+import type { ListWindowState } from "./listItems.js"
 import type { RFCTransferValue } from "./rfcTransfer.js"
 import { ScreenValueEncodingError } from "./screenListValues.js"
+import type { ListFocus } from "./screenValues.js"
 import type { Secret } from "./secret.js"
 import { SESValue } from "./simpleItemValues.js"
 import { TableRowRecord } from "./tableItems.js"
@@ -264,6 +266,11 @@ export class ClientInputStep {
    * (client-input.md §5, R-CI-5). Opaque (#32).
    */
   ses: SESValue | undefined
+  /**
+   * Native logon confirmation (PV-1034), selected by the recognized native Enter path. Updates only
+   * the received SES event array and screen flag; all other bytes, including reserved bytes, survive.
+   */
+  nativeLogonSession = false
   /** A DYNN CHL value (APPL 0x05/0x01) to send before the fields; opaque (#32). At most 65 535 bytes. */
   dynnCHL: Uint8Array | undefined
   /** The atoms of the DYNT_ATOM item. Never printed. */
@@ -279,6 +286,13 @@ export class ClientInputStep {
   envelope: InputEnvelope
   /** The DYNT_FOCUS_1 the step sends when its envelope holds `InputEnvelope.focus` (Reading R-CI-16); undefined sends none. */
   focus: InputFocus | undefined = undefined
+  /** Optional classic-list cursor (PV-0717, PV-1026). */
+  listFocus: ListFocus | undefined = undefined
+  /**
+   * Received plain list state for classic-list input (PV-1026). It replaces dynpro CHL and dynpro
+   * focus carriers for a list-only step.
+   */
+  plainListWindow: ListWindowState | undefined = undefined
   /**
    * The row record of a table scroll request (elements.md Reading R-EL-9, PV-0968): an APPL DYNT
    * 09/05 item that the message encoder writes after the step's `items` (so after the DYNT_ATOM item)
@@ -319,7 +333,11 @@ export class ClientInputStep {
     const copy = new ClientInputStep({ ses: this.ses, dynnCHL: this.dynnCHL?.slice(), envelope: this.envelope })
     copy.#atoms.bytes(this.#atoms.toBytes())
     copy.#fieldCount = this.#fieldCount
+    copy.nativeLogonSession = this.nativeLogonSession
     copy.focus = this.focus === undefined ? undefined : cloneFocus(this.focus)
+    // ListFocus and ListWindowState are immutable: the copy may share them.
+    copy.listFocus = this.listFocus
+    copy.plainListWindow = this.plainListWindow
     copy.tableRowRecord = this.tableRowRecord
     copy.rfcTransfer = this.rfcTransfer?.clone()
     copy.dataManager = this.dataManager?.slice()
@@ -369,6 +387,15 @@ export class ClientInputStep {
         this.#atoms
       )
     )
+    this.#fieldCount += 1
+  }
+
+  /**
+   * Returns a numeric native radio using its exact received caption (PV-1027). It counts as a
+   * returned field. Throws `ClientInputError`; nothing is appended then.
+   */
+  appendNativeRadio(header: DyntAtomHeader, isChecked: boolean, caption: Uint8Array): void {
+    encodingAtom(() => DyntToggleReturn.appendNativeRadio(header, isChecked, caption, this.#atoms))
     this.#fieldCount += 1
   }
 
@@ -622,16 +649,29 @@ export const ClientInput = {
   inputMessage(encoder: ClientMessageEncoder, step: ClientInputStep, mode = 0, echo: ServerEcho = new ServerEcho()): Uint8Array {
     const envelope = step.envelope
     if (envelope === InputEnvelope.minimal) {
-      if (step.rfcTransfer === undefined && step.tableRowRecord === undefined && step.controlFocus === undefined && step.dataManager === undefined)
+      if (
+        step.rfcTransfer === undefined &&
+        step.tableRowRecord === undefined &&
+        step.controlFocus === undefined &&
+        step.dataManager === undefined &&
+        step.listFocus === undefined &&
+        step.plainListWindow === undefined
+      )
         return encoder.dialogMessageWithEvent(step.items, step.uiEvent, mode)
       return encoder.composeDialogMessage({ mode, modeStat: 0, stepNumber: undefined }, body => {
         const transfer = step.rfcTransfer
         if (transfer !== undefined) ClientMessageEncoder.appendAPPL(ApplItem.rfcTR(transfer.sid), transfer.value, body)
-        for (const item of step.items) ClientMessageEncoder.appendClientItem(item, body)
+        for (const item of step.items) {
+          if (item.kind === "dynnCHL" && step.plainListWindow !== undefined) continue
+          ClientMessageEncoder.appendClientItem(item, body)
+        }
+        // provenance: PV-1026 — plain CHL precedes the list event in the reference step.
+        step.plainListWindow?.appendPlainItem(body)
         const record = step.tableRowRecord
         if (record !== undefined) ClientMessageEncoder.appendAPPL(TableRowRecord.item, record.bytes, body)
         const event = step.uiEvent
         if (event !== undefined) ClientMessageEncoder.appendAPPL(ApplItem.uiEvent("uiEventSource"), event, body)
+        appendListFocus(step.listFocus, body)
         // A control event goes with its focus and document in any envelope (PV-1016).
         const shell = step.controlFocus
         if (shell !== undefined) ClientMessageEncoder.appendAPPL(ApplItem.dynt("controlFocus"), shell, body)
@@ -641,7 +681,12 @@ export const ClientInput = {
     }
     const echoes = InputEnvelope.contains(envelope, InputEnvelope.echoes)
     return encoder.composeDialogMessage(
-      { mode, modeStat: echoes ? echo.modeStat : 0, stepNumber: echoes ? echo.stepNumber : undefined },
+      {
+        mode,
+        modeStat: echoes ? echo.modeStat : 0,
+        stepNumber: echoes ? echo.stepNumber : undefined,
+        controlReply: InputEnvelope.contains(envelope, InputEnvelope.referenceHeader)
+      },
       body => appendEnvelopeItems(step, echo, body)
     )
   },
@@ -682,7 +727,14 @@ function appendEnvelopeItems(step: ClientInputStep, echo: ServerEcho, body: Byte
   const transfer = step.rfcTransfer
   if (transfer !== undefined) ClientMessageEncoder.appendAPPL(ApplItem.rfcTR(transfer.sid), transfer.value, body)
   if (echoes && echo.ses !== undefined) {
-    appendSimple("ses", echo.ses, body)
+    // Swift copies the echo's bytes into a `var` before changing them.
+    const ses = echo.ses.slice()
+    // provenance: PV-1034 — native confirmation; preserve opaque bytes.
+    if (step.nativeLogonSession && ses.length === SESValue.size) {
+      ses[SESValue.Offset.eventArray] = 1
+      ses[SESValue.Offset.screenFlag] = 0
+    }
+    appendSimple("ses", ses, body)
   } else {
     const ses = step.ses ?? (echoes ? new SESValue({ eventArray: 1 }) : undefined)
     if (ses !== undefined) ClientMessageEncoder.appendClientItem({ kind: "ses", value: ses }, body)
@@ -691,31 +743,46 @@ function appendEnvelopeItems(step: ClientInputStep, echo: ServerEcho, body: Byte
     ClientMessageEncoder.appendAPPL(ApplItem.stSystemInfo("codepageDiagGUI"), echo.codepageDiagGUI, body)
   const code = step.functionCode
   if (code !== undefined) ClientMessageEncoder.appendAPPL(ApplItem.varInfo("okcode"), code, body)
-  const chl = (InputEnvelope.contains(envelope, InputEnvelope.dynnCHL) ? echo.dynnCHL : undefined) ?? step.dynnCHL
-  if (chl !== undefined) ClientMessageEncoder.appendAPPL(ApplItem.dynn("chl"), chl, body)
+  const window = step.plainListWindow
+  if (window !== undefined) {
+    // provenance: PV-1026 — list-only step, replacing the stale dynpro carrier.
+    window.appendPlainItem(body)
+  } else {
+    const chl = (InputEnvelope.contains(envelope, InputEnvelope.dynnCHL) ? echo.dynnCHL : undefined) ?? step.dynnCHL
+    if (chl !== undefined) ClientMessageEncoder.appendAPPL(ApplItem.dynn("chl"), chl, body)
+  }
   if (screenState && echo.scrollInfos2 !== undefined) ClientMessageEncoder.appendAPPL(ApplItem.varInfo("scrollInfos2"), echo.scrollInfos2, body)
   if (screenState && echo.containerReset !== undefined) ClientMessageEncoder.appendAPPL(ApplItem.container("reset"), echo.containerReset, body)
   const guiCarriers = InputEnvelope.contains(envelope, InputEnvelope.guiCarriers)
   if (step.fieldCount > 0) {
     if (guiCarriers) ClientMessageEncoder.appendAPPL(ApplItem.dynt("atom"), step.atomBytes, body)
     else ClientMessageEncoder.appendClientItem({ kind: "dyntAtom", value: step.atomBytes }, body)
-  } else if (guiCarriers && step.controlFocus === undefined) {
+  } else if (guiCarriers && step.controlFocus === undefined && step.plainListWindow === undefined) {
     ClientMessageEncoder.appendAPPL(ApplItem.dynt("noFocus"), new Uint8Array(0), body)
   }
   const record = step.tableRowRecord
   if (record !== undefined) ClientMessageEncoder.appendAPPL(TableRowRecord.item, record.bytes, body)
   const event = step.uiEvent
   if (event !== undefined) ClientMessageEncoder.appendAPPL(ApplItem.uiEvent("uiEventSource"), event, body)
+  appendListFocus(step.listFocus, body)
   const shell = step.controlFocus
   if (shell !== undefined) {
     ClientMessageEncoder.appendAPPL(ApplItem.dynt("controlFocus"), shell, body)
-  } else if (InputEnvelope.contains(envelope, InputEnvelope.focus) && step.focus !== undefined) {
+  } else if (step.plainListWindow === undefined && InputEnvelope.contains(envelope, InputEnvelope.focus) && step.focus !== undefined) {
     ClientMessageEncoder.appendAPPL(ApplItem.dynt("focus1"), step.focus.bytes, body)
   }
   const document =
     step.dataManager ??
     (InputEnvelope.contains(envelope, InputEnvelope.dataManager) && event === undefined ? ClientDataManager.bareDocument : undefined)
   if (document !== undefined) appendXMLBLOB(document, body)
+}
+
+/** The VARINFO LIST_FOCUS item of a classic-list cursor (PV-0717, PV-1026), when the step has one. */
+function appendListFocus(focus: ListFocus | undefined, body: ByteWriter): void {
+  if (focus === undefined) return
+  const value = new ByteWriter()
+  focus.append(value)
+  ClientMessageEncoder.appendAPPL(ApplItem.varInfo("listFocus"), value.toBytes(), body)
 }
 
 /** A simple item; an encoder error becomes `ClientMessageError.item`. (Swift private `appendSimple`.) */

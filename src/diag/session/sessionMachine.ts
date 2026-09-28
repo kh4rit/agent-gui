@@ -476,7 +476,7 @@ export class SessionMachine {
     }
     // A declaration governs the whole message that carries it (Reading R-SE-9).
     this._codePageInForce = decoded.declaredCodePage ?? this._codePageInForce
-    const message = new ServerMessage({
+    let message = new ServerMessage({
       number: this._diagnostics.messages,
       payload,
       header: decoded.header,
@@ -489,6 +489,36 @@ export class SessionMachine {
     message.modeEvent = this.route(message)
     this.advance(message)
     const reply = this.answerControl(message)
+    const blob = message.control?.guiBlob
+    if (blob !== undefined && header !== undefined) {
+      // STREAM carries the screen's identity, fields and window echoes. Keep the outer message's
+      // mode and one-way semantics; never recursively dispatch its items.
+      // provenance: PV-1020
+      const nested = SessionMachine.screen(header, blob.items, 0, "guiBlob")
+      this._codePageInForce = nested.declaredCodePage ?? this._codePageInForce
+      const displayed = new ServerMessage({
+        number: message.number,
+        payload: message.payload,
+        header,
+        content: nested.content,
+        decompressed: message.decompressed,
+        codePage: this._codePageInForce,
+        declaredCodePage: nested.declaredCodePage,
+        guiBlobItems: blob.items
+      })
+      displayed.modeEvent = message.modeEvent
+      displayed.control = message.control
+      const state = this._modes.get(header.mode)
+      if (state !== undefined) {
+        const screenEcho = new ServerEcho(blob.items)
+        // The embedded screen can predate the enclosing control exchange. Its step must not replace
+        // the transport's latest step (R-CT-44, PV-1020).
+        screenEcho.stepNumber = undefined
+        state.echo.merge(screenEcho, header)
+      }
+      message = displayed
+      this.advance(message)
+    }
     return { message, reply }
   }
 

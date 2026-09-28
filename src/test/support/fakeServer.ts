@@ -10,6 +10,15 @@ import { isAbsolute, join } from "node:path"
 export const fakeServerBinary: string | undefined = process.env.AGENT_GUI_FAKE_SERVER || undefined
 
 /** `skip` option for node:test: a reason when the fake server is not available. */
+/**
+ * Whether sessions against the fake server type object results as SAP GUI does (SW-189, PV-1033;
+ * `ControlReadings.objectResultTypes`, on by default). The server of Swooey 112c04d, the last that
+ * takes `--scenario`, checks a control answer's result descriptors byte for byte and predates that
+ * answer; later servers accept it. So the sessions the tests open against it answer in the older
+ * form, and the unit tests (bug0189, controlTraffic) cover the default.
+ */
+export const fakeServerObjectResultTypes = false
+
 export const skipWithoutFakeServer: string | false = fakeServerBinary ? false : "AGENT_GUI_FAKE_SERVER is not set (path of Swooey's fake-diag-server)"
 
 /**

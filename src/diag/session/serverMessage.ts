@@ -81,8 +81,9 @@ export const MessageProblem = {
  * Which buffer a screen's items lie in (Swift internal `ItemSource`).
  * - `payload`: the frame payload: an uncompressed message.
  * - `decompressed`: the decompressed data of a compressed message.
+ * - `guiBlob`: a validated STREAM value of an assembled GUI-core call (R-CT-44).
  */
-export type ItemSource = "payload" | "decompressed"
+export type ItemSource = "payload" | "decompressed" | "guiBlob"
 
 /**
  * What one decoded server message shows: its header, the screen identity and the input fields
@@ -156,6 +157,7 @@ export interface ServerMessageFields {
   errorBody?: ErrorBodyLocation
   codePage: number
   declaredCodePage?: number
+  guiBlobItems?: Uint8Array
 }
 
 /**
@@ -180,6 +182,8 @@ export class ServerMessage {
   readonly content: ServerMessageContent
   /** The decompressed data of a compressed message; empty otherwise (Swift internal). */
   readonly decompressed: Uint8Array
+  /** The embedded screen's items. The original wire payload stays intact for diagnostics (Swift internal). */
+  readonly guiBlobItems: Uint8Array
   /**
    * The code page its texts are in (session.md §6.3, Reading R-SE-9): the one it declares in
    * ST_R3INFO CODEPAGE_DIAG_GUI, else the one in force before it, which is the code page CONNECT
@@ -217,6 +221,7 @@ export class ServerMessage {
     this.header = fields.header
     this.content = fields.content
     this.decompressed = fields.decompressed
+    this.guiBlobItems = fields.guiBlobItems ?? new Uint8Array(0)
     this.errorBody = fields.errorBody
     this.codePage = fields.codePage
     this.declaredCodePage = fields.declaredCodePage
@@ -248,8 +253,7 @@ export class ServerMessage {
   withItems<Result>(body: (items: Uint8Array) => Result): Result | undefined {
     const screen = this.screen
     if (screen === undefined) return undefined
-    const buffer = screen.source === "payload" ? this.payload : this.decompressed
-    return body(screen.itemsRange.of(buffer))
+    return body(screen.itemsRange.of(this.buffer(screen.source)))
   }
 
   /**
@@ -287,7 +291,7 @@ export class ServerMessage {
   withErrorText<Result>(body: (text: Uint8Array) => Result): Result | undefined {
     const errorBody = this.errorBody
     if (errorBody === undefined) return undefined
-    const bytes = errorBody.range.of(errorBody.source === "payload" ? this.payload : this.decompressed)
+    const bytes = errorBody.range.of(this.buffer(errorBody.source))
     let textRange = new ByteRange(0, bytes.length)
     try {
       textRange = DiagErrorBody.split(bytes).textRange
@@ -309,8 +313,19 @@ export class ServerMessage {
   decodedErrorText(): ServerErrorText | undefined {
     const errorBody = this.errorBody
     if (errorBody === undefined) return undefined
-    const buffer = errorBody.source === "payload" ? this.payload : this.decompressed
-    return ServerErrorText.fromErrorBody(errorBody.range.of(buffer), this.codePage)
+    return ServerErrorText.fromErrorBody(errorBody.range.of(this.buffer(errorBody.source)), this.codePage)
+  }
+
+  /** The buffer an item source names (Swift switches over `ItemSource` at each use). */
+  private buffer(source: ItemSource): Uint8Array {
+    switch (source) {
+      case "payload":
+        return this.payload
+      case "decompressed":
+        return this.decompressed
+      case "guiBlob":
+        return this.guiBlobItems
+    }
   }
 
   /**

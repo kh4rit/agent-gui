@@ -5,7 +5,7 @@
 // choose how it is sent (`FunctionReadings`) and how a screen is decoded (`ScreenReadings`), and the
 // input step for a trigger.
 //
-// Swift's `extension Screen` of this file (`inputStep(edits:trigger:readings:flags:cursor:)`,
+// Swift's `extension Screen` of this file (`inputStep(edits:trigger:readings:flags:cursor:listCursor:)`,
 // `statusButtonCode(forFunction:)` and their helpers) is the object `FunctionTriggerStep`, whose
 // functions take the screen; `Screen.inputStep` (with a trigger) and `Screen.statusButtonCode` call
 // them.
@@ -19,6 +19,7 @@ import {
   GUIFunctionNumber,
   InputEnvelope,
   InputFocus,
+  ListFocus,
   ListFunctionNumber,
   PageKey,
   ReturnedField,
@@ -49,13 +50,14 @@ import {
   type ClientInputErrorInfo,
   type UIEventDataWidth
 } from "../codec/index.js"
-import { ByteWriter } from "../wire/index.js"
+import { ByteWriter, bytesEqual } from "../wire/index.js"
 import type { Screen } from "./screen.js"
 import type { RequiredMarkerReading } from "./screenCarry.js"
-import type { ScreenElement, ScreenElementID } from "./screenElement.js"
+import { ScreenElementID, type ScreenElement } from "./screenElement.js"
 import type { ScreenFunction } from "./screenFunction.js"
 import { ScreenInput, ScreenInputError, type FieldEdits, type ReturnedFieldFlags } from "./screenInput.js"
 import { ScreenTextDecoding, TextMarkup, characterCount } from "./screenLayout.js"
+import { MultipleLogonQuestion } from "./screenLogon.js"
 import type { WindowSectionReading } from "./screenPopup.js"
 
 /**
@@ -254,6 +256,7 @@ export interface ScreenReadingsFields {
   messageType: MessageTypeReading
   requiredMarker: RequiredMarkerReading
   windowSections: WindowSectionReading
+  nestedSubscreens: boolean
 }
 
 /**
@@ -296,6 +299,8 @@ export class ScreenReadings implements ScreenReadingsFields {
   requiredMarker: RequiredMarkerReading
   /** A message's window sections (elements.md Reading R-EL-23). */
   windowSections: WindowSectionReading
+  /** Experimental placement of containers nested in subscreens (issue #188). */
+  nestedSubscreens: boolean
 
   constructor(fields: Partial<ScreenReadingsFields> = {}) {
     this.buttonStrings = fields.buttonStrings ?? "agreed"
@@ -315,6 +320,7 @@ export class ScreenReadings implements ScreenReadingsFields {
     this.messageType = fields.messageType ?? "mestype2"
     this.requiredMarker = fields.requiredMarker ?? "questionMark"
     this.windowSections = fields.windowSections ?? "sesSections"
+    this.nestedSubscreens = fields.nestedSubscreens ?? false
   }
 
   /** A copy (Swift copies the struct on assignment). */
@@ -350,6 +356,8 @@ export interface TriggerStepOptions {
   readings?: FunctionReadings
   flags?: ReturnedFieldFlags
   cursor?: ScreenElementID | undefined
+  /** A list position the cursor is on (issues #184, #186); only `ScreenPick` `list` on a list screen. */
+  listCursor?: ScreenPick | undefined
 }
 
 /**
@@ -434,7 +442,7 @@ export const FunctionTriggerStep = {
    * (Readings R-EL-4, R-EL-10). A UI event names the cursor's container per
    * `FunctionReadings.cursorContainers` (Reading R-EL-17), and a list page key goes as the list
    * status's code under `ListPagingReading` `okCodes`, the default (Reading R-EL-12). (Swift
-   * `inputStep(edits:trigger:readings:flags:cursor:)`.)
+   * `inputStep(edits:trigger:readings:flags:cursor:listCursor:)`.)
    */
   inputStep(screen: Screen, edits: FieldEdits, trigger: FunctionTrigger, options: TriggerStepOptions = {}): ClientInputStep {
     const readings = options.readings ?? new FunctionReadings()
@@ -448,9 +456,29 @@ export const FunctionTriggerStep = {
     step.envelope = readings.envelope
     // The element the cursor is on, and where the UI event reports it (R-CI-10, R-EL-17).
     let focusElement = options.cursor === undefined ? undefined : screen.element(options.cursor)
+    // provenance: PV-1028 — native confirmation focuses the selected radio.
+    const question = focusElement === undefined ? nativeLogonQuestion(screen) : undefined
+    if (question !== undefined) {
+      const buttons = Array.from(question.buttons.values())
+      let changed: { id: ScreenElementID; order: number } | undefined
+      for (const selection of edits.radioSelectionOrder) {
+        if (!buttons.some(button => ScreenElementID.equals(button, selection.id))) continue
+        if (changed === undefined || selection.order > changed.order) changed = selection
+      }
+      const selected = changed?.id ?? (question.selected === undefined ? undefined : question.buttons.get(question.selected))
+      focusElement = selected === undefined ? undefined : screen.element(selected)
+    }
     let target = targetOf(focusElement, readings)
     // The DYNT_FOCUS_1 of a list pick (R-EL-12), which names no element.
     let listFocus: InputFocus | undefined
+    const listCursor = options.listCursor
+    if (listCursor !== undefined && focusElement === undefined) {
+      if (listCursor.kind !== "list" || screen.list === undefined || !isUInt16(listCursor.row) || !isUInt16(listCursor.column)) {
+        throw functionRefused({ kind: "function", value: { kind: "notOffered" } })
+      }
+      target = { row: listCursor.row, col: listCursor.column, containers: Array.from(InputFocus.containerIDs) }
+      listFocus = new InputFocus(listCursor.row, listCursor.column)
+    }
     // Whether a function number went as an OK-code (R-CI-20), which carries no cursor.
     let firedAsOKCode = false
     switch (trigger.kind) {
@@ -495,6 +523,7 @@ export const FunctionTriggerStep = {
           case "functionKey4":
             checkDeclared(screen, ValueHelpReading.functionNumber)
             focusElement = field
+            listFocus = undefined
             target = targetOf(field, readings)
             firedAsOKCode = fire(screen, ValueHelpReading.functionNumber, step, readings, target)
             break
@@ -512,6 +541,7 @@ export const FunctionTriggerStep = {
             const chosen = screen.element(pick.value)
             if (chosen === undefined) throw new ScreenInputError({ kind: "unknownElement", value: pick.value })
             focusElement = chosen
+            listFocus = undefined
             target = targetOf(chosen, readings)
             break
           }
@@ -548,8 +578,23 @@ export const FunctionTriggerStep = {
         break
       }
     }
+    const uiEvent = step.uiEvent
+    if (uiEvent !== undefined && bytesEqual(uiEvent, UIEventFunctionKey.multipleLogonEnter) && focusElement !== undefined) {
+      const chosen = focusElement
+      step.focus = new InputFocus(chosen.atom.row, chosen.atom.col, 0, Uint8Array.from(target.containers))
+      step.envelope = step.envelope | InputEnvelope.focus
+      return step
+    }
     const hasCursor = listFocus !== undefined || focusElement !== undefined
-    if (!sendsFocus(step, readings, firedAsOKCode && hasCursor)) return step
+    const window = screen.diagnostics.plainListWindow
+    if (listFocus !== undefined && step.fieldCount === 0 && window !== undefined) {
+      // provenance: PV-1026 — live Display/F2 validation: plain list state and LIST_FOCUS.
+      step.listFocus = new ListFocus({ version: 1, row: listFocus.row, col: listFocus.col })
+      step.plainListWindow = window
+      return step
+    }
+    const listCommandCursor = listCursor !== undefined && listFocus !== undefined && uiEvent === undefined
+    if (!listCommandCursor && !sendsFocus(step, readings, firedAsOKCode && hasCursor)) return step
     step.envelope = step.envelope | InputEnvelope.focus
     if (listFocus !== undefined) {
       step.focus = listFocus
@@ -662,7 +707,25 @@ function focus(screen: Screen, field: ScreenElement, edits: FieldEdits, containe
   }
 }
 
+/**
+ * The multiple-logon question `screen` asks when every one of its buttons is a native numeric radio
+ * (PV-1028); undefined otherwise. (Swift inlines `MultipleLogonQuestion(self)` with
+ * `question.buttons.values.allSatisfy { element($0)?.nativeRadioCaption != nil }`.)
+ */
+function nativeLogonQuestion(screen: Screen): MultipleLogonQuestion | undefined {
+  const question = MultipleLogonQuestion.of(screen)
+  if (question === undefined) return undefined
+  for (const id of question.buttons.values()) if (screen.element(id)?.nativeRadioCaption === undefined) return undefined
+  return question
+}
+
 function enter(screen: Screen, step: ClientInputStep, readings: FunctionReadings, target: FunctionTarget): void {
+  // provenance: PV-1028 — fields alone change the choice but do not confirm this question.
+  if (nativeLogonQuestion(screen) !== undefined) {
+    if (readings.functionKey === "refused") throw functionRefused({ kind: "specGap", issue: CodecSpecGap.functionTrigger })
+    step.setUIEventSource(UIEventFunctionKey.multipleLogonEnter)
+    return
+  }
   switch (readings.enter) {
     case "fieldsOnly":
       break

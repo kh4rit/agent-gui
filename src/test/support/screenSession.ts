@@ -38,7 +38,7 @@ import { FieldEdits, FunctionTrigger, Screen, type ScreenReadings } from "../../
 import { DiagSession, LogonCredentials, type ServerMessage, type SessionState } from "../../diag/session/index.js"
 import { DPTerminalName } from "../../diag/wire/index.js"
 import { NodeTransport } from "../../engine/nodeTransport.js"
-import { fakeServerBinary, startFakeServer, type FakeServer } from "./fakeServer.js"
+import { fakeServerBinary, fakeServerObjectResultTypes, startFakeServer, type FakeServer } from "./fakeServer.js"
 
 export { skipWithoutFakeServer } from "./fakeServer.js"
 
@@ -87,7 +87,9 @@ export class Pond {
     const server = await startFakeServer(scenario)
     try {
       const transport = await NodeTransport.connect(server.host, server.port)
-      return new Pond(server, new DiagSession(transport, pondIdentity(), pondTerminal), transport)
+      const session = new DiagSession(transport, pondIdentity(), pondTerminal)
+      session.controlReadings.objectResultTypes = fakeServerObjectResultTypes
+      return new Pond(server, session, transport)
     } catch (error) {
       await server.stop()
       throw error

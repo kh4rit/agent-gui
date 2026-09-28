@@ -25,7 +25,8 @@ import {
   WindowLevelCarry,
   type ControlAction,
   type MultipleLogonQuestionOption,
-  type ScreenElementID
+  type ScreenElementID,
+  type ScreenPick
 } from "../diag/screen/index.js"
 import {
   DiagSession,
@@ -38,6 +39,7 @@ import {
 } from "../diag/session/index.js"
 import { DPTerminalName } from "../diag/wire/index.js"
 import { NodeTransport } from "./nodeTransport.js"
+import { ScreenBridge } from "./screenBridge.js"
 
 export interface GuiConnectionOptions {
   host: string
@@ -49,6 +51,11 @@ export interface GuiConnectionOptions {
   connectTimeoutSeconds: number
   /** Structure-only trace lines (no field values, no passwords). */
   trace?: (line: string) => void
+  /**
+   * Whether control answers type object results as SAP GUI does (SW-189, PV-1033); default true.
+   * Only a test server that predates it needs false.
+   */
+  objectResultTypes?: boolean
 }
 
 /** The state of one mode (one SAP session). */
@@ -134,6 +141,7 @@ export class GuiConnection {
     // The envelope the reference identity logged on with (PV-0783): for steps and control replies.
     const envelope = InputEnvelope.default(identity)
     session.controlReadings.envelope = envelope
+    session.controlReadings.objectResultTypes = options.objectResultTypes ?? true
     const readings = new FunctionReadings({ envelope })
     const connection = new GuiConnection(session, readings, options)
     const first = await session.start()
@@ -288,7 +296,9 @@ export class GuiConnection {
       }
       if (!control.showsScreen) {
         // No screen: the previous one stays (Reading R-CT-22).
-        if (!control.serverContinues && control.notes.length) state.notices.push(`control traffic not answered: ${control.notes[0]}`)
+        // The header-only NOP | EOP ending settles the step and keeps the screen (Reading R-CT-43).
+        if (!control.serverContinues && !control.isNoOperation && control.notes.length)
+          state.notices.push(`control traffic not answered: ${control.notes[0]}`)
         return
       }
     }
@@ -296,7 +306,7 @@ export class GuiConnection {
     state.serverError = decoded ? decoded.text : undefined
     let screen: Screen
     try {
-      screen = Screen.fromMessage(message, { codePage: message.codePage })
+      screen = ScreenBridge.screen(message)
     } catch (e) {
       if (e instanceof ScreenDecodingError) {
         state.notices.push(`message ${message.number} not decoded: ${MessageProblem.describe(e.info.value)}`)
@@ -333,7 +343,7 @@ export class GuiConnection {
     mode: number,
     edits: FieldEdits,
     trigger: FunctionTrigger,
-    options: { cursor?: ScreenElementID; controls?: ControlAction; asksForNewMode?: boolean; timeoutMs: number }
+    options: { cursor?: ScreenElementID; listCursor?: ScreenPick; controls?: ControlAction; asksForNewMode?: boolean; timeoutMs: number }
   ): Promise<StepOutcome> {
     if (this.ended) return { kind: "ended", reason: this.ended }
     const state = this.mode(mode)
@@ -342,7 +352,7 @@ export class GuiConnection {
     if (!screen) throw new EngineError("there is no screen to submit yet")
     let step
     try {
-      step = screen.inputStep(edits, trigger, { readings: this.readings, cursor: options.cursor })
+      step = ScreenBridge.inputStep(screen, edits, trigger, { readings: this.readings, cursor: options.cursor, listCursor: options.listCursor })
     } catch (e) {
       if (e instanceof ScreenInputError) throw new EngineError(`the input was not sent: ${e.message}`)
       throw e

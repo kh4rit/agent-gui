@@ -619,9 +619,11 @@ function appendReturn(
   })
   switch (returned.kind) {
     case "toggle":
-      forField(element.id, () =>
-        step.appendToggle(header, { isChecked: returned.isChecked, visibleLength: clampU16(element.width ?? 0), trailingZero: reading.trailingZero })
-      )
+      forField(element.id, () => {
+        const caption = element.nativeRadioCaption
+        if (caption !== undefined) step.appendNativeRadio(element.atom.header, returned.isChecked, caption)
+        else step.appendToggle(header, { isChecked: returned.isChecked, visibleLength: clampU16(element.width ?? 0), trailingZero: reading.trailingZero })
+      })
       break
     case "dropdown": {
       // A dropdown always has its received body (R-EL-3).

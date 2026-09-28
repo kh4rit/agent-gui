@@ -1,6 +1,6 @@
 # agent-gui — Project Plan
 
-**Status:** 0.1.0 implemented on 2026-09-27; live validation on the target system is next. **Licence:** MIT.
+**Status:** 0.1.0 implemented on 2026-09-27; 0.1.1 (2026-09-28) after the first Windows install, with the engine synced to Swooey `d89e12f`; live validation on the target system is next. **Licence:** MIT.
 **Target:** GitHub Copilot CLI on Windows (the same setup as agent-adt); any other MCP client works too.
 
 agent-gui is an MCP server that lets AI agents work in SAP GUI transactions. It speaks the DIAG protocol directly: no SAP GUI installation, no GUI Scripting and no screen scraping. It is the sibling of [agent-adt](https://github.com/kh4rit/agent-adt), which covers code over ADT/HTTP, and it follows agent-adt's route: a Node/TypeScript package installed with `git clone` + `npm install`.

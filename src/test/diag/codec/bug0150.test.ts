@@ -91,7 +91,7 @@ describe("A flush call whose texts are UTF-16 or zero-padded (issue #150)", () =
     const first = decoded.ids.indexOf(0x0304)
     assert.ok(first >= 0)
     assert.deepEqual(decoded.values[first], Uint8Array.of(0x20, 0x00), "the input row as one space character")
-    assert.deepEqual(decoded.values[first + 1], call.encoded(Call.descriptor("1 12 _RESULT 3")))
+    assert.deepEqual(decoded.values[first + 1], call.encoded(Call.descriptor("1  9 _RESULT 3")))
     const values = decoded.table(call.encoded(ascii("VARS")))
     assert.ok(values !== undefined)
     assert.ok(values.raw)

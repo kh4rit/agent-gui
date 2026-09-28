@@ -14,6 +14,7 @@ import {
   ClientInput,
   ClientInputStep,
   ClientMessageEncoder,
+  DataManagerColumnPositions,
   DataManagerControl,
   DataManagerFirstVisible,
   DataManagerReport,
@@ -48,6 +49,47 @@ function doubleClick(): DataManagerReport {
 const text = (bytes: Uint8Array): string => new TextDecoder().decode(bytes)
 
 describe("A client's DATAMANAGER document: events, control state and the control focus", () => {
+  /** Column positions use clear then ordered inserts, preserving catalog gaps */
+  test("columns", () => {
+    const table = DataManagerColumnPositions.of(52, [
+      { position: 2, width: 12 },
+      { position: 7, width: 9 }
+    ])
+    assert.ok(table !== undefined)
+    const report = new DataManagerReport({ columnPositions: [table] })
+    assert.ok(!report.isEmpty)
+    const expected =
+      `<?xml version="1.0" encoding="sap*"?><DATAMANAGER><TABLES><DATACHANGES HANDLE="52"><IT OP="C" IDX="0"/>` +
+      `<IT OP="I" IDX="1" C1="2" C2="12"/><IT OP="I" IDX="2" C1="7" C2="9"/></DATACHANGES></TABLES></DATAMANAGER>`
+    assert.equal(text(report.document), expected)
+    assert.deepEqual(DataManagerReport.read(MarkupDocument.read(ascii(expected))), report)
+    for (const malformed of [
+      expected.replace('OP="C"', 'OP="D"'),
+      expected.replace('IDX="2"', 'IDX="3"'),
+      expected.replace('C1="7"', 'C1="2"'),
+      expected.replace('C2="9"', 'C2="0"')
+    ]) {
+      assert.equal(DataManagerReport.read(MarkupDocument.read(ascii(malformed)))?.columnPositions.length, 0, malformed)
+    }
+  })
+
+  /** Invalid or unbounded column reports cannot be constructed */
+  test("columnBounds", () => {
+    const Table = DataManagerColumnPositions
+    assert.equal(Table.of(0, []), undefined)
+    assert.equal(Table.of(-1, []), undefined)
+    assert.equal(Table.of(1, [{ position: -1, width: 3 }]), undefined)
+    assert.equal(Table.of(1, [{ position: 1, width: -3 }]), undefined)
+    assert.equal(
+      Table.of(
+        1,
+        Array.from({ length: Table.maxColumns + 1 }, (_, index) => ({ position: index + 1, width: 4 }))
+      ),
+      undefined
+    )
+    assert.notEqual(Table.of(1, []), undefined)
+  })
+
   /** an event and a control's state, in SAP GUI's elements and attribute order */
   test("document", () => {
     const expected =
@@ -92,13 +134,17 @@ describe("A client's DATAMANAGER document: events, control state and the control
 
   /** an input step carries the control focus in place of the field focus and of DYNT_NOFOCUS, and its document before EOM */
   test("step", () => {
+    const report = doubleClick()
+    const positions = DataManagerColumnPositions.of(52, [{ position: 2, width: 12 }])
+    assert.ok(positions !== undefined)
+    report.columnPositions = [positions]
     const step = new ClientInputStep({
       envelope: InputEnvelope.stateStage | InputEnvelope.dataManager | InputEnvelope.focus | InputEnvelope.guiCarriers
     })
     step.setFunctionCode(ascii("%_GC 106 3"), "varInfoOKCode")
     step.focus = new InputFocus(1, 1)
     step.controlFocus = ascii("106")
-    step.dataManager = doubleClick().document
+    step.dataManager = report.document
     const encoder = new ClientMessageEncoder(ClientIdentityPreset.identity("reference"), DPTerminalName.fromHostName("pond-test"))
     const payload = ClientInput.inputMessage(encoder, step, 0, new ServerEcho())
     const items = payload.subarray(DiagHeader.size, payload.length)
@@ -124,6 +170,6 @@ describe("A client's DATAMANAGER document: events, control state and the control
     )
     assert.deepEqual(names.slice(-3), ["DYNT DYNT_CONTROL_FOCUS", "XMLBLOB", "EOM"], JSON.stringify(names))
     assert.deepEqual(focus, ascii("106"))
-    assert.deepEqual(document, doubleClick().document)
+    assert.deepEqual(document, report.document)
   })
 })

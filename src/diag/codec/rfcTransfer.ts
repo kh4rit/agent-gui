@@ -147,8 +147,8 @@ export type RFCCallAssemblerOutcome =
 
 /**
  * A server call assembled from its parts (transport.md §2.3, Reading R-CT-23): the values of the
- * RFC_TR_MOR items that announce more, then the value of the RFC_TR_REQ item that ends the call,
- * concatenated in arrival order. One assembler per mode.
+ * RFC_TR_MOR items that announce more, then the value of RFC_TR_REQ or the one-way RFC_TR_RNB
+ * (Reading R-CT-42) that ends the call, concatenated in arrival order. One assembler per mode.
  */
 export class RFCCallAssembler {
   /** The most bytes one call may hold; more ends the call as `tooLarge`. */
@@ -245,7 +245,7 @@ export class RFCCall {
 
 /**
  * One item of an RFC item stream (rfc-tr.md §3, PV-0910): a two-byte id, a u16 BE length, the value
- * and a trailing id pair.
+ * and a trailing id pair. Scalar parameters may extend the length with PV-1022's u32.
  */
 export interface RFCItem {
   /** The id, id1 then id2, as one u16 BE number. */
@@ -302,8 +302,16 @@ export class RFCItemWalker {
       }
     }
     if (!(stream.length - lengthOffset >= size)) throw new RFCItemWalkError({ kind: "truncated", itemIndex: this.index })
-    const length = WireBytes.u16BigEndian(stream, lengthOffset) // provenance: PV-0910
-    const valueOffset = lengthOffset + size
+    let length = WireBytes.u16BigEndian(stream, lengthOffset) // provenance: PV-0910
+    let valueOffset = lengthOffset + size
+    // Long scalar parameters use FFFF followed by a u32 BE byte length. Other item
+    // kinds retain their ordinary u16 lengths; no broader escape rule is inferred.
+    // provenance: PV-1022
+    if (id === 0x0203 && length === 0xffff) {
+      if (!(stream.length - valueOffset >= 4)) throw new RFCItemWalkError({ kind: "truncated", itemIndex: this.index })
+      length = WireBytes.u32BigEndian(stream, valueOffset)
+      valueOffset += 4
+    }
     if (!(length <= stream.length - valueOffset)) {
       if (this.ended) {
         this.offset = stream.length
@@ -341,10 +349,17 @@ export interface RFCStreamIDCount {
 export class RFCStreamSummary {
   /**
    * The function names the spec states as protocol identifiers: the automation queue's flush call
-   * (rfc-tr.md §7.1) and the progress indicator of RFC_TR sid 0x06 (transport.md §2.1). Any other
-   * name is reported by its length only.
+   * (rfc-tr.md §7.1), the progress indicator (transport.md §2.1), and the GUI-core blob parser
+   * (transport.md §9), and the frontend data request (data-provider.md §5). Any other name is
+   * reported by its length only. The blob parser's name is `GUIBlob.functionName`, written out here
+   * because guiBlob.ts imports this file.
    */
-  static readonly listedFunctionNames: ReadonlySet<string> = new Set(["OLE_FLUSH_CALL", "SAPGUI_PROGRESS_INDICATOR"])
+  static readonly listedFunctionNames: ReadonlySet<string> = new Set([
+    "OLE_FLUSH_CALL",
+    "SAPGUI_PROGRESS_INDICATOR",
+    "GUICORE_BLOB_DIAG_PARSER", // GUIBlob.functionName, provenance: PV-1020
+    "DP_GET_CLIENT_TABLE45A" // provenance: PV-1021
+  ])
   /** The RFC item id of a function name (PV-0912). */
   static readonly functionNameID = 0x0102 // provenance: PV-0912
 

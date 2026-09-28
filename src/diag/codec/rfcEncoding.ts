@@ -17,7 +17,7 @@ import { RFCCompressedTable, RFCTableContent } from "./rfcTables.js"
 
 /** Why an RFC item could not be written (IMPL-CT-12). */
 export type RFCItemEncodingErrorInfo =
-  /** The value is longer than the item's u16 length field can declare (PV-0910). */
+  /** The value exceeds the encoder's limit for this item kind. */
   { readonly kind: "valueTooLong"; readonly id: number; readonly length: number }
 
 export class RFCItemEncodingError extends Error {
@@ -33,8 +33,10 @@ export class RFCItemEncodingError extends Error {
  * end item is `FF FF 00 00 FF FF` (PV-0911, PV-0920).
  */
 export const RFCItemEncoder = {
-  /** The longest value one item carries: its length field is a u16 (PV-0910). */
+  /** The longest ordinary item value; 02 03 reserves this length as an escape (PV-1022). */
   maxValueLength: 0xffff, // provenance: PV-0910
+  /** A bounded implementation limit for extended scalar parameters (02 03). */
+  maxParameterValueLength: 16 << 20, // not-protocol: 16 MiB output cap
 
   /**
    * The end item: id `FF FF`, length 0, its trailing pair, and nothing after it (PV-0911, PV-0919,
@@ -44,11 +46,22 @@ export const RFCItemEncoder = {
     return Uint8Array.of(0xff, 0xff, 0x00, 0x00, 0xff, 0xff) // provenance: PV-0911, PV-0919, PV-0920
   },
 
-  /** Appends one item; a value longer than `maxValueLength` is refused and nothing is written. */
+  /**
+   * Appends one item; oversized values are refused before anything is written. Scalar parameters
+   * use extended framing at 65 535 bytes (PV-1022).
+   */
   append(id: number, value: Uint8Array, stream: ByteWriter): void {
-    if (!(value.length <= RFCItemEncoder.maxValueLength)) throw new RFCItemEncodingError({ kind: "valueTooLong", id, length: value.length })
+    const limit = id === 0x0203 ? RFCItemEncoder.maxParameterValueLength : RFCItemEncoder.maxValueLength
+    if (!(value.length <= limit)) throw new RFCItemEncodingError({ kind: "valueTooLong", id, length: value.length })
     RFCItemEncoder.appendU16(id, stream) // provenance: PV-0910
-    RFCItemEncoder.appendU16(value.length, stream) // provenance: PV-0910
+    if (id === 0x0203 && value.length >= RFCItemEncoder.maxValueLength) { // provenance: PV-1022
+      RFCItemEncoder.appendU16(0xffff, stream)
+      const length = value.length >>> 0
+      RFCItemEncoder.appendU16((length >>> 16) & 0xffff, stream)
+      RFCItemEncoder.appendU16(length & 0xffff, stream)
+    } else {
+      RFCItemEncoder.appendU16(value.length, stream) // provenance: PV-0910
+    }
     stream.bytes(value)
     RFCItemEncoder.appendU16(id, stream) // provenance: PV-0919
   },

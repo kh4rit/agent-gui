@@ -184,6 +184,16 @@ export class DataField {
     return new DataField(number(0), number(1), number(2), record[DataField.typeOffset]) // provenance: PV-1004
   }
 
+  /** Whether two fields are the same (Swift's synthesized `==`). */
+  static equals(a: DataField, b: DataField): boolean {
+    return a.index === b.index && a.offset === b.offset && a.length === b.length && a.type === b.type
+  }
+
+  /** Whether two field lists are the same, field by field (Swift's `==` on `[DataField]`). */
+  static listsEqual(a: readonly DataField[], b: readonly DataField[]): boolean {
+    return a.length === b.length && a.every((field, index) => DataField.equals(field, b[index]))
+  }
+
   /** The structure name of a FORMAT record, without trailing spaces (`X-UNKNOWN` when the server names none). */
   static structureName(record: Uint8Array): string {
     return decodeUTF8Repairing(droppingTrailingSpaces(record.subarray(0, DataField.structureNameWidth))) // not-protocol: space padding trimmed

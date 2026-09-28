@@ -20,12 +20,16 @@ import {
   ClientInput,
   ClientInputStep,
   ClientMessageEncoder,
+  ComFlag,
+  CompressField,
   ControlHandleCounter,
+  DiagHeader,
   DiagItemEncoder,
   DialogStepNumber,
   FlushAnswerHead,
   FlushCallAnswerBuilder,
   InputEnvelope,
+  RFCStreamSummary,
   RFCTransferValue
 } from "../../../diag/codec/index.js"
 import {
@@ -134,6 +138,7 @@ describe("Control traffic: interim messages, calls in parts and the automatic re
     const readings = new ControlReadings()
     assert.ok(readings.replyShape === "threeItems" && readings.partReply === "emptyMore" && readings.callAnswer === "built")
     assert.equal(readings.envelope, undefined)
+    assert.ok(readings.objectResultTypes)
     assert.deepEqual(
       ControlReadingsPartReply.allCases,
       ["emptyMore", "envelopeOnly", "emptyRequest", "emptyMoreBack", "none"],
@@ -146,6 +151,22 @@ describe("Control traffic: interim messages, calls in parts and the automatic re
     assert.ok(ControlReadingsCallAnswer.title("built") === "Swooey's own answer (R-CT-28)" && ControlReadingsCallAnswer.sid("built") === "ret")
     assert.equal(ControlReadingsReplyShape.title("threeItems"), "three items, as SAP GUI replies (R-CT-26)")
   })
+
+  /** the object-result experiment reaches the automatic answer (#189) */
+  for (const enabled of [false, true]) {
+    test(`objectResultTypes(enabled: ${enabled})`, async () => {
+      const call = InventedFlushCall.pond().bytes
+      const log = new TransportLog([ScriptStep.payload(EnvelopeFixtures.gate()), ScriptStep.payload(Self.part(0x00, 2, call))])
+      const readings = new ControlReadings()
+      readings.objectResultTypes = enabled
+      const session = await Self.loggedOn(log, readings)
+      const control = (await session.nextMessage())?.control
+      assert.ok(control !== undefined)
+      const answer = control.reply?.answer
+      assert.ok(answer?.kind === "built", "missing built control answer")
+      assert.equal(answer.summary.objectDescriptorsRewritten, enabled ? 2 : 0)
+    })
+  }
 
   /** the switchable replies: an empty RFC_TR_RQT, RFC_TR_MOR or RFC_TR_MOB after a part, RFC_TR_ERR after a call, or nothing */
   test("switchableReplies", async () => {
@@ -188,6 +209,71 @@ describe("Control traffic: interim messages, calls in parts and the automatic re
     assert.equal(end.control?.reply, undefined)
     assert.deepEqual(end.control?.notes, ["the call is not answered: the Readings say none"])
     assert.equal(log.sent.length, 2)
+  })
+
+  /** a fragmented one-way call consumes its MOR prefix without answering the final RNB (#179) */
+  for (const msgInfo of [0x01, 0x02]) {
+    test(`fragmentedOneWay(msgInfo: ${msgInfo})`, async () => {
+      const split = 200
+      const call = Self.call
+      const log = new TransportLog([
+        ScriptStep.payload(EnvelopeFixtures.gate()),
+        ScriptStep.payload(Self.part(0x04, 2, call.slice(0, split))),
+        ScriptStep.payload(Self.part(0x06, 2, call.slice(split), { msgInfo })),
+        ScriptStep.payload(Self.part(0x00, 3, call))
+      ])
+      const session = await Self.loggedOn(log)
+      const part = await session.nextMessage()
+      assert.equal(part?.control?.reply?.sid, "mor")
+      const final = await session.nextMessage()
+      const traffic = final?.control
+      assert.ok(traffic !== undefined)
+      assert.deepEqual(traffic.callBytes, call)
+      assert.deepEqual(traffic.call, { kind: "oneWay", bytes: call.length, summary: new RFCStreamSummary(call) })
+      assert.equal(traffic.reply, undefined)
+      assert.equal(log.sent.length, 3, "only logon and the MOR acknowledgement follow the initial message")
+      const next = await session.nextMessage()
+      assert.deepEqual(next?.control?.callBytes, call, "the consumed prefix must not leak into the next call")
+      assert.ok(next?.control?.reply !== undefined)
+    })
+  }
+
+  /** a header-only NOP EOP settles the step without replacing its screen (#179) */
+  test("noOperationEnd", async () => {
+    const header = new DiagHeader({
+      mode: 0,
+      comFlag: ComFlag.nop | ComFlag.eop,
+      modeStat: 0,
+      errNo: 0,
+      msgType: 0,
+      msgInfo: 1,
+      msgRC: 0,
+      compress: CompressField.uncompressed
+    })
+    const log = new TransportLog([ScriptStep.payload(EnvelopeFixtures.gate()), ScriptStep.payload(header.bytes), ScriptStep.payload(LogonScreens.lobby())])
+    const session = await Self.loggedOn(log)
+    const end = await session.nextMessage()
+    const traffic = end?.control
+    assert.ok(traffic !== undefined)
+    assert.ok(!traffic.showsScreen && !traffic.serverContinues)
+    assert.ok(traffic.reply === undefined && log.sent.length === 2)
+    const lobby = await session.nextMessage()
+    assert.equal(lobby?.control, undefined, "ordinary screens still reach the renderer")
+  })
+
+  /** NOP handling does not swallow content or other flag combinations (#179) */
+  test("noOperationBoundaries", async () => {
+    const lobby = LogonScreens.lobby()
+    lobby[1] = ComFlag.nop | ComFlag.eop
+    const only = (comFlag: number) =>
+      new DiagHeader({ mode: 0, comFlag, modeStat: 0, errNo: 0, msgType: 0, msgInfo: 1, msgRC: 0, compress: CompressField.uncompressed }).bytes
+    for (const payload of [lobby, only(ComFlag.nop), only(ComFlag.eop)]) {
+      const log = new TransportLog([ScriptStep.payload(EnvelopeFixtures.gate()), ScriptStep.payload(payload)])
+      const session = await Self.loggedOn(log)
+      const message = await session.nextMessage()
+      assert.ok(message !== undefined)
+      assert.equal(message.control, undefined)
+    }
   })
 
   /** what the session does not understand it notes and never answers: a one-way call, an unknown sid, a part in an interim message */

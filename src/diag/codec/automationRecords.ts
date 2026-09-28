@@ -235,6 +235,8 @@ export type AutomationResult =
   | { readonly kind: "newHandle" }
   /** A decimal integer after one space. */
   | { readonly kind: "integer"; readonly value: number }
+  /** An indexed SVARS string containing the supported optional features (PV-1023). */
+  | { readonly kind: "guiFeatures" }
   /** The nine zeros alone. */
   | { readonly kind: "empty" }
 
@@ -253,6 +255,7 @@ const nameKey = (name: ArrayLike<number>): string => String.fromCharCode(...Arra
 export const AutomationResult = {
   newHandle: { kind: "newHandle" } as AutomationResult,
   integer: (value: number): AutomationResult => ({ kind: "integer", value }),
+  guiFeatures: { kind: "guiFeatures" } as AutomationResult,
   empty: { kind: "empty" } as AutomationResult,
 
   /**
@@ -271,7 +274,7 @@ export const AutomationResult = {
   /** The verbs that return 0. */
   zeroVerbs: new Set(["AddControl", "SetGrid", "SetColumnWidth", "PublishUrl"]) as ReadonlySet<string>, // provenance: PV-0953
   /** The verbs that return 1. */
-  oneVerbs: new Set(["GetContainer", "GetGuiFeatures"]) as ReadonlySet<string>, // provenance: PV-0953
+  oneVerbs: new Set(["GetContainer"]) as ReadonlySet<string>, // provenance: PV-0953
   /** The verbs that return nothing: a client without a registry has no value. */
   emptyVerbs: new Set(["GetRegValueEx"]) as ReadonlySet<string>, // provenance: PV-0953
   /** The `G` verbs that return a new handle by name (PV-0953): the three seen doing so. */
@@ -285,6 +288,7 @@ export const AutomationResult = {
    */
   decide(verb: AutomationVerb, recordHoldsValue: boolean): { result: AutomationResult; basis: AutomationResultBasis } | undefined {
     const name = nameKey(verb.name)
+    if (verb.flag.kind === "call" && name === "GetGuiFeatures") return { result: { kind: "guiFeatures" }, basis: "name" } // provenance: PV-1023
     if (AutomationResult.handleVerbs.has(name)) return { result: { kind: "newHandle" }, basis: "name" }
     if (AutomationResult.zeroVerbs.has(name)) return { result: { kind: "integer", value: 0 }, basis: "name" }
     if (AutomationResult.oneVerbs.has(name)) return { result: { kind: "integer", value: 1 }, basis: "name" }

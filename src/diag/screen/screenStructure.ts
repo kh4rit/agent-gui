@@ -455,8 +455,12 @@ export class ScreenStructureBuilder {
       const width = run.length ?? characterCount(raw)
       widest = Math.max(widest, run.column + width)
       const color: ListColor = style.isKnownColor ? ListColor.fromRaw(style.color) ?? "normal" : "normal"
+      const markup = TextMarkup.parse(raw)
+      const usesBoxCodes = style.isBox && this.readings.listBoxes === "lineElements"
       let segment: ScreenListSegment
-      if (style.isBox && this.readings.listBoxes === "lineElements") {
+      // R-DA-10 / R-EL-11: leading markup is text even on a box-styled run
+      // (#152). Do not turn digits in its icon, tooltip or caption into lines.
+      if (usesBoxCodes && !markup.hasMarkup) {
         segment = new ScreenListSegment({
           column: run.column,
           width,
@@ -467,7 +471,6 @@ export class ScreenStructureBuilder {
           isBox: true
         })
       } else {
-        const markup = TextMarkup.parse(raw)
         segment = new ScreenListSegment({
           column: run.column,
           width,
@@ -476,7 +479,7 @@ export class ScreenStructureBuilder {
           color,
           isIntensified: (style.flags & ListRunFlags.intensified) !== 0,
           isInverse: (style.flags & ListRunFlags.inverse) !== 0,
-          isHotspot: (style.flags & ListRunFlags.hotspot) !== 0
+          isHotspot: (style.flags & ListRunFlags.hotspot) !== 0 && !usesBoxCodes
         })
       }
       const line = segments.get(run.row)
@@ -487,6 +490,12 @@ export class ScreenStructureBuilder {
     const bodyTop = top + headerCount
     const headerLines: ScreenListLine[] = []
     const lines: ScreenListLine[] = []
+    // DYNN CHL describes the received page, including rows without text runs (#185).
+    // Plain CHL/SCROLL_INFOS retain their tentative interpretation (R-EL-21).
+    if (window !== undefined && window.source === "dynnCHL") {
+      const count = Math.min(window.visibleLines, Math.max(window.totalLines - firstLine + 1, 0))
+      for (let row = top; row < bodyTop + count; row++) if (!segments.has(row)) segments.set(row, [])
+    }
     const rows = Array.from(segments.keys()).sort((a, b) => a - b)
     for (const row of rows) {
       const line = (segments.get(row) ?? []).slice().sort((a, b) => a.column - b.column)

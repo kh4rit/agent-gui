@@ -67,6 +67,12 @@ export const InputEnvelope = {
    */
   dataManager: 1 << 5, // not-protocol: option bit
 
+  /**
+   * Optional comparison of the reference client's input header (msg_info 1, PV-0908). The meaning of
+   * the bit remains unspecified; excluded from the default stages.
+   */
+  referenceHeader: 1 << 7, // not-protocol: option bit
+
   /** None of the parts: the step of R-CI-1 and R-CI-2 that Swooey sent before the envelope. Live: rejected as invalid GUI data (PV-0782). */
   minimal: 0,
   /**
@@ -155,7 +161,8 @@ export const InputEnvelope = {
       [e.dynnCHL, "DYNN CHL"],
       [e.screenState, "screen state"],
       [e.focus, "focus"],
-      [e.dataManager, "DATAMANAGER"]
+      [e.dataManager, "DATAMANAGER"],
+      [e.referenceHeader, "reference header"]
     ]
     return names.filter(([part]) => (envelope & part) === part).map(([, name]) => name)
   }
@@ -359,5 +366,9 @@ export const ClientDataManager = {
   /** The document's bytes (a fresh copy on every read). */
   get bareDocument(): Uint8Array {
     return ascii('<?xml version="1.0" encoding="sap*"?><DATAMANAGER/>') // provenance: PV-0781, PV-0930, PV-0931
+  },
+  /** Native multiple-logon confirmation's empty GUI node; opt-in until accepted live (a fresh copy on every read). */
+  get nativeLogonDocument(): Uint8Array {
+    return ascii('<?xml version="1.0" encoding="sap*"?><DATAMANAGER><COPY id="copy"><GUI id="gui"/></COPY></DATAMANAGER>') // provenance: PV-1029
   }
 } as const

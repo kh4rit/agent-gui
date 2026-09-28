@@ -11,7 +11,7 @@ import { parseConfigFile } from "../config.js"
 import { MemoryCredentialStore } from "../credentials.js"
 import { callTool } from "../server.js"
 import { Sessions } from "../sessions.js"
-import { skipWithoutFakeServer, startFakeServer, type FakeServer } from "./support/fakeServer.js"
+import { fakeServerObjectResultTypes, skipWithoutFakeServer, startFakeServer, type FakeServer } from "./support/fakeServer.js"
 import { repositoryRoot } from "./vectors/paths.js"
 
 /** agent-gui's own invented scenarios (test/scenarios). */
@@ -37,7 +37,11 @@ async function pond(scenario: string, system: Record<string, unknown> = {}, data
     }),
     {}
   ).systems
-  const sessions = new Sessions({ systems, defaultSystem: "PND", dataDir: dir }, { terminalName: "zz-e2e", store: new MemoryCredentialStore() })
+  const sessions = new Sessions({ systems, defaultSystem: "PND", dataDir: dir }, {
+    terminalName: "zz-e2e",
+    store: new MemoryCredentialStore(),
+    objectResultTypes: fakeServerObjectResultTypes
+  })
   const call = async (tool: string, args: Record<string, unknown> = {}) => {
     const r = await callTool(sessions, tool, args)
     assert.equal(r.isError, false, `${tool} failed: ${r.text}`)

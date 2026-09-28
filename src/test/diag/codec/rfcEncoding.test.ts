@@ -59,6 +59,33 @@ function checkCompressed(rows: Uint8Array, tag: number): RFCCompressedTable {
 }
 
 describe("RFC encoders: items (IMPL-CT-12) and table content (IMPL-CT-13)", () => {
+  /** extended parameter framing starts at the reserved length marker (bug #180) */
+  for (const count of [65_534, 65_535, 65_536, 90_000]) {
+    test(`extendedParameterLength(${count})`, () => {
+      const value = repeated(0x51, count)
+      const stream = new ByteWriter()
+      RFCItemEncoder.append(0x0203, value, stream)
+      const extended = count >= 65_535
+      const prefix = extended ? [2, 3, 255, 255, 0, (count >>> 16) & 0xff, (count >>> 8) & 0xff, count & 0xff] : [2, 3, 255, 254]
+      const bytes = stream.toBytes()
+      assert.deepEqual(bytes, cat(prefix, value, [2, 3]))
+      const walker = new RFCItemWalker()
+      const item = walker.next(bytes)
+      assert.ok(item !== undefined)
+      assert.ok(item.trailerMatches === true)
+      assert.deepEqual(item.valueRange.of(bytes), value)
+    })
+  }
+
+  /** extended parameter output has a bounded size and leaves the destination unchanged on failure (bug #180) */
+  test("parameterOutputLimit", () => {
+    const value = new Uint8Array(RFCItemEncoder.maxParameterValueLength + 1)
+    const stream = new ByteWriter()
+    stream.u8(0x51)
+    throwsInfo(() => RFCItemEncoder.append(0x0203, value, stream), RFCItemEncodingError, { kind: "valueTooLong", id: 0x0203, length: value.length })
+    assert.deepEqual(stream.toBytes(), bytes(0x51))
+  })
+
   // MARK: Items
 
   /** an item is the id, the u16 BE length, the value and the id again; the end item is FF FF 00 00 FF FF */

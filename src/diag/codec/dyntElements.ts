@@ -122,7 +122,7 @@ export class DyntToggle {
   /** open-diag-go's one-byte text count: the low byte of PV-0655's text_length (elements.md §3.2). */
   static readonly odgTextCountOffset = DyntPayloadLayout.radioTextLength + 1 // provenance: PV-0961
 
-  /** The state byte, `checkedState` or `uncheckedState`. */
+  /** X/space (PV-0961), or numeric 0/1 for native radios (PV-1027). */
   readonly stateByte: number
   /** visible_label_length (PV-0655): the element's cells. */
   readonly visibleLength: number
@@ -140,7 +140,12 @@ export class DyntToggle {
 
   /** Whether the checkbox is checked or the radio button selected. */
   get isChecked(): boolean {
-    return this.stateByte === DyntToggle.checkedState
+    return this.stateByte === DyntToggle.checkedState || this.stateByte === 1
+  }
+
+  /** Numeric native RADIOBUTTON_3 state, validated for the no-event layout (PV-1027). */
+  get usesNumericState(): boolean {
+    return this.stateByte <= 1 // provenance: PV-1027
   }
 
   /**
@@ -159,15 +164,30 @@ export class DyntToggle {
    */
   static fromAtom(atom: DyntAtom, value: Uint8Array, reading: CheckboxReading = "pv0655"): DyntToggle | undefined {
     if (DyntToggleKind.of(atom.etype) === undefined || !(atom.endOffset <= value.length)) return undefined
-    return DyntToggle.read(value, atom.contentRange, reading)
+    return DyntToggle.read(value, atom.contentRange, reading, atom.etype.kind === "radiobutton3")
   }
 
-  private static read(value: Uint8Array, content: ByteRange, reading: CheckboxReading): DyntToggle | undefined {
+  private static read(value: Uint8Array, content: ByteRange, reading: CheckboxReading, nativeRadio = false): DyntToggle | undefined {
     const fixed = DyntPayloadLayout.radioFixedSize
     if (!(content.count >= fixed)) return undefined
     const base = content.lowerBound
     const state = value[base + DyntPayloadLayout.radioButton]
-    if (!(state === DyntToggle.checkedState || state === DyntToggle.uncheckedState)) return undefined
+    // provenance: PV-1027 — observed native numeric radios have no event and a full-width caption.
+    const numeric = nativeRadio && reading === "pv0655" && state <= 1
+    if (!(state === DyntToggle.checkedState || state === DyntToggle.uncheckedState || numeric)) return undefined
+    if (numeric) {
+      if (
+        !(
+          value[base + 3] === 0 &&
+          value[base + 4] === 0 &&
+          value[base + 5] === 0 &&
+          value[base + 6] === 0 &&
+          value[base + 7] === 0 &&
+          WireBytes.u16BigEndian(value, base + 1) === WireBytes.u16BigEndian(value, base + 8)
+        )
+      )
+        return undefined
+    }
     const visible = WireBytes.u16BigEndian(value, base + DyntPayloadLayout.radioVisibleLabelLength) // provenance: PV-0655
     const strings = base + fixed
     let eventIDRange: ByteRange
@@ -281,6 +301,30 @@ export class DyntToggleReturn {
   static fromAtom(atom: DyntAtom, value: Uint8Array): DyntToggleReturn | undefined {
     if (DyntToggleKind.of(atom.etype) === undefined || !(atom.endOffset <= value.length)) return undefined
     return DyntToggleReturn.fromPayload(atom.contentRange.of(value))
+  }
+
+  /**
+   * Native numeric radio reply: legacy etype, zero dialog flags, numeric state and exact received
+   * caption bytes including padding (PV-1027). No extra terminator. Nothing is appended when it
+   * throws `DyntAtomEncodingError`.
+   */
+  static appendNativeRadio(received: DyntAtomHeader, isChecked: boolean, caption: Uint8Array, output: ByteWriter): void {
+    if (received.etype.kind !== "radiobutton3") throw new DyntAtomEncodingError({ kind: "wrongElementType", value: received.etype })
+    const length = DyntAtomEncoder.atomLength(caption.length + 1)
+    // provenance: PV-1027
+    const header = new DyntAtomHeader({
+      etype: DyntElementType.of("radiobutton0"),
+      dialogFlags: new DyntDialogFlags({ flag1: 0, flag2: 0 }),
+      area: received.area,
+      block: received.block,
+      group: received.group,
+      row: received.row,
+      col: received.col,
+      attributes: received.attributes
+    })
+    DyntAtomEncoder.appendHeader(header, length, output)
+    output.u8(isChecked ? 1 : 0)
+    output.bytes(caption)
   }
 
   /**
@@ -515,7 +559,11 @@ export class ZZValueList {
 // Unicode scalars here, where Swift compares grapheme clusters: they differ only for a combining
 // mark right after `&`, `<`, `>`, a quote or `;`, which no property text of the fake server holds.
 
-function xmlEscaped(text: string): string {
+/**
+ * `text` with `&`, `<`, `>` and both quotes escaped (Swift's internal `XMLText.escaped`); exported
+ * for the flush answer's SVARS strings (flushCallAnswer.ts).
+ */
+export function xmlEscaped(text: string): string {
   let result = ""
   for (const character of text) {
     switch (character) {

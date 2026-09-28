@@ -15,15 +15,18 @@
 import {
   ApplSID,
   CodePage,
+  ComFlag,
   ControlHandleCounter,
   ControlItemScan,
+  DiagHeader,
   FlushAnswerHead,
   FlushCallAnswerBuilder,
   FlushCallReadError,
+  GUIBlob,
+  GUIBlobReadError,
   InputEnvelope,
   RFCCallAssembler,
   RFCHead,
-  RFCStreamSummary,
   RFCTextEncoding,
   RFCTransferValue,
   ServerMessageInfo,
@@ -32,6 +35,7 @@ import {
   type FlushAnswerSummary,
   type FlushCallReadErrorInfo,
   type RFCCall,
+  type RFCStreamSummary,
   type RFCTransferItem
 } from "../codec/index.js"
 import type { ServerMessage } from "./serverMessage.js"
@@ -291,6 +295,13 @@ export class ControlReadings {
   callAnswer: ControlReadingsCallAnswer
   headValues: ControlReadingsHeadValues
   /**
+   * Experimental R-CT-44 screen delivery. Enable only for a scoped validation run until a complete
+   * live STREAM has passed the diagnostic decoder and rendering is verified.
+   */
+  guiBlobScreens = false
+  /** Object result descriptors use their concrete type (#189, PV-1033). */
+  objectResultTypes = true
+  /**
    * The input envelope the replies are built from: with the three-item shape only its echoes decide
    * the header's mode_stat; with the envelope shape its `InputEnvelope.controlReply` parts go out.
    * Undefined: the session identity's default (`InputEnvelope.default(identity)`).
@@ -307,13 +318,16 @@ export class ControlReadings {
 
   /** A copy of the readings. */
   clone(): ControlReadings {
-    return new ControlReadings({
+    const copy = new ControlReadings({
       partReply: this.partReply,
       callAnswer: this.callAnswer,
       replyShape: this.replyShape,
       envelope: this.envelope,
       headValues: this.headValues
     })
+    copy.guiBlobScreens = this.guiBlobScreens
+    copy.objectResultTypes = this.objectResultTypes
+    return copy
   }
 }
 
@@ -447,6 +461,10 @@ export class ControlTraffic {
   readonly stopTrans: boolean
   /** The message carried screen content (`ControlItemScan.carriesScreen`). */
   readonly carriesScreen: boolean
+  /** The observed header-only NOP | EOP ending (Reading R-CT-43): keep the screen, settle the step. */
+  isNoOperation = false
+  /** A fully validated screen carried by a one-way GUI-core call (R-CT-44). */
+  guiBlob: GUIBlob | undefined = undefined
   /** The RFC_TR items in order. */
   readonly items: readonly ControlTrafficItem[]
   /** The server's call after this message; undefined when the message carried no call part. */
@@ -477,9 +495,12 @@ export class ControlTraffic {
     return this.isInterim || this.reply !== undefined
   }
 
-  /** Whether the message is to be drawn as the screen: it carries screen content and is no interim message (Reading R-CT-22). */
+  /**
+   * A normal non-interim screen (R-CT-22), or an opt-in validated GUI blob screen carried by an
+   * interim one-way call (R-CT-44).
+   */
   get showsScreen(): boolean {
-    return this.carriesScreen && !this.isInterim
+    return this.guiBlob !== undefined || (this.carriesScreen && !this.isInterim)
   }
 
   /** One line for a status bar: what arrived and what was sent, in counts. */
@@ -543,6 +564,7 @@ export class ControlTraffic {
 
   /** A report line: the items, the call and the reply, in structure. */
   get summary(): string {
+    if (this.isNoOperation) return "no-operation end; screen retained (R-CT-43)"
     const parts: string[] = []
     if (this.isInterim) parts.push("interim message (msg_info, R-CT-22)")
     if (this.stopTrans) parts.push("STOP_TRANS")
@@ -620,6 +642,18 @@ export class ControlTransport {
   read(message: ServerMessage, identity: ClientIdentity): { traffic: ControlTraffic; reply: PlannedControlReply | undefined } | undefined {
     const header = message.header
     if (header === undefined || header.isError || message.screen === undefined) return undefined
+    // The observed empty ending is no replacement screen (R-CT-43). Match only this header shape;
+    // messages with content and other flag combinations keep their handling.
+    if (
+      header.comFlag === (ComFlag.nop | ComFlag.eop) && // provenance: PV-1019
+      header.msgInfo === 1 &&
+      header.compress.kind === "uncompressed" &&
+      message.payload.length === DiagHeader.size
+    ) {
+      const traffic = new ControlTraffic({ isInterim: false, stopTrans: false, carriesScreen: false, items: [] })
+      traffic.isNoOperation = true
+      return { traffic, reply: undefined }
+    }
     const scan = message.withItems(items => new ControlItemScan(items)) ?? new ControlItemScan()
     const interim = ServerMessageInfo.isInterim(header.msgInfo)
     if (!(interim || scan.rfcItems.length > 0)) return undefined
@@ -639,8 +673,10 @@ export class ControlTransport {
       if (sid === "mor" && value.length === 0) {
         // Only a client sends an empty RFC_TR_MOR (PV-0907): from the server it is no part.
         traffic.notes.push("an empty RFC_TR_MOR from the server is no call part; not answered (R-CT-27)")
-      } else if (sid === "mor" || sid === "req") {
-        const final = sid === "req"
+      } else if (sid === "mor" || sid === "req" || sid === "rnb") {
+        // RNB finishes a one-way call, including a preceding MOR prefix (R-CT-42).
+        const oneWay = sid === "rnb"
+        const final = sid !== "mor"
         let assembler = this.calls.get(mode)
         if (assembler === undefined) {
           assembler = new RFCCallAssembler()
@@ -654,10 +690,22 @@ export class ControlTransport {
             break
           case "complete": {
             const call = outcome.value
-            traffic.call = { kind: "complete", parts: call.parts, bytes: call.bytes.length, summary: call.summary }
+            traffic.call = oneWay
+              ? { kind: "oneWay", bytes: call.bytes.length, summary: call.summary }
+              : { kind: "complete", parts: call.parts, bytes: call.bytes.length, summary: call.summary }
             traffic.callHead = new RFCHead(call.bytes, "report")
             traffic.callBytes = call.bytes.length <= ControlTraffic.keptCallBytes ? call.bytes : undefined
-            complete = call
+            if (call.summary.functionName === GUIBlob.functionName) {
+              try {
+                const blob = GUIBlob.read(call.bytes)
+                traffic.notes.push(blob.summary)
+                if (oneWay && this.readings.guiBlobScreens) traffic.guiBlob = blob
+              } catch (error) {
+                if (!(error instanceof GUIBlobReadError)) throw error
+                traffic.notes.push(`GUI blob STREAM could not be read (R-CT-44): ${error.info.kind}`)
+              }
+            }
+            if (!oneWay) complete = call
             announcesMore = false
             break
           }
@@ -667,10 +715,6 @@ export class ControlTransport {
             announcesMore = false
             break
         }
-      } else if (sid === "rnb") {
-        traffic.call = { kind: "oneWay", bytes: value.length, summary: new RFCStreamSummary(value) }
-        traffic.callHead = new RFCHead(value, "report")
-        traffic.callBytes = value.length <= ControlTraffic.keptCallBytes ? value : undefined
       } else {
         traffic.notes.push(`${item.name} from the server is not understood; not answered`)
       }
@@ -693,7 +737,7 @@ export class ControlTransport {
       if (readings.callAnswer === "built") {
         try {
           const head = ControlReadingsHeadValues.head(readings.headValues, message.codePage)
-          const built = FlushCallAnswerBuilder.answer(complete.bytes, this._handles, head)
+          const built = FlushCallAnswerBuilder.answer(complete.bytes, this._handles, head, { objectResultTypes: readings.objectResultTypes })
           transfer = new RFCTransferValue("ret", built.value)
           answer = { kind: "built", summary: built.summary }
           counter = built.handles

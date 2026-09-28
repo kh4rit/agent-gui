@@ -256,9 +256,10 @@ export const InventedControlScene = {
 
   /**
    * The call: shells 101 (container), 102 (splitter), 103 and 104 (its cells' containers), 105 (the
-   * tree) and 106 (the grid), fed from the four data objects.
+   * tree) and 106 (the grid), fed from the four data objects. With `columnPositionHandle`, an
+   * on-demand object with that explicit Handle is bound to the grid's ColPosIDOnDemand (PV-1024).
    */
-  call(): InventedFlushCall {
+  call(columnPositionHandle?: number): InventedFlushCall {
     const scene = InventedControlScene
     const recorder = new InventedControlSceneRecorder()
     const root = recorder.verb("CreateObject", "C", 1, [
@@ -401,6 +402,20 @@ export const InventedControlScene = {
       [12, `O${grid}-`],
       [12, "DataTableOnDemand"]
     ])
+    if (columnPositionHandle !== undefined) {
+      const positions = recorder.verb("CreateObject", "C", root, [
+        [12, scene.onDemandClass],
+        [3, "1033"]
+      ], "O1-")!
+      recorder.verb("Handle", "S", positions, [[3, `${columnPositionHandle}`]])
+      const positionTable = recorder.verb("GetTable", "C", positions, [], "O1-")!
+      recorder.verb("AssignProperty2", "C", root, [
+        [9, `O${positionTable}-`],
+        [12, "data"],
+        [9, `O${grid}-`],
+        [12, "ColPosIDOnDemand"]
+      ])
+    }
     // The events and cached properties the grid and the tree report (controls/events.md §4).
     recorder.verb("RegisterOcxEvent", "C", root, [
       [3, "106"],

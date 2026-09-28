@@ -194,7 +194,10 @@ describe("RFC_TR: interim messages, call parts, RFC items and the client's RFC_T
     const mismatched = new RFCStreamSummary(rfcItem(0x0201, [1], 0x0202))
     assert.equal(mismatched.mismatchedTrailers, 1)
     assert.ok(mismatched.description.endsWith("1 trailing pair(s) not the item's id"))
-    assert.deepEqual(RFCStreamSummary.listedFunctionNames, new Set(["OLE_FLUSH_CALL", "SAPGUI_PROGRESS_INDICATOR"]))
+    assert.deepEqual(
+      RFCStreamSummary.listedFunctionNames,
+      new Set(["OLE_FLUSH_CALL", "SAPGUI_PROGRESS_INDICATOR", "GUICORE_BLOB_DIAG_PARSER", "DP_GET_CLIENT_TABLE45A"])
+    )
   })
 
   /** an input step's RFC_TR item goes right after DIALOG_STEP_NUMBER, with the minimal envelope and with the echoes */
