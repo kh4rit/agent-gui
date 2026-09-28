@@ -1,6 +1,6 @@
 ---
 name: agent-gui
-description: Work in SAP GUI transactions through the agent-gui MCP tools (DIAG protocol): log on, start transactions, read screens, fill fields, table controls, lists, popups and the SPRO/IMG tree, read what a transport request contains, and maintain customizing into a transport request. Use for SPRO/IMG, SM30/SM34 table maintenance, SE16 table reads, SE09/SE10 transports and any other SAP GUI transaction.
+description: "Work in SAP GUI transactions through the agent-gui MCP tools (DIAG protocol) to log on, start transactions, read screens, fill fields, table controls, lists, popups and the SPRO/IMG tree, read what a transport request contains, and maintain customizing into a transport request. Use for SPRO/IMG, SM30/SM34 table maintenance, SE16 table reads, SE09/SE10 transports and any other SAP GUI transaction."
 ---
 
 # agent-gui: SAP GUI transactions for agents

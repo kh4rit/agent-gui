@@ -144,8 +144,8 @@ npm run build     # compile TypeScript to dist/
 npm test          # build and run the offline test suite
 ```
 
-End-to-end tests run against Swooey's fake DIAG server when `AGENT_GUI_FAKE_SERVER` names its
-binary; they are skipped otherwise. Development agents connect only to that loopback server
+End-to-end tests run against Swooey's fake DIAG server (built from Swooey revision `112c04d`, see
+[AGENTS.md](AGENTS.md)) when `AGENT_GUI_FAKE_SERVER` names its binary; they are skipped otherwise. Development agents connect only to that loopback server
 ([AGENTS.md](AGENTS.md)).
 
 Source layout:

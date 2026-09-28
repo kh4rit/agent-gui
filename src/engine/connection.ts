@@ -86,6 +86,8 @@ export type LogonResult =
   | { kind: "serverError"; text: string }
   /** The user is logged on elsewhere and the configured choice was to stop. */
   | { kind: "alreadyLoggedOn"; information: string | undefined }
+  /** The multiple-logon question came again after it was answered (Swooey #148): the answer did not take. */
+  | { kind: "multipleLogonRepeated"; information: string | undefined }
   /** Another screen of the logon program: a password change or something else the client does not handle. */
   | { kind: "unclassified"; program: string | undefined; screenNumber: string | undefined; message: string | undefined }
   | { kind: "noReply"; reason: string }
@@ -421,7 +423,8 @@ export class GuiConnection {
       if (!current) return { kind: "noReply", reason: "the reply names no program" }
       if (!screen.isLogonScreen && current !== LOGON_PROGRAM) return { kind: "accepted" }
       const question = MultipleLogonQuestion.of(screen)
-      if (question && !answered) {
+      if (question && answered) return { kind: "multipleLogonRepeated", information: question.information }
+      if (question) {
         const option: MultipleLogonQuestionOption =
           whenAlreadyLoggedOn === "continue" ? "continueLogon" : whenAlreadyLoggedOn === "endOthers" ? "endOtherLogons" : "cancelLogon"
         answered = true

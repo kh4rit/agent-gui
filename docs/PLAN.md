@@ -248,7 +248,7 @@ The `trace` option records what the server sent, for fixes to the open points of
   - the ported Swift tests of every module;
   - config, credentials (mocked), attempt budget, policy, snapshot and tool arguments.
 - **Vectors:** Swooey's 268 byte vectors, run by the ported vector harness.
-- **End to end:** Swooey's `fake-diag-server` (loopback only) when `AGENT_GUI_FAKE_SERVER` and `AGENT_GUI_SCENARIOS` are set; skipped otherwise.
+- **End to end:** Swooey's `fake-diag-server` (loopback only, built from Swooey `112c04d`, the last revision whose server takes `--scenario`) when `AGENT_GUI_FAKE_SERVER` and `AGENT_GUI_SCENARIOS` are set; skipped otherwise.
   - Scenarios for agent-gui's own flows are invented scenario files kept in this repository (`test/scenarios`) and loaded with `--scenario PATH`.
 - **Mock data is invented and deliberately funny** (Duck Pond, `ZZ…` names). Fixtures come only from the fake server.
 - **LLM evals (owner-run):** the acceptance prompt against the fake scenarios in Copilot CLI, recording success, tool calls and tokens, to tune the snapshot and the tool descriptions.

@@ -13,10 +13,23 @@ PowerShell; on macOS and Linux adapt the paths and the environment-variable synt
 ## 2. Install
 
 ```powershell
-git clone https://github.com/kh4rit/agent-gui.git $env:USERPROFILE\tools\agent-gui
-cd $env:USERPROFILE\tools\agent-gui
+git clone https://github.com/kh4rit/agent-gui.git "$env:USERPROFILE\tools\agent-gui"
+cd "$env:USERPROFILE\tools\agent-gui"
 npm install          # also builds, via the prepare script
 ```
+
+Windows PowerShell 5.1 shows `git clone`'s progress messages as a red `NativeCommandError`; they are
+not errors when the clone finished.
+
+To check the installation on this machine, run the offline tests, including the Windows Credential
+Manager round trip (it stores a throwaway credential `agent-gui:TEST-<number>` and removes it):
+
+```powershell
+$env:AGENT_GUI_TEST_CREDENTIAL_STORE = "1"; npm test; Remove-Item Env:AGENT_GUI_TEST_CREDENTIAL_STORE
+```
+
+Expect `fail 0`. About 150 tests are skipped: the end-to-end tests need Swooey's fake DIAG server,
+which is not available on Windows.
 
 ## 3. Describe your systems
 
@@ -65,21 +78,26 @@ New-Item -ItemType Directory -Force "$env:USERPROFILE\.agent-gui" | Out-Null
 | `identity` | What the client declares when it connects; `reference` (default) is the one known to work. |
 | `idleLogoffMinutes`, `maxSessions`, `stepTimeoutSeconds` | Session housekeeping (defaults 15, 2, 60). |
 | `audit` | `{ "enabled": true, "values": true }`: the step log in `~/.agent-gui/audit`; `values: false` leaves field values out. |
-| `trace` | A file for a structure-only protocol trace (screens, element counts, control traffic; no field values, no passwords), for reporting problems. |
+| `trace` | A file for a structure-only protocol trace (screens, element counts, control traffic; no field values, no passwords), for reporting problems, e.g. `"${env:USERPROFILE}\\.agent-gui\\trace.log"`. |
+
+`${env:NAME}` works in every text setting (`host`, `user`, `client`, `language`, `password`,
+`trace`), not only in `password`. In JSON, write each backslash of a Windows path twice.
 
 ## 4. Store the password and check the logon
 
 ```powershell
-$env:AGENT_GUI_CONFIG="$env:USERPROFILE\.agent-gui\systems.json"
-node $env:USERPROFILE\tools\agent-gui\dist\index.js --set-password --system DEV
-node $env:USERPROFILE\tools\agent-gui\dist\index.js --check
+$env:AGENT_GUI_CONFIG = "$env:USERPROFILE\.agent-gui\systems.json"
+node "$env:USERPROFILE\tools\agent-gui\dist\index.js" --set-password --system DEV
+node "$env:USERPROFILE\tools\agent-gui\dist\index.js" --check
 ```
 
 - `--set-password` asks for the password without echo and stores it in the Windows Credential Manager
   as `agent-gui:DEV`.
 - `--check` logs on to every system, prints the first screen after the logon, and logs off.
 
-**Do not continue until `--check` prints `OK`.**
+**Do not continue until `--check` prints `OK`.** If you are logged on in SAP GUI with the same user
+at the same time, `--check` stops at SAP's multiple-logon question unless `whenAlreadyLoggedOn` is
+`continue` or `endOthers`.
 
 A rejected password is never retried automatically: the account is marked suspended so that an
 agent cannot lock your SAP user. Run `--set-password` again (or `--reset-logon --system DEV`
@@ -113,8 +131,10 @@ copilot --allow-tool 'agent-gui(gui_list_systems)' --allow-tool 'agent-gui(gui_c
 The skill tells the agent how to work with SAP screens, transports and the IMG:
 
 ```powershell
-copilot skill add $env:USERPROFILE\tools\agent-gui\skills
+copilot skill add "$env:USERPROFILE\tools\agent-gui\skills"
 ```
+
+Check with `copilot skill list`: it lists `agent-gui` and reports no load failure.
 
 ## 7. Smoke test
 
@@ -132,7 +152,9 @@ The agent should call `gui_connect`, `gui_step` and `gui_table`.
 | `Could not connect` / timeout | Host or port wrong, or a firewall. Use the application server and instance from SAP Logon. Message-server logons (logon groups) and SAProuter strings are not supported yet. |
 | `logon suspended` | A logon was rejected: `--set-password` (or `--reset-logon`) after checking the password. |
 | `--set-password` or a `${credential}` logon fails with a PowerShell / Add-Type error | The machine runs PowerShell in Constrained Language Mode, which blocks the Credential Manager helper. Use `"password": "${env:SAP_DEV_PASSWORD}"` and set that variable for the Copilot CLI process (the `env` of the MCP registration, or your user environment). |
-| `already logged on` | Set `whenAlreadyLoggedOn` to `continue`, or log off the other session. |
+| `already logged on` | Set `whenAlreadyLoggedOn` to `continue` (or `endOthers`), or log off the other session. |
+| `logged on ... elsewhere, and the server asked again` | agent-gui answered SAP's multiple-logon question, but the server asked again. Log off the other session in SAP GUI. Please report it with a trace (`trace` setting). |
+| `a screen of the logon program that agent-gui does not handle (SAPMSYST ...)` | SAP asks something after the logon that agent-gui cannot answer: a password change, a system message or another question. Log on once in SAP GUI, settle it there, then run `--check` again. |
 | A transaction is refused | It is on the deny list or not on the allow list of that system. |
 
 ## Files this setup creates

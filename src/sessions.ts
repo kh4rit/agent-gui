@@ -280,6 +280,12 @@ export class Sessions implements GuiService {
         throw new Error(
           `User ${system.user} is already logged on to ${system.name}${result.information ? ` (${result.information})` : ""}. Set "whenAlreadyLoggedOn": "continue" (or "endOthers") in the configuration, or log off the other session.`
         )
+      case "multipleLogonRepeated":
+        this.logonState.clear(account)
+        await connection.close()
+        throw new Error(
+          `User ${system.user} is logged on to ${system.name} elsewhere${result.information ? ` (${result.information})` : ""}, and the server asked again after agent-gui answered its multiple-logon question with "${system.whenAlreadyLoggedOn}". Log off the other session and connect again. Please report this (a trace helps, see the "trace" setting).`
+        )
       case "serverError":
         this.logonState.withdraw(account)
         await connection.close()
@@ -288,7 +294,7 @@ export class Sessions implements GuiService {
         this.logonState.withdraw(account)
         await connection.close()
         throw new Error(
-          `After the logon the server shows another screen of the logon program (${result.program} ${result.screenNumber ?? ""}${result.message ? `: ${result.message}` : ""}), for example a password change. Log on once in SAP GUI to settle it.`
+          `After the logon the server shows a screen of the logon program that agent-gui does not handle (${[result.program, result.screenNumber].filter(Boolean).join(" ")}${result.message ? `: ${result.message}` : ""}). Log on once in SAP GUI to see what it asks (a password change, a system message or a question), settle it there, and connect again.`
         )
       case "noReply":
         this.logonState.withdraw(account)

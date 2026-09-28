@@ -39,7 +39,11 @@ logon, table paging, control events). [docs/PLAN.md](docs/PLAN.md) is the plan;
 - Byte vectors in `test/vectors` are Swooey's (source: spec). A vector that disagrees with the
   code is checked against Swooey's spec section, never edited to match the code.
 - End-to-end tests run against Swooey's fake server when `AGENT_GUI_FAKE_SERVER` names its
-  binary and `AGENT_GUI_SCENARIOS` its `Tests/Scenarios` folder; they skip otherwise.
+  binary and `AGENT_GUI_SCENARIOS` its `Tests/Scenarios` folder; they skip otherwise. Build it
+  from Swooey revision `112c04d`, the last whose server takes `--scenario` (later ones serve only
+  the Duck Pond), from an export so that the Swooey checkout stays untouched:
+  `git -C ../swooey archive 112c04d | tar -x -C <dir>`, then `swift build --product fake-diag-server`
+  in `<dir>`.
 - Commit messages: imperative subject; AI-assisted commits end with a `Co-Authored-By:` trailer
   naming the model.
 - Keep tools thin: logic lives in `src/engine` and the host modules, with tests.

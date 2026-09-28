@@ -217,7 +217,7 @@ test("already logged on: fail stops with an explanation, continue logs on", { sk
 test("a password change after the logon is reported, not handled", { skip: skipWithoutFakeServer }, async () => {
   const p = await pond("duck-pond-new-quack")
   try {
-    assert.match(await p.fail("gui_connect"), /another screen of the logon program/)
+    assert.match(await p.fail("gui_connect"), /a screen of the logon program that agent-gui does not handle/)
   } finally {
     await done(p)
   }
